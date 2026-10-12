@@ -1,0 +1,24 @@
+# Prior (2025) work: kept on disk for reference, never tracked.
+archive/
+
+# Personal day-to-day space (exploratory notebooks, notes).
+scratch/
+
+# Generated outputs (regenerate with the scripts in scripts/ and R/).
+results/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+
+# OS / editor
+.DS_Store
+*.swp

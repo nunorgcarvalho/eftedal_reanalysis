@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eftedal"
+version = "0.1.0"
+description = "Reanalysis of relative-pair phenotypic correlations from Eftedal et al. (2025)"
+requires-python = ">=3.11"
+dependencies = ["numpy", "scipy", "pandas"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
