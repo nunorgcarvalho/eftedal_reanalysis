@@ -162,7 +162,8 @@ if (has("robustness", "additive_predictions.csv")) {
     annotate("rect", xmin = so$corr - z95 * so$se, xmax = so$corr + z95 * so$se, ymin = -Inf, ymax = Inf, alpha = 0.15) +
     geom_vline(xintercept = so$corr, linetype = "dashed") +
     geom_point(size = 3.5) +
-    geom_text(aes(label = sprintf("h²=%.3f", V_A)), vjust = -1.1, size = 3, show.legend = FALSE) +
+    geom_text(aes(label = sprintf("h²=%.3f", V_A), vjust = ifelse(grepl("Eftedal", kernel), -1.1, 2.1)),
+              size = 3, show.legend = FALSE) +
     labs(x = "Predicted step-sibling correlation (additive model; shaded: observed 95% CI)", y = NULL, color = NULL) +
     theme_bw() + theme(legend.position = "bottom")
   save_fig(g, "06_stepsib_kernel", width = 2400, height = 1100)
