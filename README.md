@@ -51,6 +51,7 @@ Every choice is a field of `eftedal.model.FitSpec`:
 | `stepsib` | `eftedal` ($m((1+m)/2)^2$) or `corrected` ($m((1+r)/2)^2$) |
 | `uz`, `mz_frac` | relatives through twins of unknown zygosity: MZ/DZ `mixture` (default, fraction 0.5) or the averaged degree in the `exponent` |
 | `fixed`, `exclude_types`, `drop_duplicate`, `cocousin_family_degree` | fixed parameter values, leave-out sets, data checks |
+| `sequential_base`, `sequential_carry` | sequential estimation: fit the base model first and hold the carried parameters (default `V_A`) fixed |
 | `log_zero`, `adoptive` | handling of unloggable rows and of adoptive pairs; `legacy*` values reproduce the 2025 analysis |
 
 Main settings (`presets.MAIN`, `presets.main_spec`): linear scale, $m = V_A r$, corrected
@@ -69,6 +70,8 @@ python scripts/02_fit_models.py            # 16 core models x {hybrid, invvar}
 python scripts/03_cross_validation.py      # block cross-validation
 python scripts/04_uncertainty.py           # bootstrap + block jackknife (~1 h on one core)
 python scripts/05_robustness.py            # robustness rows, bio vs in-law contrast, phenotypes
+python scripts/06_sequential.py            # joint vs sequential (A first) estimation
+python scripts/07_profile.py               # profile over V_A
 Rscript R/make_figures.R                   # -> results/figures/main/
 ```
 

@@ -82,6 +82,7 @@ details[open] > summary { border-bottom: 1px solid var(--line); margin-bottom: 8
   <a class="sub" href="#logscale">Why not the log scale</a>
   <a href="#optim">How the optimisers work</a>
   <a href="#uncertainty">Uncertainty</a>
+  <a class="sub" href="#sequential">Sequential estimation</a>
   <a href="#cv">Model comparison (CV)</a>
   <a href="#replication">Replicating Eftedal et al.</a>
   <a href="#qa">Assumptions &amp; likely questions</a>
@@ -126,6 +127,8 @@ components, and <i>how sure</i> we are.
 <tr><td>Block cross-validation</td><td><code>scripts/03_cross_validation.py</code></td><td><code>results/cv/</code></td></tr>
 <tr><td>Intervals for the chosen models</td><td><code>scripts/04_uncertainty.py</code></td><td><code>results/uncertainty_main/</code></td></tr>
 <tr><td>Robustness, bio vs in-law contrast, phenotypes, 2025 model set</td><td><code>scripts/05_robustness.py</code></td><td><code>results/robustness/</code></td></tr>
+<tr><td>Joint vs sequential estimation</td><td><code>scripts/06_sequential.py</code></td><td><code>results/sequential/</code></td></tr>
+<tr><td>Profile over \(V_A\)</td><td><code>scripts/07_profile.py</code></td><td><code>results/profile/</code></td></tr>
 <tr><td>Figures</td><td><code>R/make_figures.R</code> (helpers in <code>R/plot_functions.R</code>)</td><td><code>results/figures/main/</code></td></tr>
 </table>
 <p class="muted">Python does all estimation; R only reads the CSVs and draws. <code>scripts/exploratory/</code> and
@@ -279,8 +282,23 @@ agree, a hidden better valley is unlikely. <code>at_bound</code> lists parameter
 <tr><td>Parametric bootstrap</td><td>Treat each reported \(SE_k\) as the true sampling SD, draw \(\rho^*_k \sim N(\hat\rho_k, SE_k^2)\) independently, refit with the <i>same</i> weighting, take percentile intervals. Measures <b>sampling noise only</b> and assumes the model is right. Repeated with SEs ×1.3 for pair overlap between categories.</td><td><code class="fn">inference.parametric_bootstrap</code></td></tr>
 <tr><td>Block jackknife</td><td>Refit leaving out each of the 10 cv blocks; \(SE = \sqrt{\tfrac{B-1}{B}\sum_b(\theta_{(b)} - \bar\theta)^2}\). Measures how much the answer depends on <b>which relationship types exist</b>, i.e. sensitivity to misspecification. Crude with 10 heterogeneous blocks, so also read its min–max range.</td><td><code class="fn">cv.jackknife</code></td></tr>
 <tr><td>Sandwich (cross-check)</td><td>\(\operatorname{Cov} = A^{-1} B A^{-1}\), \(A = \tfrac12\nabla^2 L\) (full Hessian), \(B = J^\top W S W J\), \(S = \operatorname{diag}(SE^2)\). Agrees with the bootstrap. The Gauss–Newton version (\(A = J^\top W J\)) drops the residual-curvature term and can be off by 10× under misspecification.</td><td><code class="fn">inference.covariance</code></td></tr>
+<tr><td>Profile over \(V_A\)</td><td>Hold \(V_A\) fixed on a grid and refit everything else (<code>FitSpec.fixed</code>). The loss increase is plotted in units of the residual variance (a quasi-likelihood ratio, which already allows for misfit); 3.84 is a rough 95% cut-off. Shows directly how \(V_A\) trades off against \(V_{GxG}\) or \(V_{fam}\): a long, shallow valley means the data pin down their sum, not their split.</td><td><code>scripts/07_profile.py</code></td></tr>
 <tr><td>Inverse Hessian of the RSS (replication only)</td><td>Eftedal's code. Not a covariance: multiplying all weights by a constant leaves the estimate unchanged but rescales this "SE" by \(1/\sqrt{\text{constant}}\). Explains the absurd intervals (tiny or huge) seen in 2025.</td><td><code>covariance(method='hessian_rss')</code></td></tr>
 </table>
+
+<h3 id="sequential">Sequential estimation (and why it is not the main estimator)</h3>
+<p><code>FitSpec.sequential_base</code> fits a base model first (e.g. A), then the full model with
+<code>sequential_carry</code> (default \(V_A\)) held at its stage-1 estimate (<code class="fn">fit._fit_sequential</code>).
+The result keeps the sequential spec, so bootstrap, jackknife and cross-validation redo both stages. Its Wald/sandwich
+covariance is conditional on stage 1; use the bootstrap.</p>
+<p>This is the summary-statistic version of <b>sequential (type I) sums of squares</b>: with collinear terms, whichever is
+entered first absorbs the signal they share. On these data, \(V_{GxG}\) drops from 0.30 (joint) to 0.01–0.02
+(sequential), and to 0 when the family term is also present. The sequential bootstrap intervals are just as narrow as the
+joint ones (0.009 [0.007, 0.012] vs 0.31 [0.23, 0.37]): they look precise because the ordering, not the data, decided the
+split. The profile over \(V_A\) puts the sequential \(V_A\) outside the 95% quasi-likelihood cut-off in every model.
+The "additive first" intuition comes from Fisher/Cockerham's orthogonal decomposition, but that orthogonality holds for
+individual genotypes and is already built into the \(K\) vs \(K^2\) kernels. The collinearity across the 82
+categories comes from which relatives are observed, so the joint fit is the estimator consistent with the model.</p>
 
 <h2 id="cv">Model comparison: block cross-validation</h2>
 <p>For each of the 10 cv blocks: refit without the block, predict its categories, score the error
@@ -351,6 +369,12 @@ better.</dd>
 <dd>Barely for the parameters (step siblings are 3 of 82 categories, ~0.3% of pairs): the additive \(h^2\) moves by
 \(\le 0.002\). It does raise the predicted step-sibling correlation itself (e.g. 0.087 → 0.101 under inverse variance),
 toward the observed 0.127, but not all the way.</dd>
+<dt>"Why not fit the additive part first and add GxG on top (sequentially)?"</dt>
+<dd>It hands the shared signal to whichever term goes first: \(V_{GxG}\) 0.30 jointly vs 0.01–0.02 sequentially, with
+equally tight bootstrap intervals for both. The data reject the sequential \(V_A\) (outside the profile cut-off in every
+model; 13–88% higher loss). Sequential numbers answer a different question ("GxG-shaped signal the additive model cannot
+mimic"), and that question is better answered by the joint-vs-nested loss or by cross-validation. See the sequential section
+and the \(V_A\) profile.</dd>
 <dt>"Which model fits best?"</dt>
 <dd>By block cross-validation, every model containing the decaying family environment forms a top cluster whose members
 are within ~1 SE of each other (A+F, A+GxG+F, A+F+mat, ...). Additive-only is ~1 SE behind, and sibling-household models
@@ -370,6 +394,8 @@ python scripts/02_fit_models.py
 python scripts/03_cross_validation.py
 python scripts/04_uncertainty.py         # slowest (bootstrap): ~1 h on one core
 python scripts/05_robustness.py
+python scripts/06_sequential.py          # joint vs sequential estimation
+python scripts/07_profile.py             # profile over V_A
 module load gcc/14.2.0 R/4.4.2 && Rscript R/make_figures.R</code></pre>
 <ul>
 <li><b>One fit:</b> <code>from eftedal import data as D; from eftedal.fit import fit; from eftedal.presets import main_spec</code>
