@@ -104,6 +104,11 @@ class FitSpec:
     max_total_variance : if set, constrain the sum of all variance components V_* to be at
                      most this (1 = phenotypic variance; leaves V_E >= 0). None = box bounds only.
     fixed      : parameters held at fixed values, e.g. (('r', 0.47),)
+    sequential_base  : if set, fit sequentially: first the model with these components (same
+                     settings otherwise), then this model with the `sequential_carry` parameters
+                     held at their stage-1 estimates. An ordering convention (type I sums of
+                     squares): the base absorbs any signal it shares with the added terms.
+    sequential_carry : parameters carried from stage 1 (default V_A)
     """
 
     components: tuple[str, ...] = ("A",)
@@ -121,6 +126,8 @@ class FitSpec:
     exclude_types: tuple[str, ...] = ()
     max_total_variance: float | None = None
     fixed: tuple[tuple[str, float], ...] = ()
+    sequential_base: tuple[str, ...] | None = None
+    sequential_carry: tuple[str, ...] = ("V_A",)
     label: str = field(default="", compare=False)
 
     def __post_init__(self):
@@ -135,6 +142,9 @@ class FitSpec:
             raise ValueError(f"unknown scale {self.scale!r}")
         if self.mr == "equilibrium" and "A" not in self.components:
             raise ValueError("mr='equilibrium' needs an additive component")
+        if self.sequential_base is not None:
+            if not set(self.sequential_base) < set(self.components):
+                raise ValueError("sequential_base must be a proper subset of components")
 
     def with_(self, **kw) -> "FitSpec":
         return replace(self, **kw)
@@ -146,6 +156,8 @@ class FitSpec:
         d["exclude_types"] = ";".join(self.exclude_types)
         d["components"] = "+".join(self.components)
         d["fixed"] = ";".join(f"{k}={v:g}" for k, v in self.fixed)
+        d["sequential_base"] = "+".join(self.sequential_base) if self.sequential_base else ""
+        d["sequential_carry"] = "+".join(self.sequential_carry) if self.sequential_base else ""
         d["label"] = self.label
         return d
 

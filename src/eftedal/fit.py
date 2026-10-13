@@ -162,6 +162,9 @@ def fit(data: pd.DataFrame, spec: FitSpec, *, n_starts: int = 12, seed: int = 0,
     best local solutions are polished with derivative-free searches. With n_starts=0 and
     polish=False only a local search from the default start is run.
     """
+    if spec.sequential_base is not None:
+        return _fit_sequential(data, spec, n_starts=n_starts, seed=seed, starts=starts,
+                               corr=corr, polish=polish)
     model = Model(data, spec, corr=corr)
     if not model.free:
         theta = np.array([])
@@ -196,6 +199,22 @@ def fit(data: pd.DataFrame, spec: FitSpec, *, n_starts: int = 12, seed: int = 0,
     _, rows = model.residuals(pred)
     return FitResult(spec, model, theta, p, model.loss(theta), pred, rows,
                      len(x0s), n_best, fit_stats(model, pred))
+
+
+def _fit_sequential(data, spec: FitSpec, **kw) -> FitResult:
+    """Stage 1: the base model; stage 2: the full model with the carried parameters fixed at
+    their stage-1 values. Returns the stage-2 result, labelled with the original (sequential)
+    spec so that refits (bootstrap, jackknife, CV) redo both stages. Its `model` is the stage-2
+    model, so Wald/sandwich covariances are conditional on stage 1."""
+    starts = kw.pop("starts", None)
+    base = fit(data, spec.with_(components=spec.sequential_base, sequential_base=None), **kw)
+    carried = tuple((p, float(base.params[p])) for p in spec.sequential_carry if p in base.params)
+    stage2 = spec.with_(sequential_base=None, fixed=spec.fixed + carried)
+    res = fit(data, stage2, starts=starts, **kw)
+    res.spec = spec
+    res.stats.update({f"stage1_{p}": v for p, v in base.params.items()})
+    res.stats["stage1_loss"] = base.loss
+    return res
 
 
 def fit_many(data: pd.DataFrame, specs: list[FitSpec], **kw) -> tuple[pd.DataFrame, pd.DataFrame, list[FitResult]]:

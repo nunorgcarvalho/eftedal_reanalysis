@@ -96,3 +96,22 @@ def test_hybrid_block_weights_sum_to_one_per_block(df):
     m = Model(df, main_spec("A", "hybrid_block"))
     sums = df.assign(w=m.w).groupby("cv_block")["w"].sum()
     np.testing.assert_allclose(sums, 1.0)
+
+
+def test_sequential_fit_equals_manual_two_stage(df):
+    s = main_spec("A+GxG", "invvar")
+    seq = fit(df, s.with_(sequential_base=("A",)), n_starts=4)
+    a = fit(df, main_spec("A", "invvar"), n_starts=4)
+    manual = fit(df, s.with_(fixed=(("V_A", a.params["V_A"]),)), n_starts=4)
+    assert seq.params["V_A"] == pytest.approx(a.params["V_A"])
+    assert seq.params["V_GxG"] == pytest.approx(manual.params["V_GxG"], abs=1e-6)
+    assert seq.loss == pytest.approx(manual.loss, rel=1e-8)
+    assert seq.spec.sequential_base == ("A",)        # refits redo both stages
+    assert "V_A" not in seq.free
+
+
+def test_sequential_bootstrap_redoes_stage_one(df):
+    from eftedal.inference import parametric_bootstrap
+    seq = fit(df, main_spec("A+GxG", "invvar").with_(sequential_base=("A",)), n_starts=2)
+    reps = parametric_bootstrap(df, seq, n_boot=5, seed=1, n_starts=1)
+    assert reps["V_A"].std() > 0                     # V_A re-estimated in every replicate
