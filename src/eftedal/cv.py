@@ -86,3 +86,20 @@ def jackknife(fold_params: pd.DataFrame, full_params: dict, params: list[str],
                      "hi": est + 1.96 * se, "jk_min": th.min(), "jk_max": th.max(),
                      "method": "block jackknife", "n_blocks": B})
     return pd.DataFrame(rows)
+
+
+def paired_comparison(fold_scores: pd.DataFrame, by=("weights", "model")) -> pd.DataFrame:
+    """Paired fold-by-fold comparison of every model with the best one (lowest mean score)
+    within each weighting, over the single-block folds: mean difference in score and its
+    standard error across the folds (the folds are the replicates)."""
+    s = fold_scores[~fold_scores["group_test"]]
+    rows = []
+    for w, g in s.groupby(by[0]):
+        wide = g.pivot_table(index="fold", columns=by[1], values="score")
+        best = wide.mean().idxmin()
+        for m in wide.columns:
+            d = wide[m] - wide[best]
+            rows.append({by[0]: w, by[1]: m, "best": best, "mean_diff": d.mean(),
+                         "se_diff": d.std(ddof=1) / np.sqrt(len(d)),
+                         "folds_worse": int((d > 0).sum()), "n_folds": len(d)})
+    return pd.DataFrame(rows).sort_values([by[0], "mean_diff"])

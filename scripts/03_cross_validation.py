@@ -6,6 +6,10 @@ cv_heldout.csv        held-out categories with their CV predictions (and full-fi
 cv_fold_scores.csv    score per model x weighting x fold
 cv_summary.csv        overall score per model x weighting (single-block folds), plus the
                       in-sample score of the full fit on the same scale for comparison
+cv_paired.csv         paired fold-by-fold differences from the best model per weighting
+cv_weightings.csv     paired comparison of the two weightings for each model
+
+--summarize-only recomputes the last two from an existing cv_fold_scores.csv.
 """
 
 import argparse
@@ -17,6 +21,12 @@ from eftedal import cv
 from eftedal import data as D
 from eftedal.model import CORE_MODELS
 from eftedal.presets import MAIN_WEIGHTINGS, main_spec
+
+
+def summarize(out: Path):
+    sc = pd.read_csv(out / "cv_fold_scores.csv")
+    cv.paired_comparison(sc).to_csv(out / "cv_paired.csv", index=False)
+    cv.paired_comparison(sc, by=("model", "weights")).to_csv(out / "cv_weightings.csv", index=False)
 
 
 def main(out: Path, n_starts: int):
@@ -40,11 +50,13 @@ def main(out: Path, n_starts: int):
     pd.concat(held, ignore_index=True).to_csv(out / "cv_heldout.csv", index=False)
     pd.concat(scores, ignore_index=True).to_csv(out / "cv_fold_scores.csv", index=False)
     pd.DataFrame(summ).to_csv(out / "cv_summary.csv", index=False)
+    summarize(out)
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out", type=Path, default=D.REPO_ROOT / "results" / "cv")
     ap.add_argument("--n-starts", type=int, default=20)
+    ap.add_argument("--summarize-only", action="store_true")
     a = ap.parse_args()
-    main(a.out, a.n_starts)
+    summarize(a.out) if a.summarize_only else main(a.out, a.n_starts)
