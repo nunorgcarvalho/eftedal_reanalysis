@@ -41,3 +41,71 @@ def sensitivity_doc_specs() -> list[FitSpec]:
                                    uz="exponent", log_zero="legacy", adoptive="zero",
                                    label=f"A {cohort} {scale},{weights}"))
     return out
+
+
+# --------------------------------------------------------------------------------------
+# Grids for the corrected analyses
+# --------------------------------------------------------------------------------------
+
+# (scale, weights) combinations and their short names
+FIT_SETTINGS = {
+    "log-invSqErr": ("log", "invSqErr"),   # Eftedal et al.
+    "log-invvar": ("log", "invvar"),       # log scale, delta-method weights (corrected)
+    "lin-invvar": ("lin", "invvar"),       # linear scale, 1/SE^2 (= Gaussian ML)
+    "log-hybrid": ("log", "hybrid"),
+    "lin-hybrid": ("lin", "hybrid"),       # NHGRI poster setting
+    "lin-uniform": ("lin", "uniform"),
+}
+
+
+def fisher_grid() -> list[FitSpec]:
+    """Additive-only (Fisherian) model: cohort x fit setting x m-r mode x step-sib formula."""
+    out = []
+    for cohort, setting, mr, stepsib in itertools.product(
+            ("ALL_but_adopted_UZ", "ALL_but_adopted", "bio_only"), FIT_SETTINGS,
+            ("free", "equilibrium"), ("eftedal", "corrected")):
+        if cohort == "bio_only" and stepsib == "corrected":
+            continue   # no step siblings in the bio-only cohort
+        scale, weights = FIT_SETTINGS[setting]
+        out.append(FitSpec(components=("A",), cohort=cohort, scale=scale, weights=weights,
+                           mr=mr, stepsib=stepsib, **{k: v for k, v in CORRECTED.items() if k != "stepsib"},
+                           label=f"M01|{cohort}|{setting}|{mr}|{stepsib}"))
+    return out
+
+
+def model_grid(settings=("log-invSqErr", "log-invvar", "lin-invvar", "lin-hybrid")) -> list[FitSpec]:
+    """Every named model on all 82 categories: fit setting x m-r mode x step-sib formula."""
+    out = []
+    for name, setting, mr, stepsib in itertools.product(MODELS, settings, ("free", "equilibrium"),
+                                                        ("eftedal", "corrected")):
+        scale, weights = FIT_SETTINGS[setting]
+        out.append(FitSpec(components=MODELS[name], cohort="ALL", scale=scale, weights=weights,
+                           mr=mr, stepsib=stepsib, **{k: v for k, v in CORRECTED.items() if k != "stepsib"},
+                           label=f"{name}|ALL|{setting}|{mr}|{stepsib}"))
+    return out
+
+
+def spec(model: str, cohort: str, setting: str, mr: str = "free", stepsib: str = "eftedal",
+         **kw) -> FitSpec:
+    """Shorthand for a corrected-defaults spec of a named model and fit setting."""
+    scale, weights = FIT_SETTINGS[setting]
+    base = {k: v for k, v in CORRECTED.items() if k != "stepsib"}
+    return FitSpec(components=MODELS[model], cohort=cohort, scale=scale, weights=weights,
+                   mr=mr, stepsib=stepsib, **{**base, **kw},
+                   label=f"{model}|{cohort}|{setting}|{mr}|{stepsib}")
+
+
+def key_specs() -> list[FitSpec]:
+    """Specs probed by leave-one-out, one-at-a-time checks and uncertainty analyses."""
+    return [
+        spec("M01", "ALL_but_adopted_UZ", "log-invSqErr"),                    # Eftedal et al.
+        spec("M01", "ALL_but_adopted_UZ", "log-invvar"),
+        spec("M01", "ALL_but_adopted_UZ", "lin-invvar"),
+        spec("M01", "ALL_but_adopted_UZ", "log-invvar", mr="equilibrium", stepsib="corrected"),
+        spec("M01", "ALL", "lin-hybrid"),                                      # NHGRI fig 1
+        spec("M02", "ALL", "lin-hybrid"),                                      # NHGRI fig 2
+        spec("M04b", "ALL", "lin-hybrid"),                                     # NHGRI fig 3
+        spec("M02", "ALL", "lin-invvar", mr="equilibrium", stepsib="corrected"),
+        spec("M04b", "ALL", "lin-invvar", mr="equilibrium", stepsib="corrected"),
+        spec("M05b", "ALL", "lin-invvar", mr="equilibrium", stepsib="corrected"),
+    ]

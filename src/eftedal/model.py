@@ -77,6 +77,7 @@ class FitSpec:
     adoptive   : 'zero' | 'legacy_n99' genetic sharing of adoptive pairs (`components`)
     cocousin_family_degree : override f for biological co-cousins (None = annotation table)
     drop_duplicate : drop the duplicated 2nd-cousin row (see data/README.md)
+    exclude_types  : relationship types (`rel`) removed from the cohort (leave-one-out)
     fixed      : parameters held at fixed values, e.g. (('r', 0.47),)
     """
 
@@ -92,6 +93,7 @@ class FitSpec:
     adoptive: str = "zero"
     cocousin_family_degree: float | None = None
     drop_duplicate: bool = False
+    exclude_types: tuple[str, ...] = ()
     fixed: tuple[tuple[str, float], ...] = ()
     label: str = field(default="", compare=False)
 
@@ -115,6 +117,7 @@ class FitSpec:
         d = {k: getattr(self, k) for k in (
             "cohort", "scale", "weights", "mr", "stepsib", "uz", "mz_frac", "log_zero", "adoptive",
             "cocousin_family_degree", "drop_duplicate")}
+        d["exclude_types"] = ";".join(self.exclude_types)
         d["components"] = "+".join(self.components)
         d["fixed"] = ";".join(f"{k}={v:g}" for k, v in self.fixed)
         d["label"] = self.label
@@ -148,6 +151,8 @@ class Model:
         self.se = data["se"].to_numpy(dtype=float)
 
         self.cohort = cohort_mask(self.data, spec.cohort, spec.drop_duplicate)
+        if spec.exclude_types:
+            self.cohort &= ~self.data["rel"].isin(spec.exclude_types).to_numpy()
         self.indicators = {c: C.env_indicator(self.data, c)
                            for c in spec.components if c in C.INDICATOR_COMPONENTS}
         self.f = self.data["family_degree"].to_numpy(dtype=float)
