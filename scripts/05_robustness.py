@@ -1,11 +1,11 @@
 """Robustness rows, the bio-only vs bio+in-law contrast, all phenotypes, and the 2025 model
 set under the main settings. Writes results/robustness/:
 
-additive_rows.csv     additive model under the main settings and one-at-a-time departures
+additive_rows.csv     (+ additive_predictions.csv) additive model under the main settings and one-at-a-time departures
                       (log scale with delta-method weights, separate m/r, Eftedal step-sib
                       kernel, block-balanced hybrid, duplicated row dropped, MZ fraction 0.42,
                       Eftedal's own settings), in the full and in Eftedal's bio+in-law cohort
-contrast.csv          bio-only vs bio+in-law h2 under Eftedal's settings and ours (headline)
+contrast.csv          (+ contrast_predictions.csv) bio-only vs bio+in-law h2 under Eftedal's settings and ours (headline)
 phenotypes.csv        the contrast for all 13 phenotypes
 models_2025.csv       the 2025 model set (M01-M05b) under the main settings (supplement)
 """
@@ -61,25 +61,37 @@ def _row(res, **tag):
     return d
 
 
+def _preds(res, i, **tag):
+    p = res.predictions()
+    p.insert(0, "fit_id", i)
+    return p.assign(**tag)
+
+
 def additive_rows(df, n_starts):
-    rows = []
+    rows, preds = [], []
     for cohort in ("ALL", "ALL_but_adopted_UZ"):
         for name, w, kw in VARIANTS:
             res = fit(df, main_spec("A", w, cohort=cohort, **kw), n_starts=n_starts)
-            rows.append(_row(res, variant=name, weighting=w, cohort_name=cohort))
+            tag = dict(variant=name, weighting=w, cohort_name=cohort)
+            rows.append(_row(res, fit_id=len(rows), **tag))
+            preds.append(_preds(res, len(rows) - 1, **tag))
     a = E.fit_bio_inlaw(df)
     rows.append({"variant": "Eftedal et al. code (exact)", "weighting": "invSqErr",
                  "cohort_name": "ALL_but_adopted_UZ", "V_A": a.h2, "m": a.m, "c": a.c,
                  "r": a.r_implied, "R2_lin": a.R2})
-    return pd.DataFrame(rows)
+    return pd.DataFrame(rows), pd.concat(preds, ignore_index=True)
 
 
-def contrast(df, n_starts, phenotype="MRE8"):
-    rows = []
+def contrast(df, n_starts, phenotype="MRE8", with_preds=False):
+    rows, preds = [], []
     for name, w, kw in CONTRAST_SETTINGS:
         for cohort in ("bio_only", "ALL_but_adopted_UZ"):
             res = fit(df, main_spec("A", w, cohort=cohort, **kw), n_starts=n_starts)
-            rows.append(_row(res, setting=name, weighting=w, cohort_name=cohort, phenotype=phenotype))
+            tag = dict(setting=name, weighting=w, cohort_name=cohort, phenotype=phenotype)
+            rows.append(_row(res, fit_id=len(rows), **tag))
+            preds.append(_preds(res, len(rows) - 1, **tag))
+    if with_preds:
+        return pd.DataFrame(rows), pd.concat(preds, ignore_index=True)
     return pd.DataFrame(rows)
 
 
@@ -95,8 +107,12 @@ def models_2025(df, n_starts):
 def main(out: Path, n_starts: int):
     out.mkdir(parents=True, exist_ok=True)
     df = D.load("MRE8")
-    additive_rows(df, n_starts).to_csv(out / "additive_rows.csv", index=False)
-    contrast(df, n_starts).to_csv(out / "contrast.csv", index=False)
+    rows, preds = additive_rows(df, n_starts)
+    rows.to_csv(out / "additive_rows.csv", index=False)
+    preds.to_csv(out / "additive_predictions.csv", index=False)
+    rows, preds = contrast(df, n_starts, with_preds=True)
+    rows.to_csv(out / "contrast.csv", index=False)
+    preds.to_csv(out / "contrast_predictions.csv", index=False)
     pd.concat([contrast(D.load(p), n_starts, p) for p in PHENOTYPES],
               ignore_index=True).to_csv(out / "phenotypes.csv", index=False)
     models_2025(df, n_starts).to_csv(out / "models_2025.csv", index=False)
