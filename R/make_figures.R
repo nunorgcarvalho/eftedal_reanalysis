@@ -176,4 +176,47 @@ if (has("robustness", "additive_predictions.csv")) {
     facet_wrap(~cohort_name) + labs(x = "h² (additive model)", y = NULL) + theme_bw()
   save_fig(g, "07_robustness_h2", width = 3000, height = 1500)
 }
+# ---- 8. joint vs sequential estimation ------------------------------------------------------
+if (has("sequential", "intervals.csv")) {
+  sq <- rd("sequential", "intervals.csv") %>%
+    filter(param %in% c("V_A", "V_GxG", "V_family")) %>%
+    mutate(weights = WEIGHT_LABELS[weights],
+           procedure = factor(procedure, c("joint", "sequential (fix V_A)")))
+  g <- ggplot(sq, aes(x = estimate, xmin = lo, xmax = hi, y = model, color = procedure)) +
+    geom_pointrange(position = position_dodge(width = 0.5), size = 0.3) +
+    facet_grid(weights ~ param) +
+    scale_color_manual(values = c("joint" = "#00BFC4", "sequential (fix V_A)" = "#F8766D"), name = NULL) +
+    labs(x = "Estimate (95% bootstrap interval; sequential: both stages redone per replicate)", y = NULL,
+         title = "Joint vs sequential (A first, V_A held fixed) estimation") +
+    theme_bw() + theme(legend.position = "bottom")
+  save_fig(g, "08_joint_vs_sequential", width = 3000, height = 1500)
+}
+
+# ---- 9. profile over V_A ---------------------------------------------------------------------
+if (has("profile", "profile_VA.csv")) {
+  pf <- rd("profile", "profile_VA.csv") %>% mutate(weights = WEIGHT_LABELS[weights])
+  grid <- pf %>% filter(point == "grid")
+  marks <- pf %>% filter(point != "grid")
+  g1 <- ggplot(grid, aes(x = V_A, y = qlr)) +
+    geom_hline(yintercept = qchisq(0.95, 1), linetype = "dashed", color = "grey40") +
+    geom_line(linewidth = 0.9) +
+    geom_point(data = marks, aes(color = point), size = 3) +
+    facet_grid(weights ~ model) + coord_cartesian(ylim = c(0, 60)) +
+    scale_color_manual(values = c(joint = "#00BFC4", sequential = "#F8766D"), name = NULL) +
+    labs(x = "V_A (held fixed; everything else refitted)",
+         y = "Loss increase / residual variance\n(quasi-likelihood ratio; dashed: 3.84)",
+         title = "How well is V_A pinned down? Profile over V_A") +
+    theme_bw() + theme(legend.position = "bottom")
+  save_fig(g1, "09_profile_VA_loss", width = 3000, height = 1700)
+  comp <- grid %>% select(model, weights, V_A, V_GxG, V_family) %>%
+    pivot_longer(c(V_GxG, V_family), names_to = "component") %>% filter(!is.na(value)) %>%
+    mutate(component = sub("V_", "", component))
+  g2 <- ggplot(comp, aes(x = V_A, y = value, color = component)) + geom_line(linewidth = 0.9) +
+    geom_abline(intercept = 1, slope = -1, linetype = "dotted", color = "grey50") +
+    facet_grid(weights ~ model) +
+    labs(x = "V_A (held fixed)", y = "Refitted variance component", color = NULL,
+         title = "What the other components do as V_A is moved (dotted: sum of V = 1)") +
+    theme_bw() + theme(legend.position = "bottom")
+  save_fig(g2, "09b_profile_VA_components", width = 3000, height = 1700)
+}
 cat("figures written to", FIGURES, "\n")
