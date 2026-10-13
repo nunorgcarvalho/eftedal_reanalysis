@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>eftedal_reanalysis — code overview</title>
+<script>
+  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>
+<style>
+:root {
+  --bg: #fbfaf7; --panel: #ffffff; --ink: #1f2328; --muted: #5d6470; --line: #e3e0d8;
+  --accent: #2f6f8f; --accent-soft: #e6f0f4; --warn: #9a5b00; --warn-soft: #fbf1df;
+  --code-bg: #f3f1ec; --ok: #2e7d4f;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15171a; --panel: #1d2024; --ink: #e6e6e3; --muted: #a2a8b1; --line: #33373d;
+    --accent: #7fb8d4; --accent-soft: #1f2e36; --warn: #e3ad5b; --warn-soft: #2e2618;
+    --code-bg: #24282d; --ok: #6cc391;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15171a; --panel: #1d2024; --ink: #e6e6e3; --muted: #a2a8b1; --line: #33373d;
+  --accent: #7fb8d4; --accent-soft: #1f2e36; --warn: #e3ad5b; --warn-soft: #2e2618;
+  --code-bg: #24282d; --ok: #6cc391;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+.wrap { display: grid; grid-template-columns: 250px minmax(0, 1fr); max-width: 1180px; margin: 0 auto; gap: 32px; padding: 24px 16px; }
+nav { position: sticky; top: 16px; align-self: start; max-height: calc(100vh - 32px); overflow: auto;
+  font-size: 14px; border-right: 1px solid var(--line); padding-right: 16px; }
+nav a { display: block; color: var(--muted); text-decoration: none; padding: 3px 0; }
+nav a:hover { color: var(--accent); }
+nav .sub { padding-left: 12px; font-size: 13px; }
+main { min-width: 0; }
+h1 { font-size: 30px; margin: 0 0 4px; }
+h2 { font-size: 22px; margin: 40px 0 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+h3 { font-size: 17px; margin: 24px 0 6px; }
+p.lede { color: var(--muted); margin-top: 0; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; font-size: 0.88em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; font-size: 13.5px; line-height: 1.45; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; font-size: 14.5px; }
+th, td { text-align: left; vertical-align: top; padding: 6px 10px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 600; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; margin: 14px 0; }
+.note { background: var(--accent-soft); border-left: 4px solid var(--accent); border-radius: 6px; padding: 10px 14px; margin: 14px 0; }
+.warn { background: var(--warn-soft); border-left: 4px solid var(--warn); border-radius: 6px; padding: 10px 14px; margin: 14px 0; }
+details { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; margin: 10px 0; padding: 6px 14px; }
+details > summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
+details[open] > summary { border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+.flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
+.flow span.box { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 14px; }
+.flow span.arrow { color: var(--muted); }
+.fn { color: var(--accent); }
+.muted { color: var(--muted); }
+.qa dt { font-weight: 600; margin-top: 14px; }
+.qa dd { margin: 4px 0 0 0; }
+@media (max-width: 820px) {
+  .wrap { grid-template-columns: 1fr; }
+  nav { position: static; max-height: none; border-right: none; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <strong>Contents</strong>
+  <a href="#glance">At a glance</a>
+  <a href="#pipeline">Pipeline map</a>
+  <a href="#data">Data</a>
+  <a href="#model">The model</a>
+  <a class="sub" href="#genetic">Genetic sharing under AM</a>
+  <a class="sub" href="#env">Environment &amp; maternal terms</a>
+  <a class="sub" href="#constraints">Parameters &amp; constraints</a>
+  <a href="#estimation">Estimation</a>
+  <a class="sub" href="#weights">Weights</a>
+  <a class="sub" href="#logscale">Why not the log scale</a>
+  <a href="#optim">How the optimisers work</a>
+  <a href="#uncertainty">Uncertainty</a>
+  <a href="#cv">Model comparison (CV)</a>
+  <a href="#replication">Replicating Eftedal et al.</a>
+  <a href="#qa">Assumptions &amp; likely questions</a>
+  <a href="#run">Running &amp; extending</a>
+</nav>
+<main>
+
+<h1>eftedal_reanalysis — how the code works</h1>
+<p class="lede">A guide to what every part of the code computes and why, for answering questions about the
+analysis and for checking it. Function names are given as <code>module.function</code> under
+<code>src/eftedal/</code>.</p>
+
+<h2 id="glance">At a glance</h2>
+<p>Eftedal et al. (2025, <i>PNAS</i>) published 82 phenotypic correlations between categories of Norwegian
+relatives (twins to 2nd cousins, step siblings, "co-cousins", adoptive relatives) for school test scores. Each
+category has one correlation \(\hat\rho_k\) with a standard error \(SE_k\). We fit models that predict every
+\(\rho_k\) from how much the pair shares genetically (under assortative mating) and environmentally, and ask how
+the conclusions depend on modelling and fitting choices.</p>
+<div class="card">
+<b>The whole analysis in one line:</b> choose a model (which components), predict all 82 correlations as a
+function of a few parameters, and find the parameters that minimise a weighted sum of squared differences
+between observed and predicted correlations. Everything else is about <i>which</i> weights, <i>which</i>
+components, and <i>how sure</i> we are.
+</div>
+
+<h2 id="pipeline">Pipeline map</h2>
+<div class="flow">
+  <span class="box">data/eftedal_osf/*.csv<br><span class="muted">82 correlations</span></span><span class="arrow">+</span>
+  <span class="box">data/relationship_types.csv<br><span class="muted">our annotation</span></span><span class="arrow">→</span>
+  <span class="box"><code>data.load()</code></span><span class="arrow">→</span>
+  <span class="box"><code>FitSpec</code><br><span class="muted">every choice</span></span><span class="arrow">→</span>
+  <span class="box"><code>Model</code><br><span class="muted">predict, weights, loss</span></span><span class="arrow">→</span>
+  <span class="box"><code>fit()</code><br><span class="muted">optimiser</span></span><span class="arrow">→</span>
+  <span class="box"><code>inference</code> / <code>cv</code></span><span class="arrow">→</span>
+  <span class="box">results/*.csv</span><span class="arrow">→</span>
+  <span class="box">R/make_figures.R<br><span class="muted">PNG figures</span></span>
+</div>
+<table>
+<tr><th>step</th><th>script</th><th>writes</th></tr>
+<tr><td>Replicate Eftedal et al. exactly</td><td><code>scripts/01_replicate_eftedal.py</code></td><td><code>results/replication/</code></td></tr>
+<tr><td>Fit the 16 core models, both weightings</td><td><code>scripts/02_fit_models.py</code></td><td><code>results/main/fits_*.csv</code></td></tr>
+<tr><td>Block cross-validation</td><td><code>scripts/03_cross_validation.py</code></td><td><code>results/cv/</code></td></tr>
+<tr><td>Intervals for the chosen models</td><td><code>scripts/04_uncertainty.py</code></td><td><code>results/uncertainty_main/</code></td></tr>
+<tr><td>Robustness, bio vs in-law contrast, phenotypes, 2025 model set</td><td><code>scripts/05_robustness.py</code></td><td><code>results/robustness/</code></td></tr>
+<tr><td>Figures</td><td><code>R/make_figures.R</code> (helpers in <code>R/plot_functions.R</code>)</td><td><code>results/figures/main/</code></td></tr>
+</table>
+<p class="muted">Python does all estimation; R only reads the CSVs and draws. <code>scripts/exploratory/</code> and
+<code>R/exploratory_figures.R</code> hold the first round of analyses (2026-10-12) that led to the plan.</p>
+
+<h2 id="data">Data</h2>
+<h3>What the files contain</h3>
+<p><code>data/eftedal_osf/correlations/</code> holds the authors' public OSF files: for each of 13 phenotypes,
+82 rows of aggregate statistics: <code>corr</code>, <code>SE</code>, number of pairs, and labels
+(<code>rel</code> = relationship type, <code>type</code> = maternal/paternal/other, <code>pair</code> = sex
+composition). No individual-level data. The main phenotype is <code>MRE8</code> (average of the 8th-grade
+math, Norwegian and English tests).</p>
+<h3>Our annotation: <code>data/relationship_types.csv</code></h3>
+<table>
+<tr><th>column</th><th>meaning</th></tr>
+<tr><td><code>genetic_structure</code></td><td>how genetic sharing is computed: <code>full</code> (descent through full siblings), <code>full_uz</code> (through same-sex twins of unknown zygosity), <code>half</code>, <code>step</code>, <code>cocousin</code>, <code>none</code> (adoptive)</td></tr>
+<tr><td><code>n</code></td><td>degree of relatedness as Eftedal et al. define it (in-laws: summed distance to the connecting mates; t/uz classes: mean of the MZ and DZ alternatives)</td></tr>
+<tr><td><code>family_degree</code> \(f\)</td><td>"distance" in the family for the decaying family environment: MZ/DZ/sibs/adoptive sibs 0, half sibs 0.5, step sibs 1, 1st cousins 1, half cousins 1.5, 2nd cousins 2, co-cousins 2</td></tr>
+<tr><td><code>household</code></td><td><code>full</code> (twins, sibs, adoptive sibs), <code>partial</code> (step sibs), <code>by_side</code> (half sibs: full-time if maternal, part-time if paternal), <code>none</code></td></tr>
+<tr><td><code>broad_type</code></td><td>the 16 relationship types; grouping for the hybrid weights</td></tr>
+<tr><td><code>cv_block</code></td><td>10 blocks held out together in cross-validation: near-duplicates share a block (MZ/UZ/DZ; cousins with their t/uz variants; the three adoptive cousin types)</td></tr>
+</table>
+<h3>Cohorts and data checks</h3>
+<p><code>data.COHORTS</code>: <code>ALL</code> (82, the main analysis), <code>ALL_but_adopted_UZ</code>
+(Eftedal's "bio + in-law", 53), <code>bio_only</code> (41). <code>data.load()</code> flags one row as
+<code>suspect_duplicate</code>: in every non-adoptive OSF file, <i>2nd cousins / other / same-sex female</i> is an exact
+copy of <i>2nd cousins / paternal / same-sex female</i>. It is kept by default; dropping it changes nothing material.</p>
+
+<h2 id="model">The model</h2>
+<p>For category \(k\), with \(\theta\) the parameters, the prediction is</p>
+\[
+\rho_k(\theta) \;=\; \Big[\, V_A\,K_k + V_{GxG}\,K^{(2)}_k + V_{house}\big(h^{full}_k + \pi\, h^{part}_k\big) + V_{fam}\, r_f^{\,f_k} \Big]\,\big(1 + \delta\, M_k\big)
+\]
+<p>Each model includes a subset of the bracketed terms (and optionally \(\delta\)). Implemented in
+<code class="fn">model.Model.predict</code>; the per-component contributions are returned by
+<code class="fn">model.Model.components</code>.</p>
+
+<h3 id="genetic">Genetic sharing under assortative mating</h3>
+<p>\(K_k\) is the expected <i>genotypic</i> correlation of the pair under primary phenotypic assortative mating at
+equilibrium (Fisher's model; Eftedal et al. Table S9). With \(m\) the genetic correlation between mates and
+\(r\) the phenotypic correlation between mates (<code class="fn">components.genetic_kernels</code>):</p>
+<table>
+<tr><th>category</th><th>\(K_k\)</th></tr>
+<tr><td>MZ, DZ, full sibs, 1st and 2nd cousins (n = 0, 1, 1, 3, 5)</td><td>\(\left(\frac{1+m}{2}\right)^{n}\)</td></tr>
+<tr><td>via twins of unknown zygosity (UZ twins, 1st/2nd cousins t/uz)</td><td>\(p\left(\frac{1+m}{2}\right)^{n-\frac12} + (1-p)\left(\frac{1+m}{2}\right)^{n+\frac12}\), MZ fraction \(p = 0.5\)</td></tr>
+<tr><td>half sibs (n = 2), half cousins (n = 4)</td><td>\(\left(\frac{1+m}{2}\right)^{n}\,\frac{1+2m+rm}{(1+m)^2}\) (Nagylaki's multiplier)</td></tr>
+<tr><td>step siblings</td><td>\(m\left(\frac{1+r}{2}\right)^{2}\) (corrected; Eftedal et al. use \(m\left(\frac{1+m}{2}\right)^{2}\))</td></tr>
+<tr><td>co-cousins</td><td>\(m\left(\frac{1+m}{2}\right)^{4}\)</td></tr>
+<tr><td>adoptive pairs</td><td>0</td></tr>
+</table>
+<details><summary>Why the step-sibling formula changes</summary>
+<p>Step siblings are connected through a chain of three matings (one parent of A is mated to one parent of B).
+Along a mating chain, the first step costs the genetic mate correlation \(m\), and every further step costs the
+phenotypic correlation \(r\), because assortment acts on phenotypes. Averaging over the four parent pairs gives
+\(m\left(\tfrac{1+r}{2}\right)^2\). Eftedal's expression prices every step at \(m\). That is inconsistent with their own
+half-sibling multiplier, which prices a two-step crossing at \(rm\). Derived in popstatgenwriteups,
+<i>relative_covariance</i> v1 and its <i>eftedal</i> note. The two forms agree when \(r = m\).</p></details>
+<p><b>Coupling \(m\) and \(r\).</b> Under primary phenotypic assortment at equilibrium, mates' genetic values
+correlate through their phenotypes: \(m = h^2 r\), where \(h^2 = V_A\) on the correlation scale. The main
+analysis imposes this (<code>FitSpec.mr = 'equilibrium'</code>; <code class="fn">model.Model.unpack</code>
+sets \(m = V_A r\)), so \(r\) is estimated and \(m\) derived. Eftedal et al. estimate them separately
+(<code>mr = 'free'</code>).</p>
+<p><b>GxG.</b> \(K^{(2)}_k = K_k^2\): a pairwise interaction is shared only if both loci are shared. For UZ-linked
+categories, both kernels are averaged over the MZ/DZ alternatives. This form is <i>assumed</i>, not derived under
+assortative mating.</p>
+
+<h3 id="env">Environment and maternal terms</h3>
+<table>
+<tr><th>term</th><th>formula</th><th>where</th></tr>
+<tr><td>Household (H)</td><td>\(V_{house}\,(h^{full}_k + \pi\,h^{part}_k)\). Full-time pairs (twins, full sibs, maternal half sibs, adoptive sibs) share fully; part-time pairs (paternal half sibs, step sibs) share a fraction \(\pi \in [0,1]\). \(\pi = 1\) and \(\pi = 0\) recover the 2025 "house1" and "house2".</td><td><code class="fn">components.household_share</code></td></tr>
+<tr><td>Decaying family environment (F)</td><td>\(V_{fam}\, r_f^{\,f_k}\): an environment shared within the extended family, decaying by \(r_f\) per unit of family degree. Applies to adoptive relatives too, which are what separate it from assortative mating.</td><td><code>Model.predict</code></td></tr>
+<tr><td>Maternal inflation (mat)</td><td>multiply the prediction by \(1+\delta\) for categories related <i>only</i> through mothers (\(M_k = 1\) if <code>side == 'maternal'</code>). \(\delta \in [-0.5, 1]\), so a paternal excess is allowed. A phenomenological contrast parameter (custody, kin networks, misattributed paternity, mtDNA). It is identified within half sibs, cousins, half cousins, 2nd cousins and co-cousins.</td><td><code class="fn">components.maternal_indicator</code></td></tr>
+</table>
+<p>The 16 core models (<code>model.CORE_MODELS</code>) cross genetic {A, A+GxG} × environment {none, H, F, H+F}
+× {without, with mat}. Names read like <code>A+GxG+F+mat</code>. The 2025 set (M01–M05b) is kept as
+<code>model.MODELS_2025</code> for the supplement.</p>
+
+<h3 id="constraints">Parameters and constraints</h3>
+<ul>
+<li>Box bounds: everything in \([0,1]\) except \(\delta \in [-0.5, 1]\) (<code>model.PARAM_BOUNDS</code>).</li>
+<li>\(V_A + V_{GxG} + V_{house} + V_{fam} \le 1\) (<code>FitSpec.max_total_variance</code>). Phenotypic variance is
+1, so this keeps the residual variance \(V_E \ge 0\). Without it, some rich models reached \(\sum V \approx 1.2\) (a
+predicted MZ correlation above 1).</li>
+<li>Main settings (<code>presets.MAIN</code>, <code>presets.main_spec</code>): linear scale, \(m = V_A r\), corrected
+step-sibling kernel, co-cousin \(f = 2\), \(\sum V \le 1\), UZ mixture at 0.5.</li>
+</ul>
+
+<h2 id="estimation">Estimation</h2>
+<p>Parameters minimise the weighted residual sum of squares over the categories in the cohort
+(<code class="fn">model.Model.loss</code>):</p>
+\[ L(\theta) = \sum_k w_k\,\big(\hat\rho_k - \rho_k(\theta)\big)^2 . \]
+<h3 id="weights">Weights: what each one estimates</h3>
+<table>
+<tr><th>weighting</th><th>\(w_k\)</th><th>what it targets</th></tr>
+<tr><td><code>invvar</code></td><td>\(1/SE_k^2\)</td><td>If the model were correct (and categories independent), this is the Gaussian maximum-likelihood fit, the most precise possible. Under misspecification it is the best fit for a <i>typical pair</i>: dominated by cousins and co-cousins, because there are millions of them.</td></tr>
+<tr><td><code>hybrid</code></td><td>\(\dfrac{1/SE_k^2}{\sum_{j \in t(k)} 1/SE_j^2}\)</td><td>Every relationship type \(t\) gets total weight 1, split within the type by precision. The best fit for a <i>typical relationship type</i>. Moves leverage toward close relatives (MZ twins get 1/16 of the total).</td></tr>
+<tr><td><code>hybrid_block</code></td><td>same, balanced over the 10 cv blocks</td><td>robustness variant: near-duplicate types share one block's weight</td></tr>
+</table>
+<p>If the model were right, every weighting would estimate the same parameters, and only the precision would differ. That
+they disagree is itself evidence of misspecification (\(\chi^2/\text{df} \approx 9\)–\(51\) across the 16
+core models). Implemented in <code class="fn">model.Model._weights</code>.</p>
+<h3 id="logscale">Why not the log scale (and what Eftedal et al. got wrong)</h3>
+<p>Eftedal et al., following Clark, fit \(\ln\rho_k\) because the Fisherian model is then linear in its
+parameters. They weighted each log-correlation by \(1/SE_k^2\), but \(SE_k\) is the standard error of
+\(\hat\rho_k\), not of \(\ln\hat\rho_k\). By the delta method,</p>
+\[ \operatorname{Var}(\ln\hat\rho_k) \approx \frac{SE_k^2}{\rho_k^2}, \qquad\text{so the consistent weight is } \frac{\rho_k^2}{SE_k^2}. \]
+<p>Their choice multiplies each category's weight by \(1/\rho_k^2\): about ×200 for 2nd cousins (\(\rho \approx
+0.07\)) against ×1.3 for MZ twins. That is why distant relatives dominate their fit and give \(h^2 = 0.50\). With
+a general optimiser there is no reason to log-transform, so the main analysis uses the linear scale. The
+log scale with delta-method weights (<code>scale='log', weights='invvar'</code>) is kept as a robustness row.</p>
+
+<h2 id="optim">How the optimisers work</h2>
+<p>The loss \(L(\theta)\) is a surface over 3–8 parameters. There is no closed-form minimum, so every method
+starts somewhere and walks downhill until it can no longer improve. Implemented in <code class="fn">fit.fit</code>,
+<code class="fn">fit._local_search</code> and <code class="fn">fit._polish</code> (all from <code>scipy.optimize.minimize</code>).</p>
+<details open><summary>L-BFGS-B: the main local search (box bounds only)</summary>
+<p>A quasi-Newton method. At the current point it estimates the gradient by nudging each parameter slightly
+(finite differences). It also keeps a running estimate of the surface's curvature, built from the last few steps
+("limited-memory BFGS"). The curvature turns "which way is downhill" into "how far to step", so it converges far
+faster than plain steepest descent. Bounds are handled by projecting: a parameter that wants to leave \([0,1]\)
+is held at the edge, which is how \(r\) ends up "at bound 0".</p></details>
+<details open><summary>SLSQP: when the variance-sum constraint is on</summary>
+<p>Sequential least-squares quadratic programming. At each step it approximates the loss by a quadratic bowl
+and the constraint \(\sum V \le 1\) by a straight line, solves that small problem exactly, steps, and
+repeats. Used for every main-analysis fit with at least one variance component.</p></details>
+<details open><summary>Powell and Nelder–Mead: derivative-free polish</summary>
+<p><b>Powell</b> does one-dimensional line searches along a set of directions and updates the directions as it
+goes. <b>Nelder–Mead</b> moves a simplex (a cloud of \(p+1\) points) by repeatedly reflecting, expanding or shrinking
+its worst point. Neither needs gradients, so both cope with kinks. They are run from the two best local solutions;
+any constraint violation is penalised, and the result is finished with the constrained local search.</p></details>
+<details><summary>The optimisers used before (Eftedal et al.; 2025 code)</summary>
+<p>R's <code>nloptr</code>: <b>SBPLX</b> (Eftedal) is a Nelder–Mead variant on subspaces. <b>COBYLA</b> and
+<b>BOBYQA</b> (2025 code) are derivative-free methods that fit linear (COBYLA) or quadratic (BOBYQA) models to
+function values inside a trust region. All are local methods with a stopping tolerance.</p></details>
+<h3>Local vs. global, and how we check convergence</h3>
+<p>Every method above finds a <i>local</i> minimum and stops when improvement falls below a tolerance, which can be
+premature on flat ridges. <code>fit()</code> therefore runs a <b>multi-start</b>: the 2025 starting values plus
+<code>n_starts</code> random starts (12–20), polishes the best two, and keeps the lowest loss. It records
+<code>n_converged_to_best</code>, the number of starts that reached the best loss within \(10^{-6}\). If most
+agree, a hidden better valley is unlikely. <code>at_bound</code> lists parameters sitting on a bound.</p>
+<div class="warn"><b>Failures seen in this project.</b>
+(1) The 2025 BOBYQA fits stopped at local optima in 2 of 32 cases (we find 10–21% lower losses).
+(2) The 2025 COBYLA fits left \(r\) near its start value of 0.5, because the loss is nearly flat in \(r\).
+(3) Eftedal's SBPLX solution (0.503) sits slightly short of the optimum (0.500) on a flat ridge.
+(4) The 2025 log-scale code dropped rows predicted below \(10^{-4}\). That gave the loss a fake global minimum of 0 at
+\(V_A = 0\), and BOBYQA "found" solutions just under the cut-off. The new code removes this (<code>log_zero='structural'</code>).</div>
+
+<h2 id="uncertainty">Uncertainty</h2>
+<table>
+<tr><th>method</th><th>what it assumes / measures</th><th>where</th></tr>
+<tr><td>Parametric bootstrap</td><td>Treat each reported \(SE_k\) as the true sampling SD, draw \(\rho^*_k \sim N(\hat\rho_k, SE_k^2)\) independently, refit with the <i>same</i> weighting, take percentile intervals. Measures <b>sampling noise only</b> and assumes the model is right. Repeated with SEs ×1.3 for pair overlap between categories.</td><td><code class="fn">inference.parametric_bootstrap</code></td></tr>
+<tr><td>Block jackknife</td><td>Refit leaving out each of the 10 cv blocks; \(SE = \sqrt{\tfrac{B-1}{B}\sum_b(\theta_{(b)} - \bar\theta)^2}\). Measures how much the answer depends on <b>which relationship types exist</b>, i.e. sensitivity to misspecification. Crude with 10 heterogeneous blocks, so also read its min–max range.</td><td><code class="fn">cv.jackknife</code></td></tr>
+<tr><td>Sandwich (cross-check)</td><td>\(\operatorname{Cov} = A^{-1} B A^{-1}\), \(A = \tfrac12\nabla^2 L\) (full Hessian), \(B = J^\top W S W J\), \(S = \operatorname{diag}(SE^2)\). Agrees with the bootstrap. The Gauss–Newton version (\(A = J^\top W J\)) drops the residual-curvature term and can be off by 10× under misspecification.</td><td><code class="fn">inference.covariance</code></td></tr>
+<tr><td>Inverse Hessian of the RSS (replication only)</td><td>Eftedal's code. Not a covariance: multiplying all weights by a constant leaves the estimate unchanged but rescales this "SE" by \(1/\sqrt{\text{constant}}\). Explains the absurd intervals (tiny or huge) seen in 2025.</td><td><code>covariance(method='hessian_rss')</code></td></tr>
+</table>
+
+<h2 id="cv">Model comparison: block cross-validation</h2>
+<p>For each of the 10 cv blocks: refit without the block, predict its categories, score the error
+(<code class="fn">cv.cross_validate</code>). Two group tests hold out several blocks at once: all in-laws
+(Eftedal's bio-only → in-law test) and all adoptive pairs. The scoring was fixed before looking at results:</p>
+\[ \text{mse}_t = \frac{\sum_{k\in t} (\hat\rho_k - \hat\rho^{\,cv}_k)^2/SE_k^2}{\sum_{k\in t} 1/SE_k^2},\quad
+\text{block score} = \operatorname{mean}_{t \in \text{block}}\, \text{mse}_t,\quad
+\text{CV score} = \operatorname{mean}_{\text{10 blocks}}\, \text{block score}. \]
+<p>A held-out \(\chi^2\) is also reported. Models are compared fold by fold
+(<code class="fn">cv.paired_comparison</code>): mean difference from the best model and its SE across the 10
+blocks.</p>
+<div class="note"><b>Caveats.</b> Sampling errors are correlated across categories (the same child appears in
+sibling, cousin and co-cousin pairs), so CV is slightly optimistic. But sampling SEs (~0.003–0.01) are small next
+to the misfit being scored. Near-duplicate types are held out together to avoid leakage. A component identified by a
+single block (e.g. \(\pi\) by step sibs + paternal half sibs) is unconstrained when that block is held out, so read
+the per-block errors, not only the total.</div>
+
+<h2 id="replication">Replicating Eftedal et al.</h2>
+<p><code>eftedal2025.py</code> re-implements their R script: the twin ACE model, the bio-only log-linear WLS
+(<code>fit_bio_only</code>), the constrained bio + in-law fit (<code>fit_bio_inlaw</code>, their parameterisation
+\(b_0 = \ln h^2\), slope \(= \ln\frac{1+m}{2}\), \(\ln c\), \(\ln m\)), their weighted case bootstrap and their
+Hessian SEs.</p>
+<table>
+<tr><th></th><th>published</th><th>ours</th><th>note</th></tr>
+<tr><td>bio-only \(h^2, m, c\)</td><td>0.801, 0.225, 1.002</td><td>0.8005, 0.2248, 1.0024</td><td>exact, CIs to 3 decimals; their \(R^2 = 0.988\) is the log-scale lm \(R^2\)</td></tr>
+<tr><td>bio + in-law \(h^2, m, c\)</td><td>0.503, 0.430, 0.972</td><td>0.500, 0.432, 0.975</td><td>their optimiser stopped slightly early (loss 221,104 vs 221,082); at their values \(R^2 = 0.873\) exactly</td></tr>
+<tr><td>twin model A, C</td><td>0.75, 0.11</td><td>0.752, 0.111</td><td></td></tr>
+</table>
+<p>The 2025 reproduction lives on as regression tests (<code>tests/reference/</code>, <code>tests/test_core.py</code>):
+the new code reproduces the 2025 predictions to ~1e-15 at all 32 archived fits.</p>
+
+<h2 id="qa">Assumptions, limitations, and questions you might get</h2>
+<dl class="qa">
+<dt>"Why not fit log-correlations, like Clark and Eftedal?"</dt>
+<dd>That was a fitting convenience: it makes the model linear. With a general optimiser it isn't needed, and their
+weights were wrong for the log scale (delta method above). With consistent weights, log and linear fits nearly agree.
+Their remaining gap reflects misspecification.</dd>
+<dt>"Isn't hybrid weighting arbitrary?"</dt>
+<dd>It is a choice of estimand: the best fit for a typical relationship type rather than a typical pair. Under a correct
+model it would not matter. Under misspecification no weighting is "right", which is why both are reported. Honest caveat:
+in block cross-validation, inverse-variance-fitted models predicted held-out types slightly better (1–2 SE) even
+under type-balanced scoring. Hybrid gives small, noisy types a lot of leverage.</dd>
+<dt>"Why impose \(m = h^2 r\)? Collado et al. did and got different answers from Clark."</dt>
+<dd>Separate \(m\) and \(r\) make sense if people sort on a latent trait rather than on the phenotype. But then the
+half- and step-sibling formulas (derived for phenotypic assortment) are wrong too. With consistent weights the
+constraint costs almost no fit (additive model, inverse variance: \(\chi^2/\text{df}\) 25.91 vs 25.93 with \(m, r\)
+separate) and implies \(r \approx 0.3\)–\(0.5\) (0.27 hybrid, 0.39 inverse variance, 0.47 log scale), a plausible
+spousal correlation. Under Eftedal's weighting it would need \(r \approx 0.87\).</dd>
+<dt>"Your bootstrap intervals are tiny. Is the model right?"</dt>
+<dd>No. The bootstrap only measures sampling noise in 82 very precise correlations. Model misspecification shows up in the
+block jackknife and in the spread across weightings and models, which are far larger.</dd>
+<dt>"Are the 82 correlations independent?"</dt>
+<dd>No: individuals appear in several pairs and categories. Eftedal et al. estimate their CIs are &lt;30% too narrow,
+and re-running the bootstrap with SEs ×1.3 barely changes the intervals.</dd>
+<dt>"Is GxG = \(K^2\) justified under assortative mating?"</dt>
+<dd>It is an assumption (exact without assortment for pairwise interactions, approximate with it).
+Derivation is ongoing (popstatgenwriteups).</dd>
+<dt>"Can you separate a family environment from assortative mating?"</dt>
+<dd>Only partly. Both predict similarity that decays with distance; under inverse-variance weights the
+family-environment model can drive \(m \to 0\). Adoptive relatives (environment without genes) are the only anchor,
+which is why the "all adoptive" hold-out is informative.</dd>
+<dt>"Why does the household term not help?"</dt>
+<dd>In cross-validation, sibling-only household terms predict held-out types worse (2–3 SE). They absorb the sibling
+excess, which lowers \(V_A\) and \(m\), and the model then under-predicts cousins (e.g. held-out 1st cousins by ~0.06
+under hybrid weights). A family environment that decays over the whole tree generalises
+better.</dd>
+<dt>"Does the corrected step-sibling formula matter?"</dt>
+<dd>Barely for the parameters (step siblings are 3 of 82 categories, ~0.3% of pairs): the additive \(h^2\) moves by
+\(\le 0.002\). It does raise the predicted step-sibling correlation itself (e.g. 0.087 → 0.101 under inverse variance),
+toward the observed 0.127, but not all the way.</dd>
+<dt>"Which model fits best?"</dt>
+<dd>By block cross-validation, every model containing the decaying family environment forms a top cluster whose members
+are within ~1 SE of each other (A+F, A+GxG+F, A+F+mat, ...). Additive-only is ~1 SE behind, and sibling-household models
+are clearly worse. So the data support <i>some</i> family-wide environment, but cannot tell whether GxG or a maternal
+excess is also present.</dd>
+<dt>"Twins of unknown zygosity at 50% MZ?"</dt>
+<dd>Eftedal's assumption; registry ratios suggest ~42% recently. Rerunning at 0.42 changes \(h^2\) by &lt;0.01.</dd>
+<dt>"What about selection (people with half or step siblings score lower)?"</dt>
+<dd>Not modelled, as in Eftedal et al. (their SI Table S10). A limitation.</dd>
+</dl>
+
+<h2 id="run">Running and extending</h2>
+<pre><code>source ~/alkes_nuno/.venv_py13/bin/activate && pip install -e .
+pytest                                   # model code, reproduction and analysis tests
+python scripts/01_replicate_eftedal.py
+python scripts/02_fit_models.py
+python scripts/03_cross_validation.py
+python scripts/04_uncertainty.py         # slowest (bootstrap): ~1 h on one core
+python scripts/05_robustness.py
+module load gcc/14.2.0 R/4.4.2 && Rscript R/make_figures.R</code></pre>
+<ul>
+<li><b>One fit:</b> <code>from eftedal import data as D; from eftedal.fit import fit; from eftedal.presets import main_spec</code>
+then <code>fit(D.load(), main_spec("A+F", "hybrid")).summary()</code>.</li>
+<li><b>New component:</b> add its sharing coefficient in <code>components.py</code>, its parameters in
+<code>model.PARAM_ORDER</code> / <code>DEFAULT_START</code> / <code>required_params</code>, and its term in
+<code>Model.predict</code> and <code>Model.components</code>; add a test.</li>
+<li><b>New weighting:</b> a branch in <code>Model._weights</code> plus its name in <code>WEIGHT_SCHEMES</code>.</li>
+<li><b>Any analysis choice</b> is a <code>FitSpec</code> field. Scripts only build specs, so nothing is hard-coded in them.</li>
+</ul>
+<p class="muted">Equations render with MathJax (needs an internet connection; offline they show as LaTeX source).</p>
+</main>
+</div>
+</body>
+</html>
