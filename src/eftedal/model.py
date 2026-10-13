@@ -31,7 +31,7 @@ DEFAULT_START = {
 # allowed: the maternal contrast is tested two-sided.
 PARAM_BOUNDS = {"delta": (-0.5, 1.0)}
 
-WEIGHT_SCHEMES = ("invSqErr", "invvar", "uniform", "hybrid", "hybrid_invvar")
+WEIGHT_SCHEMES = ("invSqErr", "invvar", "uniform", "hybrid", "hybrid_invvar", "hybrid_block")
 MR_MODES = ("free", "equilibrium", "equal")
 
 # Named component sets used in the 2025 analysis (NHGRI 2026 poster).
@@ -78,6 +78,8 @@ class FitSpec:
                  'hybrid'        every relationship type gets equal total weight, split within
                                  the type in proportion to 1/SE^2 (2025 analysis)
                  'hybrid_invvar' as 'hybrid' but split within type by the scale's 1/Var
+                 'hybrid_block'  as 'hybrid' but balanced over cv blocks (near-duplicate types,
+                                 e.g. cousins and cousins via UZ twins, share one block's weight)
     mr         : 'free'          m and r estimated separately (Eftedal et al.)
                  'equilibrium'   r estimated, m = V_A * r (primary phenotypic assortment at
                                  equilibrium: corr(g_mate1, g_mate2) = h^2 * r)
@@ -252,10 +254,11 @@ class Model:
             w = inv_var
         elif scheme == "uniform":
             w = np.ones_like(se)
-        elif scheme in ("hybrid", "hybrid_invvar"):
-            base = inv_se2 if scheme == "hybrid" else inv_var
+        elif scheme in ("hybrid", "hybrid_invvar", "hybrid_block"):
+            base = inv_var if scheme == "hybrid_invvar" else inv_se2
             w = np.zeros_like(se)
-            types = self.data["broad_type"].to_numpy()
+            col = "cv_block" if scheme == "hybrid_block" else "broad_type"
+            types = self.data[col].to_numpy()
             for t in np.unique(types[mask]):
                 sel = mask & (types == t)
                 tot = base[sel].sum()

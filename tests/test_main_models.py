@@ -90,3 +90,9 @@ def test_cross_validation_runs_and_jackknife(df):
     assert set(held.loc[held.fold == "cocousins", "rel"]) == {"cocousins"}
     jk = cv.jackknife(fp, full.params, full.free, blocks=["half sibs", "cocousins"])
     assert (jk["se"] >= 0).all()
+
+
+def test_hybrid_block_weights_sum_to_one_per_block(df):
+    m = Model(df, main_spec("A", "hybrid_block"))
+    sums = df.assign(w=m.w).groupby("cv_block")["w"].sum()
+    np.testing.assert_allclose(sums, 1.0)
