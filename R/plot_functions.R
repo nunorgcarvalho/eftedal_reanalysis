@@ -7,7 +7,8 @@ suppressPackageStartupMessages({
   library(scales)
 })
 
-# REPO, RESULTS and FIGURES are set by the calling script (R/make_figures.R).
+# REPO, RESULTS and FIGURES are set by the calling script (R/make_figures.R or
+# R/exploratory_figures.R).
 
 z95 <- qnorm(0.975)
 
@@ -64,7 +65,10 @@ pred_segments <- function(obs, preds) {
               in_cohort = any(in_cohort), .groups = "drop")
 }
 
-plot_fits <- function(obs, preds, colors = NULL, R2 = NULL) {
+# legend = "auto": the model legend sits inside the panel (top right, as in Eftedal Fig. 2)
+# unless its labels are long enough to cover the MZ points; then it moves below the panel
+# (the relative-category legends stay inside).
+plot_fits <- function(obs, preds, colors = NULL, R2 = NULL, legend = "auto") {
   obs <- layout_obs(obs)
   seg <- pred_segments(obs, preds)
   labs_df <- obs %>% group_by(rel) %>%
@@ -72,12 +76,14 @@ plot_fits <- function(obs, preds, colors = NULL, R2 = NULL) {
     left_join(seg %>% group_by(rel) %>% summarize(pmax = max(pred), .groups = "drop"), by = "rel") %>%
     mutate(y = pmax(top, pmax) + 0.025, label = str_wrap(rel, 15))
   if (is.null(colors)) colors <- setNames(hue_pal()(n_distinct(seg$model)), unique(seg$model))
+  if (legend == "auto") legend <- if (max(nchar(unique(seg$model))) > 25) "bottom" else "inside"
+  model_guide <- if (legend == "bottom") guide_legend(position = "bottom", ncol = 1) else "legend"
   gg <- gg_obs(obs) +
     new_scale_color() +
     geom_segment(data = seg, inherit.aes = FALSE, linewidth = 1.5, alpha = 0.6,
                  aes(x = x_min - 0.5, xend = x_max + 0.5, y = pred, yend = pred, color = model,
                      linetype = in_cohort)) +
-    scale_color_manual(values = colors, name = "Model") +
+    scale_color_manual(values = colors, name = "Model", guide = model_guide) +
     scale_linetype_manual(values = c(`TRUE` = "solid", `FALSE` = "22"), guide = "none") +
     geom_text_repel(data = labs_df, inherit.aes = FALSE, size = 3, direction = "y", vjust = 1,
                     min.segment.length = 999, aes(x = x, y = y, label = label))
