@@ -113,7 +113,7 @@ def _random_starts(model: Model, n: int, rng: np.random.Generator) -> list[np.nd
             for _ in range(n)]
 
 
-def _lbfgsb(model: Model, x0: np.ndarray, scale: float) -> tuple[np.ndarray, float]:
+def _local_search(model: Model, x0: np.ndarray, scale: float) -> tuple[np.ndarray, float]:
     """Local search from x0: L-BFGS-B, or SLSQP when the total-variance constraint is on."""
     f = lambda th: model.loss(th) / scale
     x0 = model.make_feasible(x0)
@@ -149,7 +149,7 @@ def _polish(model: Model, x0: np.ndarray, scale: float) -> tuple[np.ndarray, flo
         r = minimize(f, best_x, method=method, bounds=bounds, options=opts)
         if np.isfinite(r.fun) and r.fun < best_f:
             best_x, best_f = r.x, r.fun
-    return _lbfgsb(model, best_x, scale)
+    return _local_search(model, best_x, scale)
 
 
 def fit(data: pd.DataFrame, spec: FitSpec, *, n_starts: int = 12, seed: int = 0,
@@ -175,7 +175,7 @@ def fit(data: pd.DataFrame, spec: FitSpec, *, n_starts: int = 12, seed: int = 0,
     x0s = [model.start()] + list(starts or []) + _random_starts(model, n_starts, rng)
     if not polish and n_starts == 0 and not starts:
         # purely local search from the default start (used to mimic the 2025 runs)
-        theta, loss = _lbfgsb(model, x0s[0], max(np.sum(model.w), 1e-300))
+        theta, loss = _local_search(model, x0s[0], max(np.sum(model.w), 1e-300))
         theta = np.clip(theta, model.lb, model.ub)
         p = model.unpack(theta)
         pred = model.predict(p)
@@ -183,7 +183,7 @@ def fit(data: pd.DataFrame, spec: FitSpec, *, n_starts: int = 12, seed: int = 0,
         return FitResult(spec, model, theta, p, model.loss(theta), pred, rows, 1, 1,
                          fit_stats(model, pred))
     scale = max(np.sum(model.w), 1e-300)   # optimise a normalised loss; same argmin
-    outs = [_lbfgsb(model, x0, scale) for x0 in x0s]
+    outs = [_local_search(model, x0, scale) for x0 in x0s]
     if polish:
         for i in np.argsort([o[1] for o in outs])[:2]:
             outs.append(_polish(model, outs[i][0], scale))
