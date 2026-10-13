@@ -67,7 +67,7 @@ def test_cv_blocks(df):
     assert df["cv_block"].notna().all()
     assert set(df["cv_block"]) == set(D.CV_BLOCKS)
     folds = D.cv_folds(df)
-    assert len(folds) == 13
+    assert len(folds) == 12
     assert set(folds["twins"]) == {"mz", "uz", "dz"}
     assert set(folds["1st cousins"]) == {"1st cousins", "1st cousins t/uz"}
 
@@ -78,3 +78,15 @@ def test_all_core_models_fit(df):
         assert np.isfinite(r.loss)
         tot = sum(v for k, v in r.params.items() if k.startswith("V_"))
         assert tot <= 1 + 1e-8, name
+
+
+def test_cross_validation_runs_and_jackknife(df):
+    from eftedal import cv
+    folds = {k: v for k, v in D.cv_folds(df).items() if k in ("half sibs", "cocousins", "all in-laws")}
+    full, fp, held, sc = cv.cross_validate(df, main_spec("A"), n_starts=1, folds=folds)
+    assert set(sc["fold"]) == set(folds)
+    assert sc.loc[sc.fold == "all in-laws", "group_test"].item()
+    # held-out rows are exactly the categories of the held-out types
+    assert set(held.loc[held.fold == "cocousins", "rel"]) == {"cocousins"}
+    jk = cv.jackknife(fp, full.params, full.free, blocks=["half sibs", "cocousins"])
+    assert (jk["se"] >= 0).all()

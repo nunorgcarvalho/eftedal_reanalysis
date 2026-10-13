@@ -136,11 +136,11 @@ def cohort_mask(df: pd.DataFrame, cohort: str, drop_duplicate: bool = False) -> 
 CV_BLOCKS = ["twins", "sibs", "half sibs", "1st cousins", "half cousins", "2nd cousins",
              "step sibs", "cocousins", "adoptive sibs", "adoptive cousins"]
 
-# Named extrapolation tests: hold out several blocks at once.
+# Named extrapolation tests: hold out several blocks at once. ("All twins" is already the
+# single 'twins' block.)
 CV_GROUP_TESTS = {
     "all in-laws": ["step sibs", "cocousins"],
     "all adoptive": ["adoptive sibs", "adoptive cousins"],
-    "all twins": ["twins"],
 }
 
 
