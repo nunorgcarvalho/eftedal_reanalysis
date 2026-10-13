@@ -25,6 +25,14 @@ the paper imply the `other`/`ssf` category has roughly 138,000 pairs rather than
 It is kept by default (to reproduce published numbers) and can be dropped as a
 sensitivity check.
 
+Provenance check (2026-10-13): a fresh download of every file from the OSF project is
+byte-identical (SHA-256) to the copies here and to the copy downloaded in 2025. Each OSF file
+has a single version (uploaded 2025-02-14 or 2025-05-18; never updated), and the duplicated row
+is present in the fresh download. Table 1 of the paper agrees with the file's pair counts for
+every other side/class (all three 1st-cousin sides, paternal 2nd cousins, and maternal 2nd
+cousins to within 2 pairs). Only 2nd cousins / `other` is 78,598 pairs short. So the
+error is in the deposited file, not in our copy.
+
 ## `relationship_types.csv`
 
 Our annotation of the 16 relationship types (genetic structure, family degree,
