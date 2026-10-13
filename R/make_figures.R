@@ -128,7 +128,7 @@ if (has("uncertainty_main", "intervals.csv")) {
     filter(param %in% c("V_A", "V_GxG", "V_family", "r_f", "delta", "m", "r")) %>%
     mutate(model = factor(model, levels = rev(CHOSEN)), weights = WEIGHT_LABELS[weights],
            method = factor(method, c("param_boot x1", "param_boot x1.3", "sandwich", "block jackknife")),
-           lo = pmax(lo, -0.5), hi = pmin(hi, 1))
+           lb = ifelse(param == "delta", -0.5, 0), lo = pmax(lo, lb), hi = pmin(hi, 1))
   g <- ggplot(iv, aes(x = estimate, xmin = lo, xmax = hi, y = model, color = method)) +
     geom_pointrange(position = position_dodge(width = 0.6), size = 0.25) +
     facet_grid(weights ~ param, scales = "free_x") +
