@@ -78,6 +78,8 @@ class FitSpec:
     cocousin_family_degree : override f for biological co-cousins (None = annotation table)
     drop_duplicate : drop the duplicated 2nd-cousin row (see data/README.md)
     exclude_types  : relationship types (`rel`) removed from the cohort (leave-one-out)
+    max_total_variance : if set, constrain the sum of all variance components V_* to be at
+                     most this (1 = phenotypic variance; leaves V_E >= 0). None = box bounds only.
     fixed      : parameters held at fixed values, e.g. (('r', 0.47),)
     """
 
@@ -94,6 +96,7 @@ class FitSpec:
     cocousin_family_degree: float | None = None
     drop_duplicate: bool = False
     exclude_types: tuple[str, ...] = ()
+    max_total_variance: float | None = None
     fixed: tuple[tuple[str, float], ...] = ()
     label: str = field(default="", compare=False)
 
@@ -116,7 +119,7 @@ class FitSpec:
     def as_dict(self) -> dict:
         d = {k: getattr(self, k) for k in (
             "cohort", "scale", "weights", "mr", "stepsib", "uz", "mz_frac", "log_zero", "adoptive",
-            "cocousin_family_degree", "drop_duplicate")}
+            "cocousin_family_degree", "drop_duplicate", "max_total_variance")}
         d["exclude_types"] = ";".join(self.exclude_types)
         d["components"] = "+".join(self.components)
         d["fixed"] = ";".join(f"{k}={v:g}" for k, v in self.fixed)
@@ -170,6 +173,8 @@ class Model:
         self.required = req
         self.lb = np.zeros(len(self.free))
         self.ub = np.ones(len(self.free))
+        self.var_idx = np.array([i for i, q in enumerate(self.free) if q.startswith("V_")], dtype=int)
+        self.var_fixed = sum(v for k, v in self.fixed.items() if k.startswith("V_"))
 
         self._set_rows()
 
@@ -231,6 +236,22 @@ class Model:
         return w
 
     # ---- parameters ------------------------------------------------------------------
+
+    @property
+    def constrained(self) -> bool:
+        return self.spec.max_total_variance is not None and len(self.var_idx) > 0
+
+    def variance_slack(self, theta) -> float:
+        """max_total_variance - sum of variance components (>= 0 when feasible)."""
+        return self.spec.max_total_variance - self.var_fixed - float(np.sum(np.asarray(theta)[self.var_idx]))
+
+    def make_feasible(self, theta, margin: float = 1e-3) -> np.ndarray:
+        theta = np.clip(np.asarray(theta, float), self.lb, self.ub)
+        if self.constrained and self.variance_slack(theta) < 0:
+            room = max(self.spec.max_total_variance - self.var_fixed - margin, 0.0)
+            tot = theta[self.var_idx].sum()
+            theta[self.var_idx] *= room / tot
+        return theta
 
     def start(self) -> np.ndarray:
         return np.array([DEFAULT_START[p] for p in self.free])

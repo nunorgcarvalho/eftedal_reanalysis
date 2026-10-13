@@ -5,10 +5,12 @@ The observed correlations are treated as independent with known sampling varianc
 narrow). With weights W and fitting-scale residuals e(theta), the estimator minimises
 e' W e. Under that sampling model:
 
-* `sandwich`  - Gauss-Newton sandwich A^-1 B A^-1 with A = J'WJ, B = J'W S W J and
+* `sandwich`  - A^-1 B A^-1 with A = half the Hessian of the loss, B = J'W S W J and
                 S = diag(Var of each observation on the fitting scale). Valid for any weights,
                 and it targets the weighted-projection ("pseudo-true") parameter even when the
                 model is misspecified. Only sampling noise in the correlations is counted.
+                (`sandwich_gn` uses the Gauss-Newton A = J'WJ instead, which drops the
+                residual-curvature term and can be far off under misspecification.)
 * `quasi`     - lm/nls convention: sigma^2 (J'WJ)^-1 with sigma^2 = RSS/(n - p). Treats the
                 weights as relative precisions and absorbs lack of fit into the noise. With
                 inverse-variance weights it equals the model-based covariance times chi2/df.
@@ -98,9 +100,14 @@ def covariance(res: FitResult, method: str = "sandwich") -> np.ndarray:
     w = m.w[rows]
     A = J.T @ (w[:, None] * J)
     Ainv = np.linalg.pinv(A)
-    if method == "sandwich":
+    if method in ("sandwich", "sandwich_gn"):
+        # The estimate solves J'W e = 0, so d(theta)/d(obs) = H^-1 J'W with H half the full
+        # Hessian of the loss. Gauss-Newton (H ~ J'WJ) drops the residual-curvature term,
+        # which is not negligible when the model is misspecified (large residuals).
         S = _obs_var(res)[rows]
         B = J.T @ ((w ** 2 * S)[:, None] * J)
+        if method == "sandwich":
+            Ainv = np.linalg.pinv(0.5 * numerical_hessian(m.loss, res.theta))
         return Ainv @ B @ Ainv
     if method == "quasi":
         e, _ = m.residuals(res.pred)
@@ -113,7 +120,7 @@ def covariance(res: FitResult, method: str = "sandwich") -> np.ndarray:
     raise ValueError(method)
 
 
-def wald_table(res: FitResult, methods=("sandwich", "quasi", "hessian_rss"),
+def wald_table(res: FitResult, methods=("sandwich", "sandwich_gn", "quasi", "hessian_rss"),
                level: float = 0.95) -> pd.DataFrame:
     """Wald intervals (estimate +/- z SE) for the free parameters, clipped to the bounds."""
     z = stats.norm.ppf(0.5 + level / 2)

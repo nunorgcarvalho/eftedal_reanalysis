@@ -67,3 +67,13 @@ def test_sandwich_agrees_with_parametric_bootstrap(df, lin_fit):
 def test_equilibrium_relation_holds_after_fit(lin_fit):
     p = lin_fit.params
     assert p["m"] == pytest.approx(p["V_A"] * p["r"])
+
+
+def test_total_variance_constraint(df):
+    s = spec("M05a", "ALL", "lin-invvar", mr="equilibrium", stepsib="corrected")
+    free = fit(df, s.with_(max_total_variance=None), n_starts=3)
+    con = fit(df, s, n_starts=3)
+    tot = lambda r: sum(v for k, v in r.params.items() if k.startswith("V_"))
+    assert tot(free) > 1.0          # unconstrained fit implies negative residual variance
+    assert tot(con) <= 1.0 + 1e-8
+    assert con.loss >= free.loss

@@ -12,7 +12,7 @@ LEGACY = dict(uz="exponent", log_zero="legacy", adoptive="legacy_n99",
 
 # Corrected defaults for new analyses.
 CORRECTED = dict(uz="mixture", log_zero="structural", adoptive="zero",
-                 cocousin_family_degree=None, stepsib="eftedal")
+                 cocousin_family_degree=None, stepsib="eftedal", max_total_variance=1.0)
 
 
 def nhgri_specs() -> list[FitSpec]:

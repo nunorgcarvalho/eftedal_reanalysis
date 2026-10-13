@@ -109,21 +109,39 @@ def fit_stats(model: Model, pred: np.ndarray) -> dict:
 
 def _random_starts(model: Model, n: int, rng: np.random.Generator) -> list[np.ndarray]:
     k = len(model.free)
-    return [model.lb + (model.ub - model.lb) * rng.uniform(0.02, 0.98, size=k) for _ in range(n)]
+    return [model.make_feasible(model.lb + (model.ub - model.lb) * rng.uniform(0.02, 0.98, size=k))
+            for _ in range(n)]
 
 
 def _lbfgsb(model: Model, x0: np.ndarray, scale: float) -> tuple[np.ndarray, float]:
+    """Local search from x0: L-BFGS-B, or SLSQP when the total-variance constraint is on."""
     f = lambda th: model.loss(th) / scale
-    x0 = np.clip(x0, model.lb, model.ub)
-    r = minimize(f, x0, method="L-BFGS-B", bounds=list(zip(model.lb, model.ub)),
-                 options={"maxiter": 5000, "ftol": 1e-15, "gtol": 1e-12})
+    x0 = model.make_feasible(x0)
+    bounds = list(zip(model.lb, model.ub))
+    if model.constrained:
+        r = minimize(f, x0, method="SLSQP", bounds=bounds,
+                     constraints=[{"type": "ineq", "fun": model.variance_slack}],
+                     options={"maxiter": 2000, "ftol": 1e-15})
+        x = np.clip(r.x, model.lb, model.ub)
+        ok = model.variance_slack(x) >= -1e-9
+        r_fun = f(x) if ok else np.inf
+    else:
+        r = minimize(f, x0, method="L-BFGS-B", bounds=bounds,
+                     options={"maxiter": 5000, "ftol": 1e-15, "gtol": 1e-12})
+        x, r_fun = r.x, r.fun
     fx0 = f(x0)
-    return (r.x, r.fun) if np.isfinite(r.fun) and r.fun <= fx0 else (x0, fx0)
+    return (x, r_fun) if np.isfinite(r_fun) and r_fun <= fx0 else (x0, fx0)
 
 
 def _polish(model: Model, x0: np.ndarray, scale: float) -> tuple[np.ndarray, float]:
-    """Derivative-free polish (robust to the kinks of the legacy log-scale row selection)."""
-    f = lambda th: model.loss(th) / scale
+    """Derivative-free polish (robust to the kinks of the legacy log-scale row selection).
+    Under the total-variance constraint, violations are penalised and the result is
+    finished with the constrained local search."""
+    def f(th):
+        pen = 0.0
+        if model.constrained:
+            pen = 1e6 * min(model.variance_slack(th), 0.0) ** 2
+        return model.loss(th) / scale + pen
     bounds = list(zip(model.lb, model.ub))
     best_x, best_f = x0, f(x0)
     for method, opts in (("Powell", {"maxiter": 20000, "xtol": 1e-10, "ftol": 1e-14}),

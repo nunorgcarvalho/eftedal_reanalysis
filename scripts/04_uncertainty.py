@@ -23,7 +23,8 @@ from eftedal.model import Model
 from eftedal.presets import key_specs, spec
 
 
-def intervals(df, n_boot, n_starts):
+def intervals(df, n_boot, n_starts, old_reps=None):
+    """Wald and bootstrap intervals; `old_reps` (a previous boot_reps.csv) skips the refits."""
     cis, reps = [], []
     for k, s in enumerate(key_specs()):
         res = fit(df, s, n_starts=n_starts)
@@ -32,8 +33,12 @@ def intervals(df, n_boot, n_starts):
         est["c"] = res.summary()["c"]
         blocks = [w]
         for infl in (1.0, 1.3):
-            b = parametric_bootstrap(df, res, n_boot=n_boot, seed=k, se_inflation=infl)
-            b["se_inflation"] = infl
+            if old_reps is not None:
+                b = old_reps[(old_reps.key_label == s.label) & (old_reps.se_inflation == infl)]
+                b = b.drop(columns=["key_id", "key_label"])
+            else:
+                b = parametric_bootstrap(df, res, n_boot=n_boot, seed=k, se_inflation=infl)
+                b["se_inflation"] = infl
             reps.append(b.assign(key_id=k, key_label=s.label))
             blocks.append(percentile_table(b, est, method=f"param_boot x{infl:g}"))
         t = pd.concat(blocks, ignore_index=True)
@@ -80,12 +85,13 @@ def profile_r(df, grid=np.round(np.linspace(0, 1, 21), 3)):
     return pd.DataFrame(rows)
 
 
-def main(out: Path, n_boot: int, n_starts: int):
+def main(out: Path, n_boot: int, n_starts: int, reuse_boot: bool):
     out.mkdir(parents=True, exist_ok=True)
     df = D.load("MRE8")
     hessian_scaling(df).to_csv(out / "hessian_scaling.csv", index=False)
     profile_r(df).to_csv(out / "profile_r.csv", index=False)
-    cis, reps = intervals(df, n_boot, n_starts)
+    old = pd.read_csv(out / "boot_reps.csv") if reuse_boot else None
+    cis, reps = intervals(df, n_boot, n_starts, old)
     cis.to_csv(out / "cis.csv", index=False)
     reps.to_csv(out / "boot_reps.csv", index=False)
 
@@ -95,5 +101,7 @@ if __name__ == "__main__":
     ap.add_argument("--out", type=Path, default=D.REPO_ROOT / "results" / "uncertainty")
     ap.add_argument("--n-boot", type=int, default=500)
     ap.add_argument("--n-starts", type=int, default=12)
+    ap.add_argument("--reuse-boot", action="store_true",
+                    help="recompute Wald intervals only, reusing results/uncertainty/boot_reps.csv")
     a = ap.parse_args()
-    main(a.out, a.n_boot, a.n_starts)
+    main(a.out, a.n_boot, a.n_starts, a.reuse_boot)
