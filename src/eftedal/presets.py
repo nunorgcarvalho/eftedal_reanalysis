@@ -4,13 +4,30 @@ from __future__ import annotations
 
 import itertools
 
-from .model import FitSpec, MODELS
+from .model import CORE_MODELS, FitSpec, MODELS
 
 # Options that reproduce the 2025 R code (archive/03_model_fitting.R, functions.R).
 LEGACY = dict(uz="exponent", log_zero="legacy", adoptive="legacy_n99",
               cocousin_family_degree=3, mr="free", stepsib="eftedal")
 
-# Corrected defaults for new analyses.
+# Main analysis settings (agreed plan, 2026-10-12): linear scale, m = V_A r, corrected
+# step-sibling kernel, co-cousin family degree 2 (annotation table), sum of V <= 1, UZ as an
+# MZ/DZ mixture at 0.5. Weighting is chosen per fit: 'hybrid' (primary, type-balanced) or
+# 'invvar' (1/SE^2; the model taken literally).
+MAIN = dict(scale="lin", mr="equilibrium", stepsib="corrected", uz="mixture", mz_frac=0.5,
+            log_zero="structural", adoptive="zero", cocousin_family_degree=None,
+            max_total_variance=1.0)
+MAIN_WEIGHTINGS = ("hybrid", "invvar")
+
+
+def main_spec(model: str, weights: str = "hybrid", cohort: str = "ALL", **kw) -> FitSpec:
+    """Spec for a core model (`CORE_MODELS`, or a 2025 name from `MODELS`) under the main settings."""
+    comps = CORE_MODELS[model] if model in CORE_MODELS else MODELS[model]
+    return FitSpec(components=comps, cohort=cohort, weights=weights, **{**MAIN, **kw},
+                   label=f"{model}|{cohort}|{weights}")
+
+
+# Corrected defaults used by the exploratory 2026-10-12 grids.
 CORRECTED = dict(uz="mixture", log_zero="structural", adoptive="zero",
                  cocousin_family_degree=None, stepsib="eftedal", max_total_variance=1.0)
 

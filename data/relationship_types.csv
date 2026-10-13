@@ -1,17 +1,17 @@
-rel,group,genetic_structure,n,family_degree,household,cousin_class,broad_type
-mz,bio,full,0,0,full,0,mz
-uz,bio,full_uz,0.5,0,full,0,uz
-dz,bio,full,1,0,full,0,dz
-sibs,bio,full,1,0,full,0,sibs
-half sibs,bio,half,2,0.5,by_side,0,half sibs
-1st cousins t/uz,bio,full_uz,2.5,1,none,1,1st cousins t/uz
-1st cousins,bio,full,3,1,none,1,1st cousins
-half cousins,bio,half,4,1.5,none,2,half cousins
-2nd cousins t/uz,bio,full_uz,4.5,2,none,2,2nd cousins t/uz
-2nd cousins,bio,full,5,2,none,2,2nd cousins
-step sibs,inlaw,step,2,1,partial,0,step sibs
-cocousins,inlaw,cocousin,4,2,none,2,cocousins
-adoptive sibs,adoptive,none,,0,full,0,adoptive sibs
-adoptive 1st cousins,adoptive,none,,1,none,1,adoptive 1st cousins
-adoptive 2nd cousins,adoptive,none,,2,none,2,adoptive 2nd cousins
-adoptive cocousins,adoptive,none,,2,none,2,adoptive cocousins
+rel,group,genetic_structure,n,family_degree,household,cousin_class,broad_type,cv_block
+mz,bio,full,0,0,full,0,mz,twins
+uz,bio,full_uz,0.5,0,full,0,uz,twins
+dz,bio,full,1,0,full,0,dz,twins
+sibs,bio,full,1,0,full,0,sibs,sibs
+half sibs,bio,half,2,0.5,by_side,0,half sibs,half sibs
+1st cousins t/uz,bio,full_uz,2.5,1,none,1,1st cousins t/uz,1st cousins
+1st cousins,bio,full,3,1,none,1,1st cousins,1st cousins
+half cousins,bio,half,4,1.5,none,2,half cousins,half cousins
+2nd cousins t/uz,bio,full_uz,4.5,2,none,2,2nd cousins t/uz,2nd cousins
+2nd cousins,bio,full,5,2,none,2,2nd cousins,2nd cousins
+step sibs,inlaw,step,2,1,partial,0,step sibs,step sibs
+cocousins,inlaw,cocousin,4,2,none,2,cocousins,cocousins
+adoptive sibs,adoptive,none,,0,full,0,adoptive sibs,adoptive sibs
+adoptive 1st cousins,adoptive,none,,1,none,1,adoptive 1st cousins,adoptive cousins
+adoptive 2nd cousins,adoptive,none,,2,none,2,adoptive 2nd cousins,adoptive cousins
+adoptive cocousins,adoptive,none,,2,none,2,adoptive cocousins,adoptive cousins

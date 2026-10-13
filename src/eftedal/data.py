@@ -23,6 +23,9 @@ From `data/relationship_types.csv` (one row per `rel`):
                        paternal) | 'none' -- how much the pair shares a household
     cousin_class       1 = first-cousin-like, 2 = more distant cousin-like, 0 = neither
     broad_type         grouping used for the 'hybrid' weights (= rel)
+    cv_block           block held out together in cross-validation / the jackknife; near-
+                       duplicate types share a block (MZ/UZ/DZ; cousins with their t/uz
+                       variants; the three adoptive cousin types)
 
 Added here:
     row                 0..81, position in the authors' file
@@ -124,3 +127,34 @@ def cohort_mask(df: pd.DataFrame, cohort: str, drop_duplicate: bool = False) -> 
     if drop_duplicate:
         mask = mask & ~df["suspect_duplicate"].to_numpy()
     return mask
+
+
+# --------------------------------------------------------------------------------------
+# Cross-validation blocks
+# --------------------------------------------------------------------------------------
+
+CV_BLOCKS = ["twins", "sibs", "half sibs", "1st cousins", "half cousins", "2nd cousins",
+             "step sibs", "cocousins", "adoptive sibs", "adoptive cousins"]
+
+# Named extrapolation tests: hold out several blocks at once.
+CV_GROUP_TESTS = {
+    "all in-laws": ["step sibs", "cocousins"],
+    "all adoptive": ["adoptive sibs", "adoptive cousins"],
+    "all twins": ["twins"],
+}
+
+
+def rels_in_blocks(df: pd.DataFrame, blocks) -> tuple[str, ...]:
+    """Relationship types (`rel`) belonging to the given cv blocks."""
+    blocks = [blocks] if isinstance(blocks, str) else list(blocks)
+    bad = set(blocks) - set(CV_BLOCKS)
+    if bad:
+        raise ValueError(f"unknown cv blocks {bad}")
+    return tuple(df.loc[df["cv_block"].isin(blocks), "rel"].unique())
+
+
+def cv_folds(df: pd.DataFrame) -> dict[str, tuple[str, ...]]:
+    """{fold name: relationship types held out}: one fold per block plus the group tests."""
+    folds = {b: rels_in_blocks(df, b) for b in CV_BLOCKS}
+    folds.update({name: rels_in_blocks(df, bl) for name, bl in CV_GROUP_TESTS.items()})
+    return folds

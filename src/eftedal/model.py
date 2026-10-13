@@ -16,22 +16,26 @@ from . import components as C
 from .data import cohort_mask
 
 PARAM_ORDER = (
-    "V_A", "V_GxG", "V_house1", "V_house2", "V_house3", "V_housepart",
-    "V_cousins1", "V_cousins2", "V_family", "m", "r", "r_f",
+    "V_A", "V_GxG", "V_house", "V_house1", "V_house2", "V_house3", "V_housepart",
+    "V_cousins1", "V_cousins2", "V_family", "m", "r", "r_f", "pi", "delta",
 )
 
-# Starting values (also the legacy 2025 starting values).
+# Starting values (the 2025 starting values, plus the new parameters).
 DEFAULT_START = {
-    "V_A": 0.5, "V_GxG": 0.25, "V_house1": 0.1, "V_house2": 0.1, "V_house3": 0.1,
-    "V_housepart": 0.1, "V_cousins1": 0.1, "V_cousins2": 0.1, "V_family": 0.1,
-    "m": 0.5, "r": 0.5, "r_f": 0.5,
+    "V_A": 0.5, "V_GxG": 0.25, "V_house": 0.1, "V_house1": 0.1, "V_house2": 0.1,
+    "V_house3": 0.1, "V_housepart": 0.1, "V_cousins1": 0.1, "V_cousins2": 0.1,
+    "V_family": 0.1, "m": 0.5, "r": 0.5, "r_f": 0.5, "pi": 0.5, "delta": 0.0,
 }
+
+# Box bounds; [0, 1] unless listed. delta may be negative so that a paternal excess is
+# allowed: the maternal contrast is tested two-sided.
+PARAM_BOUNDS = {"delta": (-0.5, 1.0)}
 
 WEIGHT_SCHEMES = ("invSqErr", "invvar", "uniform", "hybrid", "hybrid_invvar")
 MR_MODES = ("free", "equilibrium", "equal")
 
 # Named component sets used in the 2025 analysis (NHGRI 2026 poster).
-MODELS = {
+MODELS_2025 = {
     "M01": ("A",),
     "M02": ("A", "GxG"),
     "M03a": ("A", "house1"),
@@ -41,7 +45,24 @@ MODELS = {
     "M05a": ("A", "GxG", "house2", "cousins1", "cousins2"),
     "M05b": ("A", "GxG", "family"),
 }
+MODELS = MODELS_2025   # backwards-compatible name
 
+
+def _core_models() -> dict[str, tuple[str, ...]]:
+    """The a priori model set: genetic {A, A+GxG} x environment {none, household(pi),
+    decaying family, household + family} x {without, with maternal inflation delta}."""
+    out = {}
+    for g in (("A",), ("A", "GxG")):
+        for e in ((), ("house",), ("family",), ("house", "family")):
+            for mat in ((), ("maternal",)):
+                comps = g + e + mat
+                name = "+".join({"A": "A", "GxG": "GxG", "house": "H", "family": "F",
+                                 "maternal": "mat"}[c] for c in comps)
+                out[name] = comps
+    return out
+
+
+CORE_MODELS = _core_models()
 
 @dataclass(frozen=True)
 class FitSpec:
@@ -129,11 +150,15 @@ class FitSpec:
 
 def required_params(spec: FitSpec) -> list[str]:
     """All parameters the model's prediction depends on (free, fixed or derived)."""
-    p = [f"V_{c}" for c in spec.components]
+    p = [f"V_{c}" for c in spec.components if c not in C.MODIFIER_COMPONENTS]
     if any(c in C.GENETIC_COMPONENTS for c in spec.components):
         p += ["m", "r"]
     if "family" in spec.components:
         p += ["r_f"]
+    if "house" in spec.components:
+        p += ["pi"]
+    if "maternal" in spec.components:
+        p += ["delta"]
     return [q for q in PARAM_ORDER if q in p]
 
 
@@ -160,6 +185,8 @@ class Model:
                            for c in spec.components if c in C.INDICATOR_COMPONENTS}
         self.f = self.data["family_degree"].to_numpy(dtype=float)
         self.kd = C.KernelData(self.data)
+        self.house_full, self.house_part = C.household_share(self.data)
+        self.mat = C.maternal_indicator(self.data)
 
         fixed = dict(spec.fixed)
         req = required_params(spec)
@@ -171,8 +198,8 @@ class Model:
         self.fixed = {k: v for k, v in fixed.items() if k in req}
         self.free = [p for p in req if p not in derived and p not in self.fixed]
         self.required = req
-        self.lb = np.zeros(len(self.free))
-        self.ub = np.ones(len(self.free))
+        self.lb = np.array([PARAM_BOUNDS.get(q, (0.0, 1.0))[0] for q in self.free])
+        self.ub = np.array([PARAM_BOUNDS.get(q, (0.0, 1.0))[1] for q in self.free])
         self.var_idx = np.array([i for i, q in enumerate(self.free) if q.startswith("V_")], dtype=int)
         self.var_fixed = sum(v for k, v in self.fixed.items() if k.startswith("V_"))
 
@@ -191,6 +218,8 @@ class Model:
                 zero &= (s == "none") & adoptive_zero
             elif c in C.INDICATOR_COMPONENTS:
                 zero &= self.indicators[c] == 0
+            elif c == "house":
+                zero &= (self.house_full + self.house_part) == 0
             elif c == "family":
                 zero &= False
         return zero
@@ -279,8 +308,12 @@ class Model:
                 pred += p["V_GxG"] * K2
         for c, ind in self.indicators.items():
             pred += p[f"V_{c}"] * ind
+        if "house" in spec.components:
+            pred += p["V_house"] * (self.house_full + p["pi"] * self.house_part)
         if "family" in spec.components:
             pred += p["V_family"] * p["r_f"] ** self.f
+        if "maternal" in spec.components:
+            pred = pred * (1.0 + p["delta"] * self.mat)
         return pred
 
     def components(self, p: Mapping[str, float]) -> pd.DataFrame:
@@ -296,8 +329,14 @@ class Model:
                 out["GxG"] = p["V_GxG"] * K2
         for c, ind in self.indicators.items():
             out[c] = p[f"V_{c}"] * ind
+        if "house" in spec.components:
+            out["house"] = p["V_house"] * (self.house_full + p["pi"] * self.house_part)
         if "family" in spec.components:
             out["family"] = p["V_family"] * p["r_f"] ** self.f
+        if "maternal" in spec.components:
+            # the inflation applied to the sum of the other components
+            base = np.sum(list(out.values()), axis=0) if out else np.zeros(len(self.data))
+            out["maternal"] = base * p["delta"] * self.mat
         return pd.DataFrame(out)
 
     def residuals(self, pred: np.ndarray) -> tuple[np.ndarray, np.ndarray]:

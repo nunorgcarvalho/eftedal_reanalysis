@@ -144,6 +144,20 @@ def env_indicator(data: pd.DataFrame, name: str) -> np.ndarray:
     raise ValueError(f"unknown indicator component {name!r}")
 
 
+def maternal_indicator(data: pd.DataFrame) -> np.ndarray:
+    """1 for categories related only through mothers (side == 'maternal'), else 0.
+
+    Paternal, opposite-sex-linked ('other') and both-parent pairs (twins, full sibs) are 0:
+    for both-parent pairs a maternal excess cannot be separated from household or genetic
+    sharing, so the maternal parameter is a contrast identified within half sibs, cousins,
+    half cousins, 2nd cousins and co-cousins.
+    """
+    return (data["side"].to_numpy() == "maternal").astype(float)
+
+
 INDICATOR_COMPONENTS = ("house1", "house2", "house3", "housepart", "cousins1", "cousins2")
 GENETIC_COMPONENTS = ("A", "GxG")
-ALL_COMPONENTS = GENETIC_COMPONENTS + INDICATOR_COMPONENTS + ("family",)
+# 'house': V_house * (full_time + pi * part_time), with the part-time share pi estimated
+# 'maternal': multiplicative, rho_k * (1 + delta * maternal_k); not a variance component
+ALL_COMPONENTS = GENETIC_COMPONENTS + INDICATOR_COMPONENTS + ("house", "family", "maternal")
+MODIFIER_COMPONENTS = ("maternal",)
