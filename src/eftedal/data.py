@@ -111,19 +111,26 @@ def _bio_only(df):
     return (df["group"] == "bio").to_numpy() & ~df["uz_linked"].to_numpy()
 
 
+def _bio(df):
+    return (df["group"] == "bio").to_numpy().copy()
+
+
 COHORTS = {
     # every category, including adoptive relatives and relatives through UZ twins
     "ALL": _all,
     "ALL_but_adopted": _no_adopted,
     # Eftedal et al. "Bio + In-law" (also excludes classes linked through UZ twins)
     "ALL_but_adopted_UZ": _no_adopted_uz,
+    # biological relatives incl. those linked through UZ twins (bio-only under our settings,
+    # which model UZ-linked categories as an MZ/DZ mixture)
+    "bio": _bio,
     # Eftedal et al. "Bio only"
     "bio_only": _bio_only,
 }
 
 
 def cohort_mask(df: pd.DataFrame, cohort: str, drop_duplicate: bool = False) -> np.ndarray:
-    mask = COHORTS[cohort](df)
+    mask = np.array(COHORTS[cohort](df), dtype=bool)   # writable copy
     if drop_duplicate:
         mask = mask & ~df["suspect_duplicate"].to_numpy()
     return mask

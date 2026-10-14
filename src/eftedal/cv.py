@@ -42,12 +42,18 @@ def cross_validate(data: pd.DataFrame, spec: FitSpec, *, n_starts: int = 12,
       fold_scores : one row per fold: score (mean type mse), rmse, chi2, n types / categories
     """
     folds = D.cv_folds(data) if folds is None else folds
+    # only folds that remove something from the spec's cohort
+    in_cohort = (D.cohort_mask(data, spec.cohort, spec.drop_duplicate)
+                 & ~data["rel"].isin(spec.exclude_types).to_numpy())
+    present = set(data.loc[in_cohort, "rel"])
+    folds = {k: v for k, v in folds.items() if present & set(v)}
     full = fit(data, spec, n_starts=n_starts, seed=seed)
     params, held, scores = [], [], []
     for name, rels in folds.items():
         r = fit(data, spec.with_(exclude_types=tuple(rels)), n_starts=n_starts, seed=seed,
                 starts=[full.theta])
         p = dict(r.params)
+        p["V_sum"] = sum(v for k, v in r.params.items() if k.startswith("V_"))
         p.update(fold=name, loss=r.loss, n_converged_to_best=r.n_converged_to_best,
                  at_bound=",".join(r.at_bound()))
         params.append(p)
@@ -73,9 +79,12 @@ def summarize_scores(scores: pd.DataFrame) -> dict:
 def jackknife(fold_params: pd.DataFrame, full_params: dict, params: list[str],
               blocks: list[str] | None = None) -> pd.DataFrame:
     """Block-jackknife SEs from the single-block refits:
-    SE = sqrt((B - 1) / B * sum_b (theta_(b) - mean)^2)."""
+    SE = sqrt((B - 1) / B * sum_b (theta_(b) - mean)^2); interval = estimate +/- 1.96 SE.
+    'V_sum' (sum of the variance components) can be requested as a parameter."""
     blocks = D.CV_BLOCKS if blocks is None else blocks
-    fp = fold_params[fold_params["fold"].isin(blocks)]
+    fp = fold_params[fold_params["fold"].isin(blocks)]     # single-block folds present
+    full_params = dict(full_params)
+    full_params.setdefault("V_sum", sum(v for k, v in full_params.items() if k.startswith("V_")))
     B = len(fp)
     rows = []
     for p in params:

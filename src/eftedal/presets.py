@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import itertools
 
-from .model import CORE_MODELS_WITH_MATERNAL, FitSpec, MODELS
+from .model import CORE_MODELS, JOINT_MODELS, SEQUENTIAL_CARRY, FitSpec, MODELS
 
 # Options that reproduce the 2025 R code (archive/03_model_fitting.R, functions.R).
 LEGACY = dict(uz="exponent", log_zero="legacy", adoptive="legacy_n99",
@@ -22,10 +22,18 @@ MAIN_WEIGHTINGS = ("hybrid_block", "invvar")
 
 
 def main_spec(model: str, weights: str = "hybrid_block", cohort: str = "ALL", **kw) -> FitSpec:
-    """Spec for a core model (`CORE_MODELS_WITH_MATERNAL`, or a 2025 name from `MODELS`) under
-    the main settings."""
-    comps = CORE_MODELS_WITH_MATERNAL[model] if model in CORE_MODELS_WITH_MATERNAL else MODELS[model]
-    return FitSpec(components=comps, cohort=cohort, weights=weights, **{**MAIN, **kw},
+    """Spec under the main settings for a model of `CORE_MODELS` (incl. the two-step
+    'A>GxG...' models), `JOINT_MODELS`, or the 2025 set `MODELS`."""
+    extra = {}
+    if model in CORE_MODELS:
+        comps, base = CORE_MODELS[model]
+        if base is not None:
+            extra = dict(sequential_base=base, sequential_carry=SEQUENTIAL_CARRY)
+    elif model in JOINT_MODELS:
+        comps = JOINT_MODELS[model]
+    else:
+        comps = MODELS[model]
+    return FitSpec(components=comps, cohort=cohort, weights=weights, **{**MAIN, **extra, **kw},
                    label=f"{model}|{cohort}|{weights}")
 
 

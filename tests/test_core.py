@@ -30,7 +30,7 @@ def test_load(df):
 
 def test_cohort_sizes(df):
     sizes = {c: D.cohort_mask(df, c).sum() for c in D.COHORTS}
-    assert sizes == {"ALL": 82, "ALL_but_adopted": 70, "ALL_but_adopted_UZ": 53, "bio_only": 41}
+    assert sizes == {"ALL": 82, "ALL_but_adopted": 70, "ALL_but_adopted_UZ": 53, "bio": 58, "bio_only": 41}
 
 
 # ---- kernels ------------------------------------------------------------------------------

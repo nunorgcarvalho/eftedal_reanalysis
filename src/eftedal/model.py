@@ -48,24 +48,32 @@ MODELS_2025 = {
 MODELS = MODELS_2025   # backwards-compatible name
 
 
-def _core_models(maternal: bool = False) -> dict[str, tuple[str, ...]]:
-    """The a priori model set: genetic {A, A+GxG} x environment {none, household(pi),
-    decaying family, household + family}, optionally also x {without, with maternal delta}."""
+def _joint_models() -> dict[str, tuple[str, ...]]:
+    """All-joint model set: genetic {A, A+GxG} x environment {none, household(pi),
+    decaying family, household + family} (supplement)."""
     out = {}
     for g in (("A",), ("A", "GxG")):
         for e in ((), ("house",), ("family",), ("house", "family")):
-            for mat in (((), ("maternal",)) if maternal else ((),)):
-                comps = g + e + mat
-                name = "+".join({"A": "A", "GxG": "GxG", "house": "H", "family": "F",
-                                 "maternal": "mat"}[c] for c in comps)
-                out[name] = comps
+            comps = g + e
+            out["+".join({"A": "A", "GxG": "GxG", "house": "H", "family": "F"}[c] for c in comps)] = comps
     return out
 
 
-# Main analysis: 8 models. The maternal term is set aside for now (user decision 2026-10-13:
-# not empirically informative and post hoc); the 16-model set with it stays available.
-CORE_MODELS = _core_models()
-CORE_MODELS_WITH_MATERNAL = _core_models(maternal=True)
+JOINT_MODELS = _joint_models()
+
+# Core model set (user decision 2026-10-14): {A, A>GxG} x {none, H(pi), F}.
+# name -> (components, sequential base). 'A>GxG...' = two-step: step 1 fits A alone; step 2
+# fits GxG and the environment term on top with the whole additive part frozen (V_A and r,
+# hence m: SEQUENTIAL_CARRY). Models without GxG are fitted jointly in one step.
+CORE_MODELS = {
+    "A": (("A",), None),
+    "A+H": (("A", "house"), None),
+    "A+F": (("A", "family"), None),
+    "A>GxG": (("A", "GxG"), ("A",)),
+    "A>GxG+H": (("A", "GxG", "house"), ("A",)),
+    "A>GxG+F": (("A", "GxG", "family"), ("A",)),
+}
+SEQUENTIAL_CARRY = ("V_A", "r")
 
 @dataclass(frozen=True)
 class FitSpec:

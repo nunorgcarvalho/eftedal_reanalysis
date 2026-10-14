@@ -3,7 +3,7 @@ import pytest
 
 from eftedal import data as D
 from eftedal.fit import fit
-from eftedal.model import CORE_MODELS, CORE_MODELS_WITH_MATERNAL, FitSpec, Model
+from eftedal.model import CORE_MODELS, JOINT_MODELS, FitSpec, Model
 from eftedal.presets import MAIN, main_spec
 
 
@@ -12,12 +12,29 @@ def df():
     return D.load("MRE8")
 
 
-def test_core_model_set():
-    assert len(CORE_MODELS) == 8
-    assert not any("maternal" in c for c in CORE_MODELS.values())
-    assert len(CORE_MODELS_WITH_MATERNAL) == 16
-    assert CORE_MODELS["A"] == ("A",)
-    assert CORE_MODELS_WITH_MATERNAL["A+GxG+H+F+mat"] == ("A", "GxG", "house", "family", "maternal")
+def test_model_sets():
+    assert len(JOINT_MODELS) == 8 and JOINT_MODELS["A+GxG+H+F"] == ("A", "GxG", "house", "family")
+    assert list(CORE_MODELS) == ["A", "A+H", "A+F", "A>GxG", "A>GxG+H", "A>GxG+F"]
+    s = main_spec("A>GxG+F")
+    assert s.sequential_base == ("A",) and s.sequential_carry == ("V_A", "r")
+    assert main_spec("A+F").sequential_base is None
+
+
+def test_two_step_freezes_the_additive_part(df):
+    a = fit(df, main_spec("A", "invvar"), n_starts=2)
+    s = fit(df, main_spec("A>GxG+F", "invvar"), n_starts=2)
+    for p in ("V_A", "r", "m"):
+        assert s.params[p] == pytest.approx(a.params[p])
+    assert set(s.free) == {"V_GxG", "V_family", "r_f"}
+    assert s.summary()["V_sum"] == pytest.approx(s.params["V_A"] + s.params["V_GxG"] + s.params["V_family"])
+
+
+def test_jackknife_folds_restricted_to_cohort(df):
+    from eftedal import cv
+    full, fp, _, _ = cv.cross_validate(df, main_spec("A", "invvar", cohort="bio"), n_starts=1)
+    assert set(fp["fold"]) == {"twins", "sibs", "half sibs", "1st cousins", "half cousins", "2nd cousins"}
+    jk = cv.jackknife(fp, full.params, ["V_A", "V_sum"])
+    assert jk.set_index("param").loc["V_sum", "estimate"] == pytest.approx(full.params["V_A"])
 
 
 def test_main_settings():
@@ -60,7 +77,7 @@ def test_maternal_inflation_only_touches_maternal_rows(df):
 
 
 def test_delta_bounds_allow_paternal_excess(df):
-    m = Model(df, main_spec("A+mat"))
+    m = Model(df, FitSpec(components=("A", "maternal")))
     i = m.free.index("delta")
     assert m.lb[i] < 0 < m.ub[i]
 
@@ -75,7 +92,7 @@ def test_cv_blocks(df):
 
 
 def test_all_core_models_fit(df):
-    for name in CORE_MODELS:
+    for name in list(CORE_MODELS) + list(JOINT_MODELS):
         r = fit(df, main_spec(name), n_starts=1, polish=False)
         assert np.isfinite(r.loss)
         tot = sum(v for k, v in r.params.items() if k.startswith("V_"))

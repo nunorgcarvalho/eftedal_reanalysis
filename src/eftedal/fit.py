@@ -38,6 +38,7 @@ class FitResult:
         for p in PARAM_ORDER:
             d[p] = self.params.get(p, np.nan)
         d["c"] = half_multiplier_or_nan(self.params)
+        d["V_sum"] = sum(v for k, v in self.params.items() if k.startswith("V_"))
         d.update(self.stats)
         d["loss"] = self.loss
         d["n_free"] = len(self.free)
