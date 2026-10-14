@@ -68,6 +68,7 @@ CORE_MODELS = {
     "A": (("A",), None),
     "A>GxG": (("A", "GxG"), ("A",)),
     "A+GxG": (("A", "GxG"), None),
+    "A>F": (("A", "family"), ("A",)),
     "A+F": (("A", "family"), None),
     "A+GxG>F": (("A", "GxG", "family"), ("A", "GxG")),
     "A+F>GxG": (("A", "GxG", "family"), ("A", "family")),

@@ -18,7 +18,7 @@ has <- function(...) file.exists(file.path(RESULTS, ...))
 WEIGHT_LABELS <- c(invvar = "Marginal Pair", hybrid_block = "Marginal Type", invSqErr = "Eftedal (log, 1/SE²)")
 CI_LABELS <- c("parametric bootstrap" = "Marginal Pair CI", "block jackknife" = "Marginal Type CI")
 wrap_y <- scale_y_discrete(labels = scales::label_wrap(30))   # long labels span several lines
-CORE_ORDER <- c("A", "A>GxG", "A+GxG", "A+F", "A+GxG>F", "A+F>GxG", "A>GxG+F", "A+GxG+F")
+CORE_ORDER <- c("A", "A>GxG", "A+GxG", "A>F", "A+F", "A+GxG>F", "A+F>GxG", "A>GxG+F", "A+GxG+F")
 CI_COLORS <- c("Marginal Pair CI" = "#0072B2", "Marginal Type CI" = "#D55E00")
 # both CIs drawn from the same point: the wide marginal-type CI first, the narrow marginal-pair CI on top
 overlay_ci <- function(d, x = "estimate") {

@@ -14,7 +14,7 @@ def df():
 
 def test_model_sets():
     assert len(JOINT_MODELS) == 8 and JOINT_MODELS["A+GxG+H+F"] == ("A", "GxG", "house", "family")
-    assert list(CORE_MODELS) == ["A", "A>GxG", "A+GxG", "A+F", "A+GxG>F", "A+F>GxG", "A>GxG+F", "A+GxG+F"]
+    assert list(CORE_MODELS) == ["A", "A>GxG", "A+GxG", "A>F", "A+F", "A+GxG>F", "A+F>GxG", "A>GxG+F", "A+GxG+F"]
     s = main_spec("A>GxG+F")
     assert s.sequential_base == ("A",) and s.sequential_carry == ("all",)
     assert main_spec("A+F").sequential_base is None

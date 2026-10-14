@@ -19,7 +19,7 @@ from eftedal.fit import fit
 from eftedal.presets import MAIN_WEIGHTINGS, main_spec
 
 # joint model -> its two-step core counterparts (same components)
-MODELS = {"A+GxG": ["A>GxG"], "A+F": [], "A+GxG+F": ["A>GxG+F", "A+GxG>F", "A+F>GxG"]}
+MODELS = {"A+GxG": ["A>GxG"], "A+F": ["A>F"], "A+GxG+F": ["A>GxG+F", "A+GxG>F", "A+F>GxG"]}
 GRID = np.round(np.arange(0.20, 0.901, 0.025), 3)
 
 

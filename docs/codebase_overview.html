@@ -215,7 +215,7 @@ the same jackknife and bootstrap replicates as \(V_A\)'s.</p>
 <tr><td>Decaying family environment (F)</td><td>\(V_{fam}\, r_f^{\,f_k}\): an environment shared within the extended family, decaying by \(r_f\) per unit of family degree. Applies to adoptive relatives too, which are what separate it from assortative mating.</td><td><code>Model.predict</code></td></tr>
 <tr><td>Maternal inflation (mat) <span class="muted">— implemented, not in the main model set</span></td><td>multiply the prediction by \(1+\delta\) for categories related <i>only</i> through mothers (\(M_k = 1\) if <code>side == 'maternal'</code>). \(\delta \in [-0.5, 1]\), so a paternal excess is allowed. A phenomenological contrast parameter (custody, kin networks, misattributed paternity, mtDNA). It is identified within half sibs, cousins, half cousins, 2nd cousins and co-cousins.</td><td><code class="fn">components.maternal_indicator</code></td></tr>
 </table>
-<p><b>Core models</b> (<code>model.CORE_MODELS</code>, 8): A, A→GxG, A+GxG, A+F, A+GxG→F, A+F→GxG, A→GxG+F,
+<p><b>Core models</b> (<code>model.CORE_MODELS</code>, 9): A, A→GxG, A+GxG, A→F, A+F, A+GxG→F, A+F→GxG, A→GxG+F,
 A+GxG+F. <b>X→Y</b> is two-step: step 1 fits X; step 2 fits Y on top with every parameter estimated in step 1 frozen
 (<code>model.SEQUENTIAL_CARRY = ("all",)</code>). Names without → are fitted jointly. Refits (jackknife, CV, bootstrap) redo
 both steps. The <b>all-joint set</b> {A, A+GxG} × {none, H, F, H+F} (<code>model.JOINT_MODELS</code>, 8) is kept for the
