@@ -14,9 +14,9 @@ def df():
 
 def test_model_sets():
     assert len(JOINT_MODELS) == 8 and JOINT_MODELS["A+GxG+H+F"] == ("A", "GxG", "house", "family")
-    assert list(CORE_MODELS) == ["A", "A+H", "A+F", "A>GxG", "A>GxG+H", "A>GxG+F"]
+    assert list(CORE_MODELS) == ["A", "A>GxG", "A+GxG", "A+F", "A+GxG>F", "A+F>GxG", "A>GxG+F", "A+GxG+F"]
     s = main_spec("A>GxG+F")
-    assert s.sequential_base == ("A",) and s.sequential_carry == ("V_A", "r")
+    assert s.sequential_base == ("A",) and s.sequential_carry == ("all",)
     assert main_spec("A+F").sequential_base is None
 
 
@@ -27,6 +27,12 @@ def test_two_step_freezes_the_additive_part(df):
         assert s.params[p] == pytest.approx(a.params[p])
     assert set(s.free) == {"V_GxG", "V_family", "r_f"}
     assert s.summary()["V_sum"] == pytest.approx(s.params["V_A"] + s.params["V_GxG"] + s.params["V_family"])
+    # step 1 = A + F: V_A, V_family, r_f and r frozen; only V_GxG is fitted in step 2
+    af = fit(df, main_spec("A+F", "invvar"), n_starts=2)
+    t = fit(df, main_spec("A+F>GxG", "invvar"), n_starts=2)
+    assert t.free == ["V_GxG"]
+    for p in ("V_A", "V_family", "r_f", "r"):
+        assert t.params[p] == pytest.approx(af.params[p])
 
 
 def test_jackknife_folds_restricted_to_cohort(df):

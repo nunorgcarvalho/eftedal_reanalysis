@@ -1,6 +1,10 @@
 """Main sections 1 and 2: from Eftedal et al.'s estimator to ours, and the effect of in-laws.
-Every estimate carries a block-jackknife 95% interval (leave one cv block of relationship types
-out, refit; only blocks present in the fitted cohort). Writes results/corrections/:
+Every estimate carries two 95% intervals (column `method`):
+  block jackknife       leave one cv block of relationship types out, refit (blocks present in the
+                        fitted cohort); sensitivity to which kinds of relatives exist
+  parametric bootstrap  correlations redrawn from N(rho, SE^2), refit; sampling noise only. For the
+                        in-law difference the same draws are used for both fits (paired).
+Writes results/corrections/:
 
 steps.csv            additive model (A), Eftedal's estimator and our corrections applied
                      cumulatively (the cumulative order is the order of STEPS), plus one aside
@@ -19,6 +23,7 @@ import pandas as pd
 
 from eftedal import cv
 from eftedal import data as D
+from eftedal.inference import parametric_bootstrap
 from eftedal.presets import main_spec
 
 REPORT = ["V_A", "m", "r"]
@@ -50,30 +55,38 @@ INLAW = [
 ]
 
 
-def _jk_rows(df, spec, n_starts, **tag):
+def _jk_rows(df, spec, n_starts, n_boot, seed, **tag):
+    """Full fit, jackknife replicates, and a table with both intervals; also the bootstrap
+    replicates (for paired differences)."""
     full, fp, _, sc = cv.cross_validate(df, spec, n_starts=n_starts,
                                        folds={b: D.rels_in_blocks(df, b) for b in D.CV_BLOCKS})
     jk = cv.jackknife(fp, full.params, REPORT, blocks=list(fp["fold"]))
-    jk = jk.assign(**tag, R2_lin=full.stats["R2_lin"], chi2_per_df=full.stats["chi2_per_df"])
-    return full, fp.assign(**tag), jk
+    reps = parametric_bootstrap(df, full, n_boot=n_boot, seed=seed, n_starts=2)
+    bt = pd.DataFrame([{"param": p, "estimate": full.params[p], "se": reps[p].std(),
+                        "lo": reps[p].quantile(0.025), "hi": reps[p].quantile(0.975),
+                        "method": "parametric bootstrap"} for p in REPORT])
+    t = pd.concat([jk, bt], ignore_index=True).assign(
+        **tag, R2_lin=full.stats["R2_lin"], chi2_per_df=full.stats["chi2_per_df"])
+    return full, fp.assign(**tag), t, reps
 
 
-def steps(df, n_starts):
+def steps(df, n_starts, n_boot):
     rows, jks = [], []
     for i, (key, label, kw) in enumerate(STEPS + ASIDE):
-        _, fp, jk = _jk_rows(df, main_spec("A", **kw), n_starts, step=key, label=label,
-                             order=i, aside=key in {a[0] for a in ASIDE})
+        _, fp, jk, _ = _jk_rows(df, main_spec("A", **kw), n_starts, n_boot, 10 + i, step=key,
+                                label=label, order=i, aside=key in {a[0] for a in ASIDE})
         rows.append(jk)
         jks.append(fp)
         print("step", key, flush=True)
     return pd.concat(rows, ignore_index=True), pd.concat(jks, ignore_index=True)
 
 
-def inlaw(df, n_starts):
+def inlaw(df, n_starts, n_boot):
     rows = []
-    for key, label, c_bio, c_all, kw in INLAW:
-        fb, fpb, jb = _jk_rows(df, main_spec("A", cohort=c_bio, **kw), n_starts)
-        fa, fpa, ja = _jk_rows(df, main_spec("A", cohort=c_all, **kw), n_starts)
+    for i, (key, label, c_bio, c_all, kw) in enumerate(INLAW):
+        # same seed -> same redrawn correlations for both fits (paired bootstrap)
+        fb, fpb, jb, rb = _jk_rows(df, main_spec("A", cohort=c_bio, **kw), n_starts, n_boot, 50 + i)
+        fa, fpa, ja, ra = _jk_rows(df, main_spec("A", cohort=c_all, **kw), n_starts, n_boot, 50 + i)
         # paired jackknife of the difference over the blocks of the larger cohort; a block absent
         # from the bio-only cohort leaves that fit unchanged
         b_bio = fpb.set_index("fold")["V_A"]
@@ -82,27 +95,36 @@ def inlaw(df, n_starts):
         B = len(reps)
         se_gap = np.sqrt((B - 1) / B * np.sum((reps - reps.mean()) ** 2))
         gap = fb.params["V_A"] - fa.params["V_A"]
-        for what, est, se in (("bio only", fb.params["V_A"], jb.set_index("param").loc["V_A", "se"]),
-                              ("bio + in-law", fa.params["V_A"], ja.set_index("param").loc["V_A", "se"]),
-                              ("difference", gap, se_gap)):
-            rows.append({"estimator": key, "label": label, "quantity": what, "estimate": est,
-                         "se": se, "lo": est - 1.96 * se, "hi": est + 1.96 * se})
+        pick = lambda t, m: t[(t.param == "V_A") & (t.method == m)].iloc[0]
+        for what, est, jrow, brow in (("bio only", fb.params["V_A"], pick(jb, "block jackknife"), pick(jb, "parametric bootstrap")),
+                                      ("bio + in-law", fa.params["V_A"], pick(ja, "block jackknife"), pick(ja, "parametric bootstrap"))):
+            for r in (jrow, brow):
+                rows.append({"estimator": key, "label": label, "quantity": what, "estimate": est,
+                             "se": r["se"], "lo": r["lo"], "hi": r["hi"], "method": r["method"]})
+        rows.append({"estimator": key, "label": label, "quantity": "difference", "estimate": gap,
+                     "se": se_gap, "lo": gap - 1.96 * se_gap, "hi": gap + 1.96 * se_gap,
+                     "method": "block jackknife"})
+        d = rb["V_A"].to_numpy() - ra["V_A"].to_numpy()
+        rows.append({"estimator": key, "label": label, "quantity": "difference", "estimate": gap,
+                     "se": d.std(ddof=1), "lo": np.quantile(d, 0.025), "hi": np.quantile(d, 0.975),
+                     "method": "parametric bootstrap"})
         print("inlaw", key, flush=True)
     return pd.DataFrame(rows)
 
 
-def main(out: Path, n_starts: int):
+def main(out: Path, n_starts: int, n_boot: int):
     out.mkdir(parents=True, exist_ok=True)
     df = D.load("MRE8")
-    s, j = steps(df, n_starts)
+    s, j = steps(df, n_starts, n_boot)
     s.to_csv(out / "steps.csv", index=False)
     j.to_csv(out / "steps_jackknife.csv", index=False)
-    inlaw(df, n_starts).to_csv(out / "inlaw.csv", index=False)
+    inlaw(df, n_starts, n_boot).to_csv(out / "inlaw.csv", index=False)
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out", type=Path, default=D.REPO_ROOT / "results" / "corrections")
     ap.add_argument("--n-starts", type=int, default=12)
+    ap.add_argument("--n-boot", type=int, default=300)
     a = ap.parse_args()
-    main(a.out, a.n_starts)
+    main(a.out, a.n_starts, a.n_boot)

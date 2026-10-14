@@ -18,8 +18,8 @@ from eftedal import data as D
 from eftedal.fit import fit
 from eftedal.presets import MAIN_WEIGHTINGS, main_spec
 
-# joint model -> its two-step core counterpart (None: no two-step version)
-MODELS = {"A+GxG": "A>GxG", "A+GxG+H": "A>GxG+H", "A+GxG+F": "A>GxG+F", "A+F": None}
+# joint model -> its two-step core counterparts (same components)
+MODELS = {"A+GxG": ["A>GxG"], "A+F": [], "A+GxG+F": ["A>GxG+F", "A+GxG>F", "A+F>GxG"]}
 GRID = np.round(np.arange(0.20, 0.901, 0.025), 3)
 
 
@@ -28,14 +28,13 @@ def main(out: Path, n_starts: int):
     df = D.load("MRE8")
     rows = []
     for w in MAIN_WEIGHTINGS:
-        for m, two_step in MODELS.items():
+        for m, two_steps in MODELS.items():
             joint = fit(df, main_spec(m, w), n_starts=n_starts)
-            seq = fit(df, main_spec(two_step, w), n_starts=n_starts) if two_step else None
-            pts = [("grid", v) for v in GRID] + [("joint", joint.params["V_A"])]
-            if seq is not None:
-                pts.append(("two-step", seq.params["V_A"]))
+            seqs = {t: fit(df, main_spec(t, w), n_starts=n_starts) for t in two_steps}
+            pts = ([("grid", v) for v in GRID] + [("joint", joint.params["V_A"])]
+                   + [(t, r.params["V_A"]) for t, r in seqs.items()])
             for kind, v in pts:
-                res = joint if kind == "joint" else seq if kind == "two-step" else fit(
+                res = joint if kind == "joint" else seqs[kind] if kind in seqs else fit(
                     df, main_spec(m, w).with_(fixed=(("V_A", float(v)),)), n_starts=n_starts,
                     starts=[np.delete(joint.theta, joint.free.index("V_A"))])
                 d = {k: res.params.get(k) for k in ("V_A", "V_GxG", "V_family", "r_f", "m", "r")}

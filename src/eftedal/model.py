@@ -61,19 +61,20 @@ def _joint_models() -> dict[str, tuple[str, ...]]:
 
 JOINT_MODELS = _joint_models()
 
-# Core model set (user decision 2026-10-14): {A, A>GxG} x {none, H(pi), F}.
-# name -> (components, sequential base). 'A>GxG...' = two-step: step 1 fits A alone; step 2
-# fits GxG and the environment term on top with the whole additive part frozen (V_A and r,
-# hence m: SEQUENTIAL_CARRY). Models without GxG are fitted jointly in one step.
+# Core model set (user decision 2026-10-14, revised): name -> (components, sequential base).
+# 'X>Y' = two-step: step 1 fits X; step 2 fits the components Y on top with every parameter
+# estimated in step 1 frozen (SEQUENTIAL_CARRY). Names without '>' are fitted jointly.
 CORE_MODELS = {
     "A": (("A",), None),
-    "A+H": (("A", "house"), None),
-    "A+F": (("A", "family"), None),
     "A>GxG": (("A", "GxG"), ("A",)),
-    "A>GxG+H": (("A", "GxG", "house"), ("A",)),
+    "A+GxG": (("A", "GxG"), None),
+    "A+F": (("A", "family"), None),
+    "A+GxG>F": (("A", "GxG", "family"), ("A", "GxG")),
+    "A+F>GxG": (("A", "GxG", "family"), ("A", "family")),
     "A>GxG+F": (("A", "GxG", "family"), ("A",)),
+    "A+GxG+F": (("A", "GxG", "family"), None),
 }
-SEQUENTIAL_CARRY = ("V_A", "r")
+SEQUENTIAL_CARRY = ("all",)
 
 @dataclass(frozen=True)
 class FitSpec:
@@ -119,7 +120,8 @@ class FitSpec:
                      settings otherwise), then this model with the `sequential_carry` parameters
                      held at their stage-1 estimates. An ordering convention (type I sums of
                      squares): the base absorbs any signal it shares with the added terms.
-    sequential_carry : parameters carried from stage 1 (default V_A)
+    sequential_carry : parameters carried from stage 1 (default V_A); ("all",) = every parameter
+                     estimated in stage 1
     """
 
     components: tuple[str, ...] = ("A",)

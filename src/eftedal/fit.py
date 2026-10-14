@@ -204,12 +204,13 @@ def fit(data: pd.DataFrame, spec: FitSpec, *, n_starts: int = 12, seed: int = 0,
 
 def _fit_sequential(data, spec: FitSpec, **kw) -> FitResult:
     """Stage 1: the base model; stage 2: the full model with the carried parameters fixed at
-    their stage-1 values. Returns the stage-2 result, labelled with the original (sequential)
+    their stage-1 values (sequential_carry=("all",): every parameter estimated in stage 1). Returns the stage-2 result, labelled with the original (sequential)
     spec so that refits (bootstrap, jackknife, CV) redo both stages. Its `model` is the stage-2
     model, so Wald/sandwich covariances are conditional on stage 1."""
     starts = kw.pop("starts", None)
     base = fit(data, spec.with_(components=spec.sequential_base, sequential_base=None), **kw)
-    carried = tuple((p, float(base.params[p])) for p in spec.sequential_carry if p in base.params)
+    names = base.free if tuple(spec.sequential_carry) == ("all",) else spec.sequential_carry
+    carried = tuple((p, float(base.params[p])) for p in names if p in base.params)
     stage2 = spec.with_(sequential_base=None, fixed=spec.fixed + carried)
     res = fit(data, stage2, starts=starts, **kw)
     res.spec = spec
