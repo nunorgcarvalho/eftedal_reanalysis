@@ -213,6 +213,11 @@ def _fit_sequential(data, spec: FitSpec, **kw) -> FitResult:
     stage2 = spec.with_(sequential_base=None, fixed=spec.fixed + carried)
     res = fit(data, stage2, starts=starts, **kw)
     res.spec = spec
+    # degrees of freedom also spend the parameters estimated in stage 1
+    n_carried = len(carried)
+    res.stats["df"] -= n_carried
+    res.stats["chi2_per_df"] = res.stats["chi2"] / res.stats["df"] if res.stats["df"] > 0 else np.nan
+    res.stats["n_params_estimated"] = len(res.free) + n_carried
     res.stats.update({f"stage1_{p}": v for p, v in base.params.items()})
     res.stats["stage1_loss"] = base.loss
     return res
