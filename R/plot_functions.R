@@ -113,3 +113,51 @@ save_fig <- function(gg, name, width = 3000, height = 1600) {
   invisible(gg)
 }
 
+
+# ---- condensed fit plot: one pooled point per relationship type --------------------------------
+# Categories of a relationship type (maternal/paternal/other x gender composition) are pooled by a
+# fixed-effect (inverse-variance) meta-analysis: rho = sum(w rho) / sum(w), SE = 1 / sqrt(sum(w)),
+# w = 1/SE^2. Predictions are pooled with the same weights. Relatives through UZ twins are omitted.
+CONDENSED_ORDER <- c("mz", "uz", "dz", "sibs", "half sibs", "1st cousins", "half cousins", "2nd cousins",
+                     "cocousins", "step sibs", "adoptive sibs", "adoptive 1st cousins",
+                     "adoptive 2nd cousins", "adoptive cocousins")
+CONDENSED_LABELS <- c(mz = "MZ twins", uz = "UZ twins", dz = "DZ twins", sibs = "full-sibs",
+                      `half sibs` = "half-sibs", `1st cousins` = "1st cousins", `half cousins` = "half cousins",
+                      `2nd cousins` = "2nd cousins", cocousins = "co-cousins", `step sibs` = "step-sibs",
+                      `adoptive sibs` = "adoptive sibs", `adoptive 1st cousins` = "adoptive 1st cousins",
+                      `adoptive 2nd cousins` = "adoptive 2nd cousins", `adoptive cocousins` = "adoptive co-cousins")
+
+pool_by_type <- function(obs) {
+  obs %>% filter(rel %in% CONDENSED_ORDER) %>% mutate(w = 1 / se^2) %>%
+    group_by(rel) %>% summarize(corr = sum(w * corr) / sum(w), se = sqrt(1 / sum(w)), .groups = "drop") %>%
+    mutate(x = match(rel, CONDENSED_ORDER))
+}
+
+plot_fits_condensed <- function(obs, preds, colors, title = NULL) {
+  po <- pool_by_type(obs)
+  w <- obs %>% transmute(row, w = 1 / se^2)
+  pp <- preds %>% filter(rel %in% CONDENSED_ORDER) %>% inner_join(w, by = "row") %>%
+    group_by(model, rel) %>% summarize(pred = sum(w * pred) / sum(w), .groups = "drop") %>%
+    mutate(x = match(rel, CONDENSED_ORDER))
+  path <- pp %>% reframe(x = c(x - 0.35, x + 0.35), pred = c(pred, pred), .by = c(model, rel)) %>%
+    arrange(model, x)
+  ggplot() +
+    geom_hline(yintercept = 0) +
+    geom_path(data = path, aes(x = x, y = pred, color = model, group = model), linewidth = 0.3, alpha = 0.8) +
+    geom_segment(data = pp, aes(x = x - 0.35, xend = x + 0.35, y = pred, yend = pred, color = model),
+                 linewidth = 0.9) +
+    geom_errorbar(data = po, aes(x = x, ymin = corr - z95 * se, ymax = corr + z95 * se), width = 0.15) +
+    geom_point(data = po, aes(x = x, y = corr), size = 2.6) +
+    scale_x_continuous(breaks = seq_along(CONDENSED_ORDER), labels = CONDENSED_LABELS[CONDENSED_ORDER],
+                       expand = expansion(add = 0.6)) +
+    scale_y_continuous(breaks = seq(0, 1, by = 0.1)) +
+    scale_color_manual(values = colors, breaks = names(colors), name = NULL) +
+    coord_cartesian(ylim = c(-0.02, 0.92)) +
+    labs(x = NULL, y = "Correlation", title = title,
+         caption = "Points: inverse-variance pooled correlation of each relationship type (95% CI); bars: model predictions pooled with the same weights") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 40, hjust = 1), panel.grid.minor = element_blank(),
+          legend.position = "inside", legend.position.inside = c(0.985, 0.98),
+          legend.justification = c("right", "top"),
+          legend.background = element_rect(fill = "white", color = "black"))
+}

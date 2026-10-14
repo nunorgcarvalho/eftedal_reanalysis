@@ -1,14 +1,15 @@
 """Main sections 1 and 2: from Eftedal et al.'s estimator to ours, and the effect of in-laws.
 Every estimate carries two 95% intervals (column `method`):
-  block jackknife       leave one cv block of relationship types out, refit (blocks present in the
-                        fitted cohort); sensitivity to which kinds of relatives exist
-  parametric bootstrap  correlations redrawn from N(rho, SE^2), refit; sampling noise only. For the
-                        in-law difference the same draws are used for both fits (paired).
+  block jackknife       ("marginal type" CI) leave one cv block of relationship types out, refit
+                        (blocks present in the fitted cohort); sensitivity to which kinds of relatives exist
+  parametric bootstrap  ("marginal pair" CI) correlations redrawn from N(rho, SE^2), refit; sampling
+                        noise only. For the in-law difference the same draws are used for both fits (paired).
 Writes results/corrections/:
 
-steps.csv            additive model (A), Eftedal's estimator and our corrections applied
-                     cumulatively (the cumulative order is the order of STEPS), plus one aside
-                     (Eftedal's log scale with delta-method weights); one row per step x parameter
+steps.csv            additive model (A): Eftedal's estimator, Eftedal's with corrected (delta-method)
+                     weights on the log scale, Eftedal's on the linear scale, and our revised
+                     estimator with marginal-pair (1/SE^2) and marginal-type (block-balanced) weights;
+                     one row per step x parameter x interval type
 steps_jackknife.csv  the leave-one-block-out estimates behind steps.csv
 inlaw.csv            h2 of the additive model fitted to biological relatives only vs. with
                      in-laws, and the difference, per estimator; the interval on the difference
@@ -33,25 +34,23 @@ REPORT = ["V_A", "m", "r"]
 EFTEDAL = dict(scale="log", weights="invSqErr", mr="free", stepsib="eftedal",
                cohort="ALL_but_adopted_UZ")
 
-# (key, label, settings): cumulative corrections, then the change of weighting.
+# (key, label, settings), in display order. 'revised_pair' applies every correction at once
+# (linear scale with 1/SE^2 weights, m = h2 r, corrected step-sibling kernel, all 82 categories).
 STEPS = [
-    ("eftedal", "Eftedal et al. (log scale, 1/SE²)", EFTEDAL),
-    ("linear", "+ linear scale (1/SE² = inverse variance)", {**EFTEDAL, "scale": "lin", "weights": "invvar"}),
-    ("mr", "+ m = h²r", {**EFTEDAL, "scale": "lin", "weights": "invvar", "mr": "equilibrium"}),
-    ("stepsib", "+ corrected step-sibling kernel",
-     {**EFTEDAL, "scale": "lin", "weights": "invvar", "mr": "equilibrium", "stepsib": "corrected"}),
-    ("all82", "+ all 82 categories (= ours, inverse variance)", dict(weights="invvar")),
-    ("block", "ours, block-balanced hybrid weights", dict(weights="hybrid_block")),
+    ("eftedal", "Eftedal et al.", EFTEDAL),
+    ("eftedal_delta", "Eftedal et al. (corrected inverse variance weight)", {**EFTEDAL, "weights": "invvar"}),
+    ("linear", "Eftedal et al. + linear scale", {**EFTEDAL, "scale": "lin", "weights": "invvar"}),
+    ("revised_pair", "Revised (Marginal Pair)", dict(weights="invvar")),
+    ("revised_type", "Revised (Marginal Type)", dict(weights="hybrid_block")),
 ]
-ASIDE = [("eftedal_delta", "Eftedal, but delta-method weights on the log scale",
-          {**EFTEDAL, "weights": "invvar"})]
+ASIDE = []
 
 # In-law contrast: (key, label, bio-only cohort, bio + in-law cohort, settings)
 INLAW = [
     ("eftedal", "Eftedal et al.", "bio_only", "ALL_but_adopted_UZ",
      {k: v for k, v in EFTEDAL.items() if k != "cohort"}),
-    ("invvar", "ours, inverse variance", "bio", "ALL_but_adopted", dict(weights="invvar")),
-    ("hybrid_block", "ours, block-balanced hybrid", "bio", "ALL_but_adopted", dict(weights="hybrid_block")),
+    ("invvar", "Revised (Marginal Pair)", "bio", "ALL_but_adopted", dict(weights="invvar")),
+    ("hybrid_block", "Revised (Marginal Type)", "bio", "ALL_but_adopted", dict(weights="hybrid_block")),
 ]
 
 
