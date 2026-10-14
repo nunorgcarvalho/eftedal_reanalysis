@@ -131,6 +131,15 @@ CONDENSED_LABELS <- c(mz = "MZ twins", uz = "UZ twins", dz = "DZ twins", sibs = 
 
 CONDENSED_SPLIT <- match("step sibs", CONDENSED_ORDER) - 0.5   # x of the bio | in-law dashed line
 
+# the dashed line, with small faint vertical labels on either side, centred at height y
+bio_split <- function(y = 0.4, size = 2.3) {
+  list(geom_vline(xintercept = CONDENSED_SPLIT, linetype = "dashed", color = "grey55"),
+       annotate("text", x = CONDENSED_SPLIT - 0.09, y = y, label = "biological relatives", angle = 90,
+                vjust = 0, size = size, color = "grey55"),
+       annotate("text", x = CONDENSED_SPLIT + 0.09, y = y, label = "non-biological relatives", angle = 90,
+                vjust = 1, size = size, color = "grey55"))
+}
+
 pool_by_type <- function(obs) {
   obs %>% filter(rel %in% CONDENSED_ORDER) %>% mutate(w = 1 / se^2) %>%
     group_by(rel) %>% summarize(corr = sum(w * corr) / sum(w), se = sqrt(1 / sum(w)), .groups = "drop") %>%
@@ -150,7 +159,7 @@ plot_fits_condensed <- function(obs, preds, colors, title = NULL) {
     mutate(y = pmax(hi, pmax) + 0.02)
   ggplot() +
     geom_hline(yintercept = 0) +
-    geom_vline(xintercept = CONDENSED_SPLIT, linetype = "dashed", color = "grey55") +
+    bio_split() +
     geom_path(data = path, aes(x = x, y = pred, color = model, group = model), linewidth = 0.3, alpha = 0.8) +
     geom_segment(data = pp, aes(x = x - 0.35, xend = x + 0.35, y = pred, yend = pred, color = model),
                  linewidth = 0.9, alpha = 0.8) +

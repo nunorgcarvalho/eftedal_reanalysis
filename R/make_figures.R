@@ -187,7 +187,7 @@ plot_condensed_components <- function(preds, title = NULL) {
   lab <- po %>% left_join(tot, by = c("rel", "x")) %>% mutate(y = pmax(hi, pred) + 0.02)
   stripes <- stripe_segments(pp %>% filter(segment == "A_AM"), spacing = 0.02, slope = 0.25)
   ggplot() +
-    geom_vline(xintercept = CONDENSED_SPLIT, linetype = "dashed", color = "grey55") +
+    bio_split() +
     geom_rect(data = pp, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = segment),
               key_glyph = draw_key_striped) +
     {if (nrow(stripes)) geom_segment(data = stripes, aes(x = x, xend = xend, y = y, yend = yend),
@@ -229,7 +229,7 @@ plot_component_decay <- function(dec, title = NULL, subtitle = NULL) {
     mutate(label = paste0(str_wrap(CONDENSED_LABELS[rel], 10), "\n", sprintf("%.2f", y)))
   stripes <- stripe_segments(pp %>% filter(segment == "A_AM"), spacing = 0.025, slope = 0.25)
   ggplot() +
-    geom_vline(xintercept = CONDENSED_SPLIT, linetype = "dashed", color = "grey55") +
+    bio_split(y = 0.8) +
     geom_rect(data = pp, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = segment),
               key_glyph = draw_key_striped) +
     {if (nrow(stripes)) geom_segment(data = stripes, aes(x = x, xend = xend, y = y, yend = yend),
