@@ -31,8 +31,8 @@ overlay_ci <- function(d, x = "estimate") {
 JOINT_ORDER <- c("A", "A+H", "A+F", "A+H+F", "A+GxG", "A+GxG+H", "A+GxG+F", "A+GxG+H+F")
 show_model <- function(x) gsub(">", " → ", x)
 COMP_ORDER <- c("A", "GxG", "house", "family")
-COMP_FILL <- c(A = "#66C2A5", GxG = "#FC8D62", house = "#8DA0CB", family = "#E5C494")
-COMP_LINE <- c(A = "#1B7A5A", GxG = "#B0441A", house = "#3F5694", family = "#9C7A2E")
+COMP_FILL <- c(A = "#4C8CB5", GxG = "#E3894B", house = "#9B7BB8", family = "#6FAF7A")
+COMP_LINE <- c(A = "#1F4E6E", GxG = "#9A4A14", house = "#5B3F78", family = "#2F6B3A")
 FOLD_ORDER <- c("twins", "sibs", "half sibs", "1st cousins", "half cousins", "2nd cousins",
                 "step sibs", "cocousins", "adoptive sibs", "adoptive cousins",
                 "all in-laws", "all adoptive")
@@ -65,7 +65,7 @@ ci_glyphs <- function(d, colour_aes = TRUE, color = "black", linewidth = 0.7, ca
 # Stacked variance components: black outline = the sum, with its marginal-type CI in the middle of
 # the bar; each component's CI is drawn at the top of its segment, staggered away from the centre
 # in the order the components are stacked (left, right, further left, further right).
-YTOP <- 1.08   # top of the component plots; CIs reaching past it are capped with an arrowhead
+YTOP <- 1   # top of the component plots; CIs reaching past it are capped with an arrowhead
 stacked_components <- function(jk, order, title) {
   d <- jk %>% filter(param %in% paste0("V_", COMP_ORDER)) %>%
     mutate(component = factor(sub("V_", "", param), COMP_ORDER),
@@ -81,32 +81,39 @@ stacked_components <- function(jk, order, title) {
   s <- jk %>% filter(param == "V_sum") %>%
     mutate(model = factor(model, order), x = as.numeric(model), clip_lo = lo < 0, clip_hi = hi > 1,
            ymin = pmax(lo, 0), ymax = pmin(hi, 1), weights = factor(weights, c("invvar", "hybrid_block")))
+  d <- d %>% mutate(signif = lo > 0)          # CI excludes 0 -> full colour; otherwise faded
   ggplot() +
-    geom_col(data = d, aes(x = xm, y = estimate, fill = component), width = 0.7,
+    geom_col(data = d, aes(x = xm, y = estimate, fill = component, alpha = signif), width = 0.7,
              position = position_stack(reverse = TRUE)) +
-    geom_rect(data = s, aes(xmin = x - 0.35, xmax = x + 0.35, ymin = 0, ymax = estimate),
+    geom_rect(data = s, aes(xmin = x - 0.35, xmax = x + 0.35, ymin = 0, ymax = estimate, linetype = "(Sum)"),
               fill = NA, color = "black", linewidth = 0.6) +
     ci_glyphs(d %>% select(weights, component, x, ymin, ymax, clip_lo, clip_hi)) +
     ci_glyphs(s %>% select(weights, x, ymin, ymax, clip_lo, clip_hi), colour_aes = FALSE, linewidth = 1.1, cap = 0.05) +
     geom_point(data = s, aes(x = x, y = estimate), shape = 18, size = 3.2) +
     facet_wrap(~weights, ncol = 1, labeller = as_labeller(WEIGHT_LABELS)) +
     scale_x_continuous(breaks = seq_along(order), labels = show_model(order)) +
-    scale_fill_manual(values = COMP_FILL, name = NULL) +
+    scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.1), expand = c(0, 0)) +
+    scale_fill_manual(values = COMP_FILL, name = NULL, guide = guide_legend(order = 1)) +
+    scale_alpha_manual(values = c(`TRUE` = 1, `FALSE` = 0.35), guide = "none") +
+    scale_linetype_manual(values = c("(Sum)" = "solid"), name = NULL,
+                          guide = guide_legend(order = 2, override.aes = list(fill = NA, color = "black"))) +
     scale_color_manual(values = COMP_LINE) +
-    coord_cartesian(ylim = c(0, YTOP + 0.01)) +
+    coord_cartesian(clip = "off") +
     labs(x = NULL, y = "Variance component (proportion of phenotypic variance)", title = title,
          subtitle = paste0("Black outline and diamond: sum of the components, with its 95% Marginal Type CI (black, centre)\n",
                            "Coloured: each component's 95% Marginal Type CI, at the top of its segment\n",
-                           "Arrowhead: the CI runs past [0, 1] or off the plot")) +
+                           "Faded: the component's CI includes 0. Arrowhead: the CI runs past [0, 1]")) +
     theme_bw() + theme(legend.position = "bottom", panel.grid.major.x = element_blank(),
-                       panel.grid.minor.x = element_blank())
+                       panel.grid.minor.x = element_blank(), panel.spacing = unit(1.2, "lines"),
+                       plot.margin = margin(10, 10, 5, 5))
 }
 
 # ---- M1. Eftedal's estimator -> ours ----------------------------------------------------------
 if (has("corrections", "steps.csv")) {
   st <- rd("corrections", "steps.csv")
   lev <- rev(unique(st$label[order(st$order)]))
-  PL <- c(V_A = "h² (V_A)", m = "m (mate genetic corr.)", r = "r (mate phenotypic corr.)")
+  PL <- c(V_A = "h² (V_A)", V_A0 = "V_A\u2070 = V_A(1 \u2212 m)\n(random-mating additive variance)",
+          m = "m (mate genetic corr.)", r = "r (mate phenotypic corr.)")
   d <- st %>% mutate(label = factor(label, lev), panel = factor(PL[param], PL),
                      lo_c = pmax(lo, 0), hi_c = pmin(hi, 1))
   pts <- d %>% distinct(label, panel, estimate)
@@ -116,7 +123,7 @@ if (has("corrections", "steps.csv")) {
     labs(x = "Estimate", y = NULL, title = "Additive model: Eftedal et al.'s estimator vs. the revised estimator",
          caption = "Both CIs drawn from the same point; the Marginal Pair CI is often narrower than the point itself") +
     theme_bw() + theme(legend.position = "bottom")
-  save_fig(g, "m1_corrections", width = 3300, height = 1250)
+  save_fig(g, "m1_corrections", width = 3900, height = 1300)
   ch <- st %>% distinct(label, chi2_per_df) %>% mutate(label = factor(label, lev))
   g <- ggplot(ch, aes(x = chi2_per_df, y = label)) + geom_col(width = 0.6, fill = "grey45") +
     geom_text(aes(label = sprintf("%.0f", chi2_per_df)), hjust = -0.2, size = 3.4) +
@@ -147,22 +154,35 @@ if (has("robustness", "additive_predictions.csv") && has("models", "core_predict
 # ---- M2. in-laws ----------------------------------------------------------------------------
 if (has("corrections", "inlaw.csv")) {
   il <- rd("corrections", "inlaw.csv") %>% filter(quantity != "difference") %>%
-    mutate(label = factor(label, rev(unique(label))),
-           quantity = factor(quantity, c("bio only", "bio + in-law")), lo_c = lo, hi_c = hi)
-  dodge <- position_dodge(width = 0.5)
-  pts <- il %>% distinct(label, quantity, estimate)
-  g <- ggplot(il, aes(y = label, group = quantity)) +
-    geom_errorbar(data = il %>% filter(method == "block jackknife"), orientation = "y", width = 0,
-                  aes(xmin = lo_c, xmax = hi_c, color = CI_LABELS[method]), linewidth = 0.9, position = dodge) +
-    geom_errorbar(data = il %>% filter(method == "parametric bootstrap"), orientation = "y", width = 0,
-                  aes(xmin = lo_c, xmax = hi_c, color = CI_LABELS[method]), linewidth = 2.2, position = dodge) +
-    geom_point(data = pts, aes(x = estimate, shape = quantity), size = 2.8, position = dodge) +
+    mutate(label = factor(label, unique(label)),
+           cohort = factor(ifelse(quantity == "bio only", "Bio only", "Bio + in-law"), c("Bio only", "Bio + in-law")),
+           x = as.numeric(cohort), ci = factor(CI_LABELS[method], names(CI_COLORS)),
+           clip_lo = lo < 0, clip_hi = hi > 1, ymin = pmax(lo, 0), ymax = pmin(hi, 1),
+           lw = ifelse(method == "parametric bootstrap", 2.4, 0.9))
+  arrow_end <- function(d, lo_end) {
+    d <- d %>% filter(if (lo_end) clip_lo else clip_hi)
+    geom_segment(data = d, aes(x = x, xend = x, y = if (lo_end) ymin + 0.04 else ymax - 0.04,
+                               yend = if (lo_end) ymin else ymax, color = ci),
+                 linewidth = 0.9, arrow = arrow(length = unit(0.09, "in"), type = "closed"), show.legend = FALSE)
+  }
+  jk <- il %>% filter(method == "block jackknife"); bt <- il %>% filter(method == "parametric bootstrap")
+  g <- ggplot(il, aes(x = x)) +
+    geom_line(data = il %>% distinct(label, x, estimate), aes(y = estimate, group = label), color = "grey60") +
+    geom_segment(data = jk, aes(xend = x, y = ymin, yend = ymax, color = ci), linewidth = 0.9) +
+    geom_segment(data = jk %>% filter(!clip_lo), aes(x = x - 0.04, xend = x + 0.04, y = ymin, yend = ymin, color = ci), linewidth = 0.9) +
+    geom_segment(data = jk %>% filter(!clip_hi), aes(x = x - 0.04, xend = x + 0.04, y = ymax, yend = ymax, color = ci), linewidth = 0.9) +
+    arrow_end(jk, TRUE) + arrow_end(jk, FALSE) +
+    geom_segment(data = bt, aes(xend = x, y = ymin, yend = ymax, color = ci), linewidth = 2.4) +
+    geom_point(data = il %>% distinct(label, x, estimate), aes(y = estimate), size = 2.6) +
+    facet_grid(~label, labeller = label_wrap_gen(30)) +
+    scale_x_continuous(breaks = 1:2, labels = c("Bio only", "Bio + in-law"), expand = expansion(add = 0.4)) +
+    scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.1), expand = c(0, 0)) +
     scale_color_manual(values = CI_COLORS, breaks = names(CI_COLORS), name = "95% interval") +
-    scale_shape_manual(values = c("bio only" = 16, "bio + in-law" = 17), name = NULL) + wrap_y +
-    labs(x = "h² (additive model)", y = NULL, title = "Does adding in-laws change h²?",
-         caption = "Both CIs drawn from the same point; the Marginal Pair CI is often narrower than the point itself") +
-    theme_bw() + theme(legend.position = "bottom", legend.box = "vertical")
-  save_fig(g, "m2_inlaw", width = 2300, height = 1250)
+    coord_cartesian(clip = "off") +
+    labs(x = NULL, y = "h² (additive model)", title = "Does adding in-laws change h²?",
+         caption = "Both CIs from the same point; arrowhead: CI runs past [0, 1]. The Marginal Pair CI is often narrower than the point.") +
+    theme_bw() + theme(legend.position = "bottom", panel.grid.minor = element_blank())
+  save_fig(g, "m2_inlaw", width = 2400, height = 1500)
 }
 
 # ---- M3. core models ----------------------------------------------------------------------
@@ -170,6 +190,23 @@ if (has("models", "core_jackknife.csv")) {
   save_fig(stacked_components(rd("models", "core_jackknife.csv"), CORE_ORDER,
                               "Core models: variance components"),
            "m3_components_core", width = 2700, height = 2300)
+}
+if (has("models", "core_jackknife.csv")) {
+  va <- rd("models", "core_jackknife.csv") %>% filter(param %in% c("V_A", "V_A0")) %>%
+    mutate(param = factor(param, c("V_A", "V_A0"), c("V_A (equilibrium)", "V_A\u2070 = V_A(1 \u2212 m) (random mating)")),
+           model = factor(show_model(model), rev(show_model(CORE_ORDER))),
+           weights = factor(WEIGHT_LABELS[weights], WEIGHT_LABELS[c("invvar", "hybrid_block")]),
+           clip_lo = lo < 0, clip_hi = hi > 1)
+  g <- ggplot(va, aes(x = estimate, y = model, color = param)) +
+    geom_errorbar(aes(xmin = pmax(lo, 0), xmax = pmin(hi, 1)), width = 0.25, orientation = "y",
+                  position = position_dodge(width = 0.5)) +
+    geom_point(size = 2.4, position = position_dodge(width = 0.5)) +
+    facet_wrap(~weights) + scale_x_continuous(limits = c(0, 1), expand = c(0, 0)) +
+    scale_color_manual(values = c("#1F4E6E", "#7FB3D5"), name = NULL) + coord_cartesian(clip = "off") +
+    labs(x = "Additive variance (95% Marginal Type CI)", y = NULL,
+         title = "Additive variance at equilibrium vs under random mating") +
+    theme_bw() + theme(legend.position = "bottom")
+  save_fig(g, "m3c_VA_vs_VA0_core", width = 2600, height = 1300)
 }
 if (has("models", "core_predictions.csv")) {
   fs <- rd("models", "core_fits.csv")
@@ -196,7 +233,7 @@ if (has("models", "core_predictions.csv")) {
 }
 
 # ---- S1. cross-validation -------------------------------------------------------------------
-for (set in c("core", "joint", "core_a2")) {
+for (set in c("core", "joint", "core_am2")) {
   if (!has("models", paste0(set, "_cv_paired.csv"))) next
   order <- if (set == "joint") JOINT_ORDER else CORE_ORDER
   pc <- rd("models", paste0(set, "_cv_paired.csv")) %>%
@@ -308,13 +345,13 @@ if (has("profile", "profile_VA.csv")) {
 }
 
 # ---- S6. GxG kernel a^2 (square of the random-mating kernel) vs the AM kernel squared ----------
-if (has("models", "core_a2_jackknife.csv") && has("models", "core_jackknife.csv")) {
-  save_fig(stacked_components(rd("models", "core_a2_jackknife.csv"), CORE_ORDER,
-                              "Core models with the a\u00b2 GxG kernel: variance components"),
-           "s6_components_core_a2", width = 2700, height = 2300)
+if (has("models", "core_am2_jackknife.csv") && has("models", "core_jackknife.csv")) {
+  save_fig(stacked_components(rd("models", "core_am2_jackknife.csv"), CORE_ORDER,
+                              "Core models with the earlier GxG kernel, (AM kernel)\u00b2: variance components"),
+           "s6_components_core_am2", width = 2700, height = 2300)
   gx <- CORE_ORDER[grepl("GxG", CORE_ORDER)]
-  kk <- bind_rows(rd("models", "core_jackknife.csv") %>% mutate(kernel = "(AM kernel)\u00b2"),
-                  rd("models", "core_a2_jackknife.csv") %>% mutate(kernel = "a\u00b2 (random-mating kernel)\u00b2")) %>%
+  kk <- bind_rows(rd("models", "core_jackknife.csv") %>% mutate(kernel = "a\u00b2 (random-mating kernel squared; main)"),
+                  rd("models", "core_am2_jackknife.csv") %>% mutate(kernel = "(AM kernel)\u00b2 (earlier)")) %>%
     filter(model %in% gx, param %in% c("V_A", "V_GxG", "V_family", "V_sum")) %>%
     mutate(model = factor(show_model(model), rev(show_model(gx))),
            weights = factor(WEIGHT_LABELS[weights], WEIGHT_LABELS[c("invvar", "hybrid_block")]))
@@ -322,7 +359,7 @@ if (has("models", "core_a2_jackknife.csv") && has("models", "core_jackknife.csv"
     geom_pointrange(position = position_dodge(width = 0.55), size = 0.3) +
     facet_grid(weights ~ param) +
     labs(x = "Estimate (95% Marginal Type CI)", y = NULL, color = "GxG kernel",
-         title = "GxG kernel: square of the assortative-mating kernel vs a\u00b2") +
+         title = "GxG kernel: a\u00b2 (main) vs the square of the assortative-mating kernel") +
     theme_bw() + theme(legend.position = "bottom")
   save_fig(g, "s6b_gxg_kernel_comparison", width = 3200, height = 1500)
 }
