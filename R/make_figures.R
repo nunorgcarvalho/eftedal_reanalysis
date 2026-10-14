@@ -15,7 +15,8 @@ has <- function(...) file.exists(file.path(RESULTS, ...))
 
 WEIGHT_LABELS <- c(invvar = "inverse variance (1/SE²)", hybrid_block = "hybrid (block-balanced)",
                    invSqErr = "Eftedal (log, 1/SE²)")
-CORE_ORDER <- c("A", "A+H", "A+F", "A>GxG", "A>GxG+H", "A>GxG+F")
+CORE_ORDER <- c("A", "A>GxG", "A+GxG", "A+F", "A+GxG>F", "A+F>GxG", "A>GxG+F", "A+GxG+F")
+CI_COLORS <- c("block jackknife" = "#D55E00", "parametric bootstrap" = "#0072B2")
 JOINT_ORDER <- c("A", "A+H", "A+F", "A+H+F", "A+GxG", "A+GxG+H", "A+GxG+F", "A+GxG+H+F")
 show_model <- function(x) gsub(">", " → ", x)
 COMP_ORDER <- c("A", "GxG", "house", "family")
@@ -64,18 +65,24 @@ stacked_components <- function(jk, order, title) {
 
 # ---- M1. Eftedal's estimator -> ours ----------------------------------------------------------
 if (has("corrections", "steps.csv")) {
-  st <- rd("corrections", "steps.csv") %>%
-    mutate(label = factor(label, rev(unique(label[order(order)]))),
-           kind = ifelse(aside, "aside (not cumulative)", "cumulative step"),
-           param = factor(param, c("V_A", "m", "r"), c("h² (V_A)", "m (mate genetic corr.)", "r (mate phenotypic corr.)")))
-  g <- ggplot(st, aes(x = estimate, xmin = pmax(lo, 0), xmax = pmin(hi, 1), y = label, color = kind)) +
-    geom_pointrange(size = 0.45, linewidth = 0.8) +
-    facet_wrap(~param, scales = "free_x") +
-    scale_color_manual(values = c("cumulative step" = "black", "aside (not cumulative)" = "grey55"), name = NULL) +
-    labs(x = "Estimate (95% block-jackknife interval)", y = NULL,
-         title = "Additive model: from Eftedal et al.'s estimator to ours, one correction at a time") +
+  st <- rd("corrections", "steps.csv")
+  lev <- rev(unique(st$label[order(st$order)]))
+  PL <- c(V_A = "h² (V_A)", m = "m (mate genetic corr.)", r = "r (mate phenotypic corr.)", chi2 = "\u03c7²/df (misfit)")
+  d <- st %>% mutate(label = factor(label, lev), panel = factor(PL[param], PL),
+                     kind = ifelse(aside, "aside (not cumulative)", "cumulative step"))
+  ch <- st %>% distinct(label, aside, chi2_per_df) %>%
+    mutate(label = factor(label, lev), panel = factor(PL[["chi2"]], PL),
+           kind = ifelse(aside, "aside (not cumulative)", "cumulative step"))
+  g <- ggplot(d, aes(y = label)) +
+    geom_pointrange(aes(x = estimate, xmin = pmax(lo, 0), xmax = pmin(hi, 1), color = method, shape = kind),
+                    position = position_dodge(width = 0.55), size = 0.4, linewidth = 0.8) +
+    geom_point(data = ch, aes(x = chi2_per_df, shape = kind), size = 2.8) +
+    facet_wrap(~panel, scales = "free_x", nrow = 1) +
+    scale_color_manual(values = CI_COLORS, name = "95% interval") +
+    scale_shape_manual(values = c("cumulative step" = 16, "aside (not cumulative)" = 1), name = NULL) +
+    labs(x = NULL, y = NULL, title = "Additive model: from Eftedal et al.'s estimator to ours, one correction at a time") +
     theme_bw() + theme(legend.position = "bottom")
-  save_fig(g, "m1_corrections", width = 3300, height = 1350)
+  save_fig(g, "m1_corrections", width = 3800, height = 1450)
 }
 if (has("robustness", "additive_predictions.csv") && has("models", "core_predictions.csv")) {
   ar <- rd("robustness", "additive_rows.csv")
@@ -84,34 +91,33 @@ if (has("robustness", "additive_predictions.csv") && has("models", "core_predict
   cf <- rd("models", "core_fits.csv") %>% filter(model == "A")
   ie <- ar %>% filter(variant == "Eftedal settings", cohort_name == "ALL_but_adopted_UZ") %>% pull(fit_id)
   labs <- c(sprintf("Eftedal et al.: h²=%.2f", ar$V_A[which(ar$fit_id == ie)]),
-            sprintf("ours, inverse variance: h²=%.2f", cf$V_A[cf$weights == "invvar"]),
-            sprintf("ours, hybrid (block-balanced): h²=%.2f", cf$V_A[cf$weights == "hybrid_block"]))
+            sprintf("ours, hybrid (block-balanced): h²=%.2f", cf$V_A[cf$weights == "hybrid_block"]),
+            sprintf("ours, inverse variance: h²=%.2f", cf$V_A[cf$weights == "invvar"]))
   pr <- bind_rows(ap %>% filter(fit_id == ie) %>% mutate(model = labs[1]),
-                  cp %>% filter(weights == "invvar") %>% mutate(model = labs[2], in_cohort = TRUE),
-                  cp %>% filter(weights == "hybrid_block") %>% mutate(model = labs[3], in_cohort = TRUE))
-  save_fig(plot_fits(obs_from(cp), pr, colors = setNames(c("#F8766D", "#7CAE00", "#00BFC4"), labs)),
+                  cp %>% filter(weights == "hybrid_block") %>% mutate(model = labs[2], in_cohort = TRUE),
+                  cp %>% filter(weights == "invvar") %>% mutate(model = labs[3], in_cohort = TRUE))
+  save_fig(plot_fits(obs_from(cp), pr, colors = setNames(c("#F8766D", "#00BFC4", "#7CAE00"), labs)),
            "m1b_fits_eftedal_vs_ours", height = 1850)
 }
 
 # ---- M2. in-laws ----------------------------------------------------------------------------
 if (has("corrections", "inlaw.csv")) {
+  PN <- c("h² (additive model)", "Difference (bio only \u2212 with in-laws)")
   il <- rd("corrections", "inlaw.csv") %>%
     mutate(label = factor(label, rev(unique(label))),
-           panel = factor(ifelse(quantity == "difference", "Difference (bio only − with in-laws)", "h² (additive model)"),
-                          c("h² (additive model)", "Difference (bio only − with in-laws)")),
+           panel = factor(ifelse(quantity == "difference", PN[2], PN[1]), PN),
            quantity = factor(quantity, c("bio only", "bio + in-law", "difference")))
-  g <- ggplot(il, aes(x = estimate, xmin = lo, xmax = hi, y = label, color = quantity)) +
-    geom_vline(data = tibble(panel = factor("Difference (bio only − with in-laws)",
-                                            c("h² (additive model)", "Difference (bio only − with in-laws)")), v = 0),
-               aes(xintercept = v),
-               linetype = "dashed") +
-    geom_pointrange(position = position_dodge(width = 0.45), size = 0.45, linewidth = 0.8) +
+  g <- ggplot(il, aes(x = estimate, xmin = lo, xmax = hi, y = label, color = method, shape = quantity,
+                      group = interaction(quantity, method))) +
+    geom_vline(data = tibble(panel = factor(PN[2], PN), v = 0), aes(xintercept = v), linetype = "dashed") +
+    geom_pointrange(position = position_dodge(width = 0.65), size = 0.45, linewidth = 0.8) +
     facet_wrap(~panel, scales = "free_x") +
-    scale_color_manual(values = c("bio only" = "#00BFC4", "bio + in-law" = "#F8766D", difference = "black"), name = NULL) +
-    labs(x = "Estimate (95% block-jackknife interval; difference: paired jackknife)", y = NULL,
+    scale_color_manual(values = CI_COLORS, name = "95% interval") +
+    scale_shape_manual(values = c("bio only" = 16, "bio + in-law" = 17, difference = 15), name = NULL) +
+    labs(x = "Estimate (difference: paired jackknife / paired bootstrap)", y = NULL,
          title = "Does adding in-laws change h²?") +
-    theme_bw() + theme(legend.position = "bottom")
-  save_fig(g, "m2_inlaw", width = 3000, height = 1100)
+    theme_bw() + theme(legend.position = "bottom", legend.box = "vertical")
+  save_fig(g, "m2_inlaw", width = 3000, height = 1350)
 }
 
 # ---- M3. core models ----------------------------------------------------------------------
@@ -124,17 +130,19 @@ if (has("models", "core_predictions.csv")) {
   fs <- rd("models", "core_fits.csv")
   fp <- rd("models", "core_predictions.csv")
   obs <- obs_from(fp)
+  COMPARISONS <- list(twostep_GxG = c("A", "A>GxG", "A+GxG"),
+                      joint_GxG_F = c("A", "A+GxG", "A+F", "A+GxG+F"))
+  PAL <- c("#00BFC4", "#F8766D", "#7CAE00", "#C77CFF")
   for (wt in c("hybrid_block", "invvar")) {
-    for (mod in c("A+F", "A>GxG+F", "A+H")) {
-      fa <- fs %>% filter(model == "A", weights == !!wt)
-      fb <- fs %>% filter(model == !!mod, weights == !!wt)
-      labs <- c(paste0("A: ", fmt_par(fa, c("V_A", "m", "r"))),
-                paste0(show_model(mod), ": ", fmt_par(fb, c("V_A", "V_GxG", "V_house", "pi", "V_family", "r_f", "m", "r"))))
-      pr <- bind_rows(fp %>% filter(model == "A", weights == !!wt) %>% mutate(model = labs[1]),
-                      fp %>% filter(model == !!mod, weights == !!wt) %>% mutate(model = labs[2]))
-      save_fig(plot_fits(obs, pr, colors = setNames(c("#00BFC4", "#C77CFF"), labs)) +
-                 labs(title = paste("Weighting:", WEIGHT_LABELS[[wt]])), height = 1850,
-               sprintf("m3b_fit_A_vs_%s_%s", gsub("[+>]", "", mod), wt))
+    for (cmp in names(COMPARISONS)) {
+      ms <- COMPARISONS[[cmp]]
+      labs <- sapply(ms, function(mod) paste0(show_model(mod), ": ", fmt_par(fs %>% filter(model == !!mod, weights == !!wt),
+                                                    c("V_A", "V_GxG", "V_family", "r_f", "m", "r"))))
+      pr <- bind_rows(lapply(seq_along(ms), function(i)
+        fp %>% filter(model == ms[i], weights == !!wt) %>% mutate(model = labs[i])))
+      save_fig(plot_fits(obs, pr, colors = setNames(PAL[seq_along(ms)], labs)) +
+                 labs(title = paste("Weighting:", WEIGHT_LABELS[[wt]])), height = 1950,
+               sprintf("m3b_fit_%s_%s", cmp, wt))
     }
   }
 }
@@ -177,22 +185,25 @@ if (has("models", "joint_jackknife.csv")) {
   jj <- rd("models", "joint_jackknife.csv")
   save_fig(stacked_components(jj, JOINT_ORDER, "All-joint models: variance components"),
            "s2_components_joint", width = 3000, height = 2300)
-  if (has("models", "core_jackknife.csv")) {
-    pairs <- c("A>GxG" = "A+GxG", "A>GxG+H" = "A+GxG+H", "A>GxG+F" = "A+GxG+F")
-    tj <- bind_rows(rd("models", "core_jackknife.csv") %>% filter(model %in% names(pairs)) %>%
-                      mutate(procedure = "two-step (additive part frozen)", pair = pairs[model]),
-                    jj %>% filter(model %in% pairs) %>% mutate(procedure = "joint", pair = model)) %>%
-      filter(param %in% c("V_A", "V_GxG", "V_house", "V_family", "V_sum")) %>%
-      mutate(pair = factor(sub("A\\+GxG", "A + GxG", pair), rev(sub("A\\+GxG", "A + GxG", pairs))),
-             weights = WEIGHT_LABELS[weights])
-    g <- ggplot(tj, aes(x = estimate, xmin = pmax(lo, 0), xmax = pmin(hi, 1.1), y = pair, color = procedure)) +
-      geom_pointrange(position = position_dodge(width = 0.5), size = 0.3) +
-      facet_grid(weights ~ param) +
-      scale_color_manual(values = c("joint" = "#00BFC4", "two-step (additive part frozen)" = "#F8766D"), name = NULL) +
-      labs(x = "Estimate (95% block-jackknife interval)", y = NULL, title = "Two-step vs joint estimation of GxG") +
-      theme_bw() + theme(legend.position = "bottom")
-    save_fig(g, "s2b_twostep_vs_joint", width = 3300, height = 1500)
-  }
+}
+
+# ---- S2c. V_A vs m across the core models --------------------------------------------------
+if (has("models", "core_jackknife.csv")) {
+  vm <- rd("models", "core_jackknife.csv") %>% filter(param %in% c("V_A", "m")) %>%
+    select(weights, model, param, estimate, lo, hi) %>%
+    pivot_wider(names_from = param, values_from = c(estimate, lo, hi)) %>%
+    mutate(model = factor(show_model(model), show_model(CORE_ORDER)), weights = WEIGHT_LABELS[weights])
+  g <- ggplot(vm, aes(x = estimate_V_A, y = estimate_m, color = model)) +
+    geom_errorbar(aes(ymin = pmax(lo_m, 0), ymax = hi_m), width = 0, alpha = 0.5) +
+    geom_errorbar(aes(xmin = pmax(lo_V_A, 0), xmax = pmin(hi_V_A, 1)), width = 0, alpha = 0.5, orientation = "y") +
+    geom_point(size = 3.2) +
+    ggrepel::geom_text_repel(aes(label = model), size = 3, show.legend = FALSE, max.overlaps = 30) +
+    facet_wrap(~weights) +
+    labs(x = "V_A (h²)", y = "m (mate genetic correlation)", color = NULL,
+         title = "V_A vs m across the core models (95% block-jackknife intervals)",
+         subtitle = "Models whose step 1 is A share A's V_A and m exactly") +
+    theme_bw() + theme(legend.position = "bottom")
+  save_fig(g, "s2c_VA_vs_m_core", width = 3000, height = 1600)
 }
 
 # ---- S3. bootstrap vs jackknife; which block moves the estimates -----------------------------
@@ -228,9 +239,9 @@ if (has("profile", "profile_VA.csv")) {
   g1 <- ggplot(grid, aes(x = V_A, y = qlr)) +
     geom_hline(yintercept = qchisq(0.95, 1), linetype = "dashed", color = "grey40") +
     geom_line(linewidth = 0.9) +
-    geom_point(data = marks, aes(color = point), size = 3) +
+    geom_point(data = marks %>% mutate(point = show_model(point)), aes(color = point), size = 3) +
     facet_grid(weights ~ model) + coord_cartesian(ylim = c(0, 60)) +
-    scale_color_manual(values = c(joint = "#00BFC4", `two-step` = "#F8766D"), name = NULL) +
+    scale_color_brewer(palette = "Set1", name = NULL) +
     labs(x = "V_A (held fixed; everything else refitted)",
          y = "Loss increase / residual variance\n(quasi-likelihood ratio; dashed: 3.84)",
          title = "How well is V_A pinned down? Profile over V_A") +

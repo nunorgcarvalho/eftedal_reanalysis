@@ -68,6 +68,12 @@ pred_segments <- function(obs, preds) {
 # legend = "auto": the model legend sits inside the panel (top right, as in Eftedal Fig. 2)
 # unless its labels are long enough to cover the MZ points; then it moves below the panel
 # (the relative-category legends stay inside).
+connect_path <- function(seg) {
+  seg %>% arrange(model, x_min) %>%
+    reframe(x = c(x_min - 0.5, x_max + 0.5), pred = c(pred, pred), .by = c(model, rel, grp, x_min)) %>%
+    arrange(model, x_min, x)
+}
+
 plot_fits <- function(obs, preds, colors = NULL, R2 = NULL, legend = "auto") {
   obs <- layout_obs(obs)
   seg <- pred_segments(obs, preds)
@@ -80,6 +86,9 @@ plot_fits <- function(obs, preds, colors = NULL, R2 = NULL, legend = "auto") {
   model_guide <- if (legend == "bottom") guide_legend(position = "bottom", ncol = 1) else "legend"
   gg <- gg_obs(obs) +
     new_scale_color() +
+    # thin line joining each model's consecutive bars, so departures between models are visible
+    geom_path(data = connect_path(seg), inherit.aes = FALSE, linewidth = 0.35, alpha = 0.8,
+              aes(x = x, y = pred, color = model, group = model)) +
     geom_segment(data = seg, inherit.aes = FALSE, linewidth = 1.5, alpha = 0.6,
                  aes(x = x_min - 0.5, xend = x_max + 0.5, y = pred, yend = pred, color = model,
                      linetype = in_cohort)) +
