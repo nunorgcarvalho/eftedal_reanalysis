@@ -35,9 +35,12 @@ COMP_FILL <- c(A = "#4C8CB5", GxG = "#E3894B", house = "#9B7BB8", family = "#6FA
 # bar segments: the additive component split into its random-mating part V_A0 = V_A(1 - m) and the
 # excess due to assortative mating, V_A m
 SEG_ORDER <- c("A0", "A_AM", "GxG", "house", "family")
-SEG_FILL <- c(A0 = "#4C8CB5", A_AM = "#A9CBE3", GxG = "#E3894B", house = "#9B7BB8", family = "#6FAF7A")
+# A_AM: same blue as A0, distinguished by white diagonal stripes (its hex differs by one unit so the
+# legend key can recognise it)
+SEG_FILL <- c(A0 = "#4C8CB5", A_AM = "#4C8CB6", GxG = "#E3894B", house = "#9B7BB8", family = "#6FAF7A")
+STRIPE_FILL <- "#4C8CB6"
 SEG_LABELS <- c(A0 = "A (random mating)", A_AM = "A (excess under AM)",
-                GxG = "GxG", house = "house", family = "family")
+                GxG = "GxG", house = "house", family = "familial environment")
 COMP_LINE <- c(A = "#1F4E6E", GxG = "#9A4A14", house = "#5B3F78", family = "#2F6B3A")
 FOLD_ORDER <- c("twins", "sibs", "half sibs", "1st cousins", "half cousins", "2nd cousins",
                 "step sibs", "cocousins", "adoptive sibs", "adoptive cousins",
@@ -71,6 +74,33 @@ ci_glyphs <- function(d, colour_aes = TRUE, color = "black", linewidth = 0.7, ca
 # Stacked variance components: black outline = the sum, with its marginal-type CI in the middle of
 # the bar; each component's CI is drawn at the top of its segment, staggered away from the centre
 # in the order the components are stacked (left, right, further left, further right).
+# Diagonal stripes inside rectangles (data coordinates): lines y = slope * x + c, clipped to each
+# rectangle; used for the AM-excess part of the additive component.
+stripe_segments <- function(r, spacing = 0.035, slope = 0.6) {
+  if (nrow(r) == 0) return(tibble())
+  bind_rows(lapply(seq_len(nrow(r)), function(i) {
+    xmin <- r$xmin[i]; xmax <- r$xmax[i]; ymin <- r$ymin[i]; ymax <- r$ymax[i]
+    if (ymax - ymin <= 1e-6) return(NULL)
+    cs <- seq(ymin - slope * xmax, ymax - slope * xmin, by = spacing)
+    out <- lapply(cs, function(c0) {
+      xs <- sort(c(xmin, xmax, (ymin - c0) / slope, (ymax - c0) / slope))
+      xa <- max(xmin, (ymin - c0) / slope); xb <- min(xmax, (ymax - c0) / slope)
+      if (xb <= xa) return(NULL)
+      tibble(x = xa, xend = xb, y = slope * xa + c0, yend = slope * xb + c0)
+    })
+    bind_rows(out) %>% mutate(weights = r$weights[i], signif = r$signif[i])
+  }))
+}
+# legend key: plain filled square, with stripes for the AM-excess fill
+draw_key_striped <- function(data, params, size) {
+  rect <- grid::rectGrob(gp = grid::gpar(col = NA, fill = scales::alpha(data$fill %||% "grey35", data$alpha %||% 1)))
+  if (!identical(toupper(data$fill), toupper(STRIPE_FILL))) return(rect)
+  s <- seq(-1, 1, by = 0.28)
+  grid::grobTree(rect, grid::segmentsGrob(x0 = pmax(0, -s), y0 = pmax(0, s), x1 = pmin(1, 1 - s), y1 = pmin(1, 1 + s),
+                                          gp = grid::gpar(col = "white", lwd = 1.3)),
+                 vp = grid::viewport(clip = "on"))
+}
+
 YTOP <- 1   # top of the component plots; CIs reaching past it are capped with an arrowhead
 stacked_components <- function(jk, order, title) {
   d <- jk %>% filter(param %in% paste0("V_", COMP_ORDER)) %>%
@@ -100,9 +130,14 @@ stacked_components <- function(jk, order, title) {
               .by = c(weights, model, xm, signif)),
     seg %>% filter(component != "A") %>% transmute(weights, model, xm, signif, segment = as.character(component), estimate)) %>%
     mutate(segment = factor(segment, SEG_ORDER))
+  seg <- seg %>% arrange(weights, model, segment) %>% group_by(weights, model) %>%
+    mutate(ymax = cumsum(estimate), ymin = ymax - estimate, xmin = xm - 0.35, xmax = xm + 0.35) %>% ungroup()
+  stripes <- stripe_segments(seg %>% filter(segment == "A_AM"))
   ggplot() +
-    geom_col(data = seg, aes(x = xm, y = estimate, fill = segment, alpha = signif), width = 0.7,
-             position = position_stack(reverse = TRUE)) +
+    geom_rect(data = seg, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = segment, alpha = signif),
+              key_glyph = draw_key_striped) +
+    {if (nrow(stripes)) geom_segment(data = stripes, aes(x = x, xend = xend, y = y, yend = yend, alpha = signif),
+                                     color = "white", linewidth = 0.45, show.legend = FALSE)} +
     geom_rect(data = s, aes(xmin = x - 0.35, xmax = x + 0.35, ymin = 0, ymax = estimate, linetype = "(Sum)"),
               fill = NA, color = "black", linewidth = 0.6) +
     ci_glyphs(d %>% select(weights, component, x, ymin, ymax, clip_lo, clip_hi)) +
@@ -121,7 +156,7 @@ stacked_components <- function(jk, order, title) {
     labs(x = NULL, y = "Variance component (proportion of phenotypic variance)", title = title,
          subtitle = paste0("Black outline and diamond: sum of the components, with its 95% Marginal Type CI (black, centre)\n",
                            "Coloured: each component's 95% Marginal Type CI, at the top of its segment\n",
-                           "A is split into V_A\u2070 = V_A(1 \u2212 m) (dark) and the excess due to assortative mating (light); its CI is for total V_A\n",
+                           "A: V_A\u2070 = V_A(1 \u2212 m) (solid) + excess under assortative mating (striped); CI for total V_A\n",
                            "Faded: the component's CI includes 0. Arrowhead: the CI runs past [0, 1]")) +
     theme_bw() + theme(legend.position = "bottom", panel.grid.major.x = element_blank(),
                        panel.grid.minor.x = element_blank(), panel.spacing = unit(1.2, "lines"),
