@@ -32,6 +32,12 @@ JOINT_ORDER <- c("A", "A+H", "A+F", "A+H+F", "A+GxG", "A+GxG+H", "A+GxG+F", "A+G
 show_model <- function(x) gsub(">", " → ", x)
 COMP_ORDER <- c("A", "GxG", "house", "family")
 COMP_FILL <- c(A = "#4C8CB5", GxG = "#E3894B", house = "#9B7BB8", family = "#6FAF7A")
+# bar segments: the additive component split into its random-mating part V_A0 = V_A(1 - m) and the
+# excess due to assortative mating, V_A m
+SEG_ORDER <- c("A0", "A_AM", "GxG", "house", "family")
+SEG_FILL <- c(A0 = "#4C8CB5", A_AM = "#A9CBE3", GxG = "#E3894B", house = "#9B7BB8", family = "#6FAF7A")
+SEG_LABELS <- c(A0 = "A, random mating (V_A\u2070)", A_AM = "A, excess from AM (V_A m)",
+                GxG = "GxG", house = "house", family = "family")
 COMP_LINE <- c(A = "#1F4E6E", GxG = "#9A4A14", house = "#5B3F78", family = "#2F6B3A")
 FOLD_ORDER <- c("twins", "sibs", "half sibs", "1st cousins", "half cousins", "2nd cousins",
                 "step sibs", "cocousins", "adoptive sibs", "adoptive cousins",
@@ -82,8 +88,20 @@ stacked_components <- function(jk, order, title) {
     mutate(model = factor(model, order), x = as.numeric(model), clip_lo = lo < 0, clip_hi = hi > 1,
            ymin = pmax(lo, 0), ymax = pmin(hi, 1), weights = factor(weights, c("invvar", "hybrid_block")))
   d <- d %>% mutate(signif = lo > 0)          # CI excludes 0 -> full colour; otherwise faded
+  # bar segments: A split into V_A0 and the AM excess when V_A0 is available (CI stays on total V_A)
+  va0 <- jk %>% filter(param == "V_A0") %>% select(weights, model, V_A0 = estimate) %>%
+    mutate(weights = factor(weights, c("invvar", "hybrid_block")), model = factor(model, order))
+  seg <- d %>% select(weights, model, xm, component, estimate, signif) %>%
+    left_join(va0, by = c("weights", "model"))
+  seg <- bind_rows(
+    seg %>% filter(component == "A") %>%
+      reframe(segment = c("A0", "A_AM"),
+              estimate = if (is.na(V_A0)) c(estimate, 0) else c(V_A0, estimate - V_A0),
+              .by = c(weights, model, xm, signif)),
+    seg %>% filter(component != "A") %>% transmute(weights, model, xm, signif, segment = as.character(component), estimate)) %>%
+    mutate(segment = factor(segment, SEG_ORDER))
   ggplot() +
-    geom_col(data = d, aes(x = xm, y = estimate, fill = component, alpha = signif), width = 0.7,
+    geom_col(data = seg, aes(x = xm, y = estimate, fill = segment, alpha = signif), width = 0.7,
              position = position_stack(reverse = TRUE)) +
     geom_rect(data = s, aes(xmin = x - 0.35, xmax = x + 0.35, ymin = 0, ymax = estimate, linetype = "(Sum)"),
               fill = NA, color = "black", linewidth = 0.6) +
@@ -93,7 +111,8 @@ stacked_components <- function(jk, order, title) {
     facet_wrap(~weights, ncol = 1, labeller = as_labeller(WEIGHT_LABELS)) +
     scale_x_continuous(breaks = seq_along(order), labels = show_model(order)) +
     scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.1), expand = c(0, 0)) +
-    scale_fill_manual(values = COMP_FILL, name = NULL, guide = guide_legend(order = 1)) +
+    scale_fill_manual(values = SEG_FILL, labels = SEG_LABELS, breaks = SEG_ORDER, name = NULL,
+                      guide = guide_legend(order = 1, nrow = 2)) +
     scale_alpha_manual(values = c(`TRUE` = 1, `FALSE` = 0.35), guide = "none") +
     scale_linetype_manual(values = c("(Sum)" = "solid"), name = NULL,
                           guide = guide_legend(order = 2, override.aes = list(fill = NA, color = "black"))) +
@@ -102,6 +121,7 @@ stacked_components <- function(jk, order, title) {
     labs(x = NULL, y = "Variance component (proportion of phenotypic variance)", title = title,
          subtitle = paste0("Black outline and diamond: sum of the components, with its 95% Marginal Type CI (black, centre)\n",
                            "Coloured: each component's 95% Marginal Type CI, at the top of its segment\n",
+                           "A is split into V_A\u2070 = V_A(1 \u2212 m) (dark) and the excess due to assortative mating (light); its CI is for total V_A\n",
                            "Faded: the component's CI includes 0. Arrowhead: the CI runs past [0, 1]")) +
     theme_bw() + theme(legend.position = "bottom", panel.grid.major.x = element_blank(),
                        panel.grid.minor.x = element_blank(), panel.spacing = unit(1.2, "lines"),
