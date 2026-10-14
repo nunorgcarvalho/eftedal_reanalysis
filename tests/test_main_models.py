@@ -3,7 +3,7 @@ import pytest
 
 from eftedal import data as D
 from eftedal.fit import fit
-from eftedal.model import CORE_MODELS, FitSpec, Model
+from eftedal.model import CORE_MODELS, CORE_MODELS_WITH_MATERNAL, FitSpec, Model
 from eftedal.presets import MAIN, main_spec
 
 
@@ -13,15 +13,17 @@ def df():
 
 
 def test_core_model_set():
-    assert len(CORE_MODELS) == 16
+    assert len(CORE_MODELS) == 8
+    assert not any("maternal" in c for c in CORE_MODELS.values())
+    assert len(CORE_MODELS_WITH_MATERNAL) == 16
     assert CORE_MODELS["A"] == ("A",)
-    assert CORE_MODELS["A+GxG+H+F+mat"] == ("A", "GxG", "house", "family", "maternal")
+    assert CORE_MODELS_WITH_MATERNAL["A+GxG+H+F+mat"] == ("A", "GxG", "house", "family", "maternal")
 
 
 def test_main_settings():
     s = main_spec("A+H")
     assert (s.scale, s.mr, s.stepsib, s.max_total_variance) == ("lin", "equilibrium", "corrected", 1.0)
-    assert s.weights == "hybrid"
+    assert s.weights == "hybrid_block"
 
 
 @pytest.mark.parametrize("pi, old", [(1.0, "house1"), (0.0, "house2")])

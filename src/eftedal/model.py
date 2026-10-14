@@ -48,13 +48,13 @@ MODELS_2025 = {
 MODELS = MODELS_2025   # backwards-compatible name
 
 
-def _core_models() -> dict[str, tuple[str, ...]]:
+def _core_models(maternal: bool = False) -> dict[str, tuple[str, ...]]:
     """The a priori model set: genetic {A, A+GxG} x environment {none, household(pi),
-    decaying family, household + family} x {without, with maternal inflation delta}."""
+    decaying family, household + family}, optionally also x {without, with maternal delta}."""
     out = {}
     for g in (("A",), ("A", "GxG")):
         for e in ((), ("house",), ("family",), ("house", "family")):
-            for mat in ((), ("maternal",)):
+            for mat in (((), ("maternal",)) if maternal else ((),)):
                 comps = g + e + mat
                 name = "+".join({"A": "A", "GxG": "GxG", "house": "H", "family": "F",
                                  "maternal": "mat"}[c] for c in comps)
@@ -62,7 +62,10 @@ def _core_models() -> dict[str, tuple[str, ...]]:
     return out
 
 
+# Main analysis: 8 models. The maternal term is set aside for now (user decision 2026-10-13:
+# not empirically informative and post hoc); the 16-model set with it stays available.
 CORE_MODELS = _core_models()
+CORE_MODELS_WITH_MATERNAL = _core_models(maternal=True)
 
 @dataclass(frozen=True)
 class FitSpec:

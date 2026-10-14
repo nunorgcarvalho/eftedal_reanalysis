@@ -26,8 +26,8 @@ from eftedal.inference import parametric_bootstrap, percentile_table, wald_table
 from eftedal.model import PARAM_BOUNDS
 from eftedal.presets import MAIN_WEIGHTINGS, main_spec
 
-CHOSEN = ["A", "A+GxG", "A+F", "A+GxG+F", "A+F+mat"]
-REPORT = ["V_A", "V_GxG", "V_family", "r_f", "delta", "m", "r", "c"]
+CHOSEN = ["A", "A+GxG", "A+F", "A+GxG+F"]
+REPORT = ["V_A", "V_GxG", "V_family", "r_f", "m", "r", "c"]
 
 
 def main(out: Path, n_boot: int, n_boot_infl: int, n_starts: int):

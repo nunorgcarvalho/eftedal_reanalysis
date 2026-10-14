@@ -30,27 +30,25 @@ EFTEDAL_SETTINGS = dict(scale="log", mr="free", stepsib="eftedal")   # with weig
 
 # Variants of the additive model: (name, weights, overrides)
 VARIANTS = [
-    ("main", "hybrid", {}),
+    ("main", "hybrid_block", {}),
     ("main", "invvar", {}),
-    ("block-balanced hybrid", "hybrid_block", {}),
     ("log scale, delta-method weights", "invvar", {"scale": "log"}),
-    ("log scale, hybrid", "hybrid", {"scale": "log"}),
-    ("m, r separate", "hybrid", {"mr": "free"}),
+    ("log scale, block hybrid", "hybrid_block", {"scale": "log"}),
+    ("m, r separate", "hybrid_block", {"mr": "free"}),
     ("m, r separate", "invvar", {"mr": "free"}),
-    ("Eftedal step-sib kernel", "hybrid", {"stepsib": "eftedal"}),
+    ("Eftedal step-sib kernel", "hybrid_block", {"stepsib": "eftedal"}),
     ("Eftedal step-sib kernel", "invvar", {"stepsib": "eftedal"}),
-    ("duplicated row dropped", "hybrid", {"drop_duplicate": True}),
+    ("duplicated row dropped", "hybrid_block", {"drop_duplicate": True}),
     ("duplicated row dropped", "invvar", {"drop_duplicate": True}),
-    ("MZ fraction 0.42", "hybrid", {"mz_frac": 0.42}),
+    ("MZ fraction 0.42", "hybrid_block", {"mz_frac": 0.42}),
     ("MZ fraction 0.42", "invvar", {"mz_frac": 0.42}),
     ("Eftedal settings", "invSqErr", EFTEDAL_SETTINGS),
 ]
 
 CONTRAST_SETTINGS = [
     ("Eftedal settings", "invSqErr", EFTEDAL_SETTINGS),
-    ("main", "hybrid", {}),
+    ("main", "hybrid_block", {}),
     ("main", "invvar", {}),
-    ("block-balanced hybrid", "hybrid_block", {}),
     ("log scale, delta-method weights", "invvar", {"scale": "log"}),
 ]
 
