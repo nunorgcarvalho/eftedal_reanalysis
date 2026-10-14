@@ -1,0 +1,32 @@
+% Shared style for the pedigree components (\input by components/pedigree_*.tex).
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[default]{sourcesans}
+\usetikzlibrary{positioning, calc}
+
+% one palette for every relationship type (Okabe-Ito, colour-blind safe)
+\definecolor{cFull}{HTML}{0072B2}   % full siblings
+\definecolor{cHalf}{HTML}{009E73}   % half-siblings
+\definecolor{cStep}{HTML}{D55E00}   % step-siblings
+\definecolor{cAdopt}{HTML}{56B4E9}  % adoptive siblings
+\definecolor{cCous}{HTML}{CC79A7}   % 1st cousins
+\definecolor{cCoc}{HTML}{E69F00}    % co-cousins
+\definecolor{ink}{HTML}{1F2328}
+\definecolor{leaf}{HTML}{DDE3EA}
+
+\tikzset{
+  ped/.style={draw=ink, line width=1.2pt},
+  male/.style={ped, rectangle, minimum size=7.5mm, inner sep=0pt, fill=#1, font=\small\bfseries},
+  female/.style={ped, circle, minimum size=8.2mm, inner sep=0pt, fill=#1, font=\small\bfseries},
+  male/.default=white, female/.default=white,
+  line/.style={ped},
+  adopted/.style={ped, dash pattern=on 4pt off 3pt},
+  rel/.style={line width=3.2pt, rounded corners=6pt, line cap=round},
+  rellab/.style={font=\small\bfseries, fill=white, inner sep=1.5pt},
+}
+% connector from x1 to x2 at depth d below the leaf row (y = base), label in the middle
+% \connect{colour}{x1}{x2}{depth}{label}{label position: on | below}
+\newcommand{\connect}[6]{%
+  \draw[rel, #1] (#2,\base) -- (#2,\base-#4) -- (#3,\base-#4) -- (#3,\base);
+  \ifx#6b\node[rellab, text=#1, below=1mm] at ($(#2,\base-#4)!0.5!(#3,\base-#4)$) {#5};%
+  \else\node[rellab, text=#1] at ($(#2,\base-#4)!0.5!(#3,\base-#4)$) {#5};\fi}

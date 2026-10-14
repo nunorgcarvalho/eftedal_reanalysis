@@ -1,0 +1,32 @@
+% Sibling types: full, half, step and adoptive siblings (all relative to A).
+\documentclass[tikz, border=4mm]{standalone}
+\input{style/pedstyle}
+\begin{document}
+\begin{tikzpicture}[x=1cm, y=1cm]
+\def\gP{0}\def\gL{-2.6}\def\base{\gL-0.42}
+% parents: a woman with two partners; her second partner already had a child
+\node[female] (m2) at (0,\gP) {};
+\node[male]   (f2) at (2,\gP) {};
+\node[female] (m1) at (4.8,\gP) {};
+\node[male]   (f1) at (8.4,\gP) {};
+\draw[line] (m2) -- (f2);  \draw[line] (f2) -- (m1);  \draw[line] (m1) -- (f1);
+% children (leaves)
+\node[female=leaf] (e) at (1,\gL)   {E};
+\node[male=leaf]   (d) at (3.4,\gL) {D};
+\node[female=leaf] (a) at (5.2,\gL) {A};
+\node[male=leaf]   (b) at (6.6,\gL) {B};
+\node[female=leaf] (c) at (8.0,\gL) {C};
+\draw[line] ($(m2)!0.5!(f2)$) -- (e.north);
+\draw[line] ($(f2)!0.5!(m1)$) -- (d.north);
+\draw[line] ($(m1)!0.5!(f1)$) -- (6.6,\gL+1.3);
+\draw[line] (5.2,\gL+1.3) -- (8.0,\gL+1.3);
+\draw[line] (a.north) -- (5.2,\gL+1.3);
+\draw[line] (b.north) -- (6.6,\gL+1.3);
+\draw[adopted] (c.north) -- (8.0,\gL+1.3);      % adopted: dashed line of descent
+% relationships of A
+\connect{cFull}{5.52}{6.6}{0.55}{full sibs}{b}
+\connect{cAdopt}{5.36}{8.0}{1.45}{adoptive sibs}{o}
+\connect{cHalf}{5.04}{3.4}{0.55}{half-sibs}{b}
+\connect{cStep}{4.9}{1}{1.45}{step-sibs}{o}
+\end{tikzpicture}
+\end{document}
