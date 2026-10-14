@@ -19,9 +19,10 @@
 \usepackage{qrcode}
 \usepackage{fontawesome5}
 \usepackage{booktabs, array}
+\usepackage{ragged2e}
 
 \graphicspath{{../results/figures/}{logos/}{components/}}
-\input{components/style/palette}   % relationship-type colours, shared with the pedigrees
+\input{components/style/palette}   % relative-type colours, shared with the pedigrees
 
 % ---- colours (figure palette: ours = teal, Eftedal = salmon) ------------------------------
 \definecolor{navy}{HTML}{1F3A5F}
@@ -43,12 +44,13 @@
 \newcommand{\ours}{{\color{teal}\bfseries ours}}
 
 \pagestyle{empty}
+\frenchspacing
 \color{ink}
 
 \begin{document}
 \begin{tcbposter}[
   coverage = {spread, interior style={fill=paper}},
-  poster = {columns=4, rows=36, spacing=1.2cm},
+  poster = {columns=13, rows=36, spacing=1.2cm},
   boxes = {enhanced, arc=6mm, boxrule=0pt, colback=white, colframe=navy,
            fonttitle=\boxtitlesize\bfseries, coltitle=white,
            left=12mm, right=12mm, top=10mm, bottom=10mm, toptitle=5mm, bottomtitle=5mm,
@@ -59,11 +61,12 @@
 \posterbox[blankest, interior engine=empty, colback=navy, colupper=white,
            underlay={\fill[navy] (frame.south west) rectangle (frame.north east);},
            halign=center, valign=center]
-  {name=header, column=1, span=4, row=1, rowspan=6}{%
-  \begin{minipage}[c]{0.13\linewidth}\centering
-    \colorbox{white}{\includegraphics[height=2.2in]{hms}}
+  {name=header, column=1, span=13, row=1, rowspan=6}{%
+  \begin{minipage}[c]{0.15\linewidth}\raggedright
+    \includegraphics[height=1.55in]{hms_dark}\\[0.45in]
+    \includegraphics[height=1.55in]{dfci_dark}
   \end{minipage}\hfill
-  \begin{minipage}[c]{0.7\linewidth}\centering
+  \begin{minipage}[c]{0.62\linewidth}\centering
     {\titlesize\bfseries Relatives\textquoteright{} similarity in test score performance is explained by\\[0.15em]
      a wide range of genetic and environmental parameters\par}
     \vspace{0.5em}
@@ -71,13 +74,24 @@
     \vspace{0.2em}
     {\fontsize{36}{44}\selectfont \textsuperscript{1}Harvard Medical School \quad \textsuperscript{2}Dana-Farber Cancer Institute\par}
   \end{minipage}\hfill
-  \begin{minipage}[c]{0.13\linewidth}\centering
-    \colorbox{white}{\includegraphics[height=2.2in]{dfci}}
+  \begin{minipage}[c]{0.21\linewidth}\raggedright
+    \begin{minipage}[c]{0.62\linewidth}\RaggedRight\fontsize{21}{26}\selectfont
+      Eftedal NH, Eilertsen EM, Sunde HF, Kleppest\o{} TH, Ystrom E, Czajkowski NO (2025).
+      Beyond additive genetic effects: Explaining family resemblance in school performance across
+      millions of pairs of Norwegian relatives. \textit{PNAS} 122(25):e2419627122.\par\medskip
+      \faTwitter\ @nunorgcarvalho\par
+      \faEnvelope\ nuno\_ramosgrangeiacarvalho@\allowbreak g.harvard.edu\par
+    \end{minipage}\hfill
+    \begin{minipage}[c]{0.34\linewidth}\centering
+      % TODO: point to the public repository / ePoster once available
+      \colorbox{white}{\color{black}\qrcode[height=1.9in]{https://github.com/nunorgcarvalho/eftedal_reanalysis}}\\[0.2em]
+      {\fontsize{21}{26}\selectfont GitHub Repository}
+    \end{minipage}
   \end{minipage}%
 }
 
 % ============================== helpers ==============================
-% swatch in a relationship colour (matches the pedigree connectors)
+% swatch in a relative-type colour (matches the pedigree connectors)
 \newcommand{\relswatch}[1]{\textcolor{#1}{\rule[0.18em]{1.6em}{0.32em}}}
 \newcommand{\relname}[2]{\relswatch{#1}\hspace{0.5em}{\color{#1}\bfseries #2}}
 \newcommand{\tablesize}{\fontsize{30}{38}\selectfont}
@@ -85,19 +99,19 @@
 \newcommand{\refcite}[1]{{\color{navy}[#1]}}
 
 % ============================== COLUMN 1 ==============================
-\posterbox[adjusted title=Background]{name=bg, column=1, below=header}{
+\posterbox[adjusted title=Background]{name=bg, column=1, span=3, below=header}{
 \begin{itemize}
   \item Relatives have similar test scores due to shared genetics and shared environments
   \item \refcite{Eftedal et al.\ 2025, \textit{PNAS}}: fit the \textbf{Additive model} to school test scores of
         $\sim$1M Norwegian children
   \begin{itemize}
-    \item identified the relationship type of each pair of relatives
+    \item identified the relative type of each pair of relatives
     \item fit the observed correlations as a function of the Additive model's parameters
   \end{itemize}
 \end{itemize}
 }
 
-\posterbox[adjusted title=Relative types]{name=rel, column=1, between=bg and bottom}{
+\posterbox[adjusted title=Relative types]{name=rel, column=1, span=3, between=bg and bottom}{
 \centering
 \includegraphics[scale=2.6]{pedigree_sibs}\par\vspace{0.6em}
 \includegraphics[scale=2.6]{pedigree_cousins}\par\vspace{0.8em}
@@ -117,12 +131,12 @@
 \end{tabular}\par}
 \vspace{0.6em}
 {\smallsize\raggedright
-$V_A$: additive genetic variance (heritability, $h^2$); $m$: genetic correlation between mates;
-$r$: phenotypic correlation between mates.\par}
+$V_A$: additive genetic variance; $m$: genetic correlation between mates;
+$r$: phenotypic correlation between mates. Family degree ($f$) is only used for family environment models.\par}
 }
 
 % ============================== COLUMNS 2-3 ==============================
-\posterbox[adjusted title=Revising Eftedal et al.'s results]{name=rev, column=2, span=2, between=header and bottom}{
+\posterbox[adjusted title=Revising Eftedal et al.'s results]{name=rev, column=4, span=6, between=header and bottom}{
 \begin{minipage}[t]{0.46\linewidth}
 \subhead{Two types of fits}
 {\tablesize\renewcommand{\arraystretch}{1.35}
@@ -130,7 +144,7 @@ $r$: phenotypic correlation between mates.\par}
 \toprule
  & \textbf{Marginal Pair} & \textbf{Marginal Type} \\
 \midrule
-unit & each \textbf{pair} of relatives & each \textbf{relationship type} \\
+unit & each \textbf{pair} of relatives & each \textbf{relative type} \\
 weights & $1/SE^2$: common types (cousins) dominate & equal total weight per type \\
 95\% CI & parametric bootstrap: sampling noise only & leave one type out: depends on which relatives exist \\
 \bottomrule
@@ -147,7 +161,7 @@ weights & $1/SE^2$: common types (cousins) dominate & equal total weight per typ
         although the model implies $m = V_A\,r$
   % optional additions (uncomment if wanted):
   % \item Relatives through twins of unknown zygosity left out of the fit
-  % \item CIs from resampling relationship categories in proportion to $1/SE^2$
+  % \item CIs from resampling relative categories in proportion to $1/SE^2$
 \end{itemize}
 \end{minipage}
 
@@ -155,26 +169,20 @@ weights & $1/SE^2$: common types (cousins) dominate & equal total weight per typ
 \subhead{Additive model: Eftedal et al.\ vs.\ revised}
 \begin{minipage}[t]{0.495\linewidth}\centering
   \includegraphics[width=\linewidth]{poster/p1_condensedfit_additive}\par
-  {\smallsize Points: pooled correlation of each relationship type (95\% CI); bars: model fits.
+  {\smallsize Points: pooled correlation of each relative type (95\% CI); bars: model fits.
    Right of the dashed line: in-laws and adoptees.\par}
 \end{minipage}\hfill
 \begin{minipage}[t]{0.495\linewidth}\centering
   \includegraphics[width=\linewidth]{poster/p2_additive_params}\par
-  {\smallsize Diamond: estimate, width = Marginal Pair CI; line: Marginal Type CI.
-   Dark: bio + in-laws; light: bio only.\par}
+  {\smallsize Circle: estimate; box: Marginal Pair CI (visible only where wider than the circle);
+   line: Marginal Type CI.\par}
 \end{minipage}
 }
 
 % ============================== COLUMN 4 ==============================
-\posterbox[adjusted title=Models with GxG and family environment]{name=gxg, column=4, below=header}{
-\centering\includegraphics[width=\linewidth]{poster/p3_components_core_type}\par
-{\smallsize\raggedright Marginal Type fits; whiskers: 95\% Marginal Type CIs; black: sum of components.
- A $\rightarrow$ B: B fitted after A, with A held fixed.\par}
-}
-
-\posterbox[adjusted title=Takeaways]{name=take, column=4, below=gxg}{
+\posterbox[adjusted title=Takeaways]{name=take, column=10, span=4, above=bottom}{
 \begin{itemize}
-  \item Revising Eftedal et al.'s estimator for the Additive model yields \textbf{high heritability}
+  \item Revising Eftedal et al.'s estimator for the Additive model yields \textbf{high $V_A$}
         estimates that explain different relative types better
   \item Additive, GxG and family-environment components are \textbf{collinear}: weak evidence for
         significant components beyond the Additive model
@@ -182,21 +190,10 @@ weights & $1/SE^2$: common types (cousins) dominate & equal total weight per typ
 \end{itemize}
 }
 
-% ============================== CONTACT ==============================
-\posterbox[adjusted title=References \& contact, colframe=navy!70]{name=refs, column=4, above=bottom}{
-\smallsize
-\begin{minipage}[c]{0.72\linewidth}\raggedright
-Eftedal NH, Eilertsen EM, Sunde HF, Kleppest\o{} TH, Ystrom E, Czajkowski NO (2025).
-Beyond additive genetic effects: Explaining family resemblance in school performance across
-millions of pairs of Norwegian relatives. \textit{PNAS} 122(25):e2419627122.
-doi:10.1073/pnas.2419627122\par\medskip
-\faTwitter\ @nunorgcarvalho \quad \faEnvelope\ nuno\_ramosgrangeiacarvalho@g.harvard.edu
-\end{minipage}\hfill
-\begin{minipage}[c]{0.24\linewidth}\centering
-  % TODO: point to the public repository / ePoster once available
-  \qrcode[height=2.6in]{https://github.com/nunorgcarvalho/eftedal_reanalysis}\\[0.3em]
-  {\fontsize{22}{26}\selectfont GitHub Repository}
-\end{minipage}
+\posterbox[adjusted title=Models with GxG and family environment]{name=gxg, column=10, span=4, between=header and take}{
+\centering\includegraphics[width=\linewidth]{poster/p3_components_core_type}\par
+{\smallsize\raggedright Marginal Type fits; whiskers: 95\% Marginal Type CIs; black: sum of components.
+ A $\rightarrow$ B: B fitted after A, with A held fixed.\par}
 }
 
 \end{tcbposter}
