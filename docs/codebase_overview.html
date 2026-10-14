@@ -123,7 +123,7 @@ components, and <i>how sure</i> we are.
 <table>
 <tr><th>step</th><th>script</th><th>writes</th></tr>
 <tr><td>Replicate Eftedal et al. exactly</td><td><code>scripts/01_replicate_eftedal.py</code></td><td><code>results/replication/</code></td></tr>
-<tr><td>Fit the 16 core models, both weightings</td><td><code>scripts/02_fit_models.py</code></td><td><code>results/main/fits_*.csv</code></td></tr>
+<tr><td>Fit the 8 core models, both weightings</td><td><code>scripts/02_fit_models.py</code></td><td><code>results/main/fits_*.csv</code></td></tr>
 <tr><td>Block cross-validation</td><td><code>scripts/03_cross_validation.py</code></td><td><code>results/cv/</code></td></tr>
 <tr><td>Intervals for the chosen models</td><td><code>scripts/04_uncertainty.py</code></td><td><code>results/uncertainty_main/</code></td></tr>
 <tr><td>Robustness, bio vs in-law contrast, phenotypes, 2025 model set</td><td><code>scripts/05_robustness.py</code></td><td><code>results/robustness/</code></td></tr>
@@ -148,8 +148,8 @@ math, Norwegian and English tests).</p>
 <tr><td><code>n</code></td><td>degree of relatedness as Eftedal et al. define it (in-laws: summed distance to the connecting mates; t/uz classes: mean of the MZ and DZ alternatives)</td></tr>
 <tr><td><code>family_degree</code> \(f\)</td><td>"distance" in the family for the decaying family environment: MZ/DZ/sibs/adoptive sibs 0, half sibs 0.5, step sibs 1, 1st cousins 1, half cousins 1.5, 2nd cousins 2, co-cousins 2</td></tr>
 <tr><td><code>household</code></td><td><code>full</code> (twins, sibs, adoptive sibs), <code>partial</code> (step sibs), <code>by_side</code> (half sibs: full-time if maternal, part-time if paternal), <code>none</code></td></tr>
-<tr><td><code>broad_type</code></td><td>the 16 relationship types; grouping for the hybrid weights</td></tr>
-<tr><td><code>cv_block</code></td><td>10 blocks held out together in cross-validation: near-duplicates share a block (MZ/UZ/DZ; cousins with their t/uz variants; the three adoptive cousin types)</td></tr>
+<tr><td><code>broad_type</code></td><td>the 16 relationship types (grouping for the 16-type <code>hybrid</code> weights, kept as an option)</td></tr>
+<tr><td><code>cv_block</code></td><td>10 blocks of relationship types, used for cross-validation, the jackknife and the main <code>hybrid_block</code> weights: near-duplicates share a block (MZ/UZ/DZ; cousins with their t/uz variants; the three adoptive cousin types)</td></tr>
 </table>
 <h3>Cohorts and data checks</h3>
 <p><code>data.COHORTS</code>: <code>ALL</code> (82, the main analysis), <code>ALL_but_adopted_UZ</code>
@@ -162,7 +162,8 @@ copy of <i>2nd cousins / paternal / same-sex female</i>. It is kept by default; 
 \[
 \rho_k(\theta) \;=\; \Big[\, V_A\,K_k + V_{GxG}\,K^{(2)}_k + V_{house}\big(h^{full}_k + \pi\, h^{part}_k\big) + V_{fam}\, r_f^{\,f_k} \Big]\,\big(1 + \delta\, M_k\big)
 \]
-<p>Each model includes a subset of the bracketed terms (and optionally \(\delta\)). Implemented in
+<p>Each model includes a subset of the bracketed terms. The maternal factor \(\delta\) is implemented but
+<b>not used in the main analysis</b> (set aside as post hoc and uninformative). Implemented in
 <code class="fn">model.Model.predict</code>; the per-component contributions are returned by
 <code class="fn">model.Model.components</code>.</p>
 
@@ -200,10 +201,11 @@ assortative mating.</p>
 <tr><th>term</th><th>formula</th><th>where</th></tr>
 <tr><td>Household (H)</td><td>\(V_{house}\,(h^{full}_k + \pi\,h^{part}_k)\). Full-time pairs (twins, full sibs, maternal half sibs, adoptive sibs) share fully; part-time pairs (paternal half sibs, step sibs) share a fraction \(\pi \in [0,1]\). \(\pi = 1\) and \(\pi = 0\) recover the 2025 "house1" and "house2".</td><td><code class="fn">components.household_share</code></td></tr>
 <tr><td>Decaying family environment (F)</td><td>\(V_{fam}\, r_f^{\,f_k}\): an environment shared within the extended family, decaying by \(r_f\) per unit of family degree. Applies to adoptive relatives too, which are what separate it from assortative mating.</td><td><code>Model.predict</code></td></tr>
-<tr><td>Maternal inflation (mat)</td><td>multiply the prediction by \(1+\delta\) for categories related <i>only</i> through mothers (\(M_k = 1\) if <code>side == 'maternal'</code>). \(\delta \in [-0.5, 1]\), so a paternal excess is allowed. A phenomenological contrast parameter (custody, kin networks, misattributed paternity, mtDNA). It is identified within half sibs, cousins, half cousins, 2nd cousins and co-cousins.</td><td><code class="fn">components.maternal_indicator</code></td></tr>
+<tr><td>Maternal inflation (mat) <span class="muted">— implemented, not in the main model set</span></td><td>multiply the prediction by \(1+\delta\) for categories related <i>only</i> through mothers (\(M_k = 1\) if <code>side == 'maternal'</code>). \(\delta \in [-0.5, 1]\), so a paternal excess is allowed. A phenomenological contrast parameter (custody, kin networks, misattributed paternity, mtDNA). It is identified within half sibs, cousins, half cousins, 2nd cousins and co-cousins.</td><td><code class="fn">components.maternal_indicator</code></td></tr>
 </table>
-<p>The 16 core models (<code>model.CORE_MODELS</code>) cross genetic {A, A+GxG} × environment {none, H, F, H+F}
-× {without, with mat}. Names read like <code>A+GxG+F+mat</code>. The 2025 set (M01–M05b) is kept as
+<p>The 8 core models (<code>model.CORE_MODELS</code>) cross genetic {A, A+GxG} × environment {none, H, F, H+F}.
+Names read like <code>A+GxG+F</code>. The 16-model set that also crosses the maternal term is kept as
+<code>model.CORE_MODELS_WITH_MATERNAL</code>. The 2025 set (M01–M05b) is kept as
 <code>model.MODELS_2025</code> for the supplement.</p>
 
 <h3 id="constraints">Parameters and constraints</h3>
@@ -213,7 +215,8 @@ assortative mating.</p>
 1, so this keeps the residual variance \(V_E \ge 0\). Without it, some rich models reached \(\sum V \approx 1.2\) (a
 predicted MZ correlation above 1).</li>
 <li>Main settings (<code>presets.MAIN</code>, <code>presets.main_spec</code>): linear scale, \(m = V_A r\), corrected
-step-sibling kernel, co-cousin \(f = 2\), \(\sum V \le 1\), UZ mixture at 0.5.</li>
+step-sibling kernel, co-cousin \(f = 2\), \(\sum V \le 1\), UZ mixture at 0.5; weightings <code>hybrid_block</code>
+(primary) and <code>invvar</code>.</li>
 </ul>
 
 <h2 id="estimation">Estimation</h2>
@@ -224,11 +227,11 @@ step-sibling kernel, co-cousin \(f = 2\), \(\sum V \le 1\), UZ mixture at 0.5.</
 <table>
 <tr><th>weighting</th><th>\(w_k\)</th><th>what it targets</th></tr>
 <tr><td><code>invvar</code></td><td>\(1/SE_k^2\)</td><td>If the model were correct (and categories independent), this is the Gaussian maximum-likelihood fit, the most precise possible. Under misspecification it is the best fit for a <i>typical pair</i>: dominated by cousins and co-cousins, because there are millions of them.</td></tr>
-<tr><td><code>hybrid</code></td><td>\(\dfrac{1/SE_k^2}{\sum_{j \in t(k)} 1/SE_j^2}\)</td><td>Every relationship type \(t\) gets total weight 1, split within the type by precision. The best fit for a <i>typical relationship type</i>. Moves leverage toward close relatives (MZ twins get 1/16 of the total).</td></tr>
-<tr><td><code>hybrid_block</code></td><td>same, balanced over the 10 cv blocks</td><td>robustness variant: near-duplicate types share one block's weight</td></tr>
+<tr><td><code>hybrid_block</code> (main)</td><td>\(\dfrac{1/SE_k^2}{\sum_{j \in b(k)} 1/SE_j^2}\)</td><td>Every block \(b\) of relationship types (the 10 cv blocks) gets total weight 1, split within the block by precision. The best fit for a <i>typical kind of relative</i>. Near-duplicate types (e.g. 1st cousins and 1st cousins via UZ twins) share one block's weight instead of each getting a full share. Moves leverage toward close relatives (the twin block gets 1/10 of the total).</td></tr>
+<tr><td><code>hybrid</code></td><td>same, balanced over the 16 relationship types</td><td>the 2025 poster's version; not used in the main analysis</td></tr>
 </table>
 <p>If the model were right, every weighting would estimate the same parameters, and only the precision would differ. That
-they disagree is itself evidence of misspecification (\(\chi^2/\text{df} \approx 9\)–\(51\) across the 16
+they disagree is itself evidence of misspecification (\(\chi^2/\text{df} \approx 9\)–\(51\) across the 8
 core models). Implemented in <code class="fn">model.Model._weights</code>.</p>
 <h3 id="logscale">Why not the log scale (and what Eftedal et al. got wrong)</h3>
 <p>Eftedal et al., following Clark, fit \(\ln\rho_k\) because the Fisherian model is then linear in its
@@ -307,9 +310,11 @@ categories comes from which relatives are observed, so the joint fit is the esti
 \[ \text{mse}_t = \frac{\sum_{k\in t} (\hat\rho_k - \hat\rho^{\,cv}_k)^2/SE_k^2}{\sum_{k\in t} 1/SE_k^2},\quad
 \text{block score} = \operatorname{mean}_{t \in \text{block}}\, \text{mse}_t,\quad
 \text{CV score} = \operatorname{mean}_{\text{10 blocks}}\, \text{block score}. \]
-<p>A held-out \(\chi^2\) is also reported. Models are compared fold by fold
-(<code class="fn">cv.paired_comparison</code>): mean difference from the best model and its SE across the 10
-blocks.</p>
+<p>The score is in <b>squared-correlation units</b> (a precision-weighted mean squared miss of held-out
+correlations); its square root, the CV RMSE, is in correlation units. A held-out \(\chi^2\) is also reported.
+Models are compared fold by fold (<code class="fn">cv.paired_comparison</code>): for each model, take its score minus
+the best model's in each of the 10 blocks, and report the mean difference with SE = SD/\(\sqrt{10}\) of those 10
+differences. The SE is approximate: the folds share training data, and 10 heterogeneous blocks is a small sample.</p>
 <div class="note"><b>Caveats.</b> Sampling errors are correlated across categories (the same child appears in
 sibling, cousin and co-cousin pairs), so CV is slightly optimistic. But sampling SEs (~0.003–0.01) are small next
 to the misfit being scored. Near-duplicate types are held out together to avoid leakage. A component identified by a
@@ -337,15 +342,16 @@ the new code reproduces the 2025 predictions to ~1e-15 at all 32 archived fits.<
 weights were wrong for the log scale (delta method above). With consistent weights, log and linear fits nearly agree.
 Their remaining gap reflects misspecification.</dd>
 <dt>"Isn't hybrid weighting arbitrary?"</dt>
-<dd>It is a choice of estimand: the best fit for a typical relationship type rather than a typical pair. Under a correct
-model it would not matter. Under misspecification no weighting is "right", which is why both are reported. Honest caveat:
-in block cross-validation, inverse-variance-fitted models predicted held-out types slightly better (1–2 SE) even
-under type-balanced scoring. Hybrid gives small, noisy types a lot of leverage.</dd>
+<dd>It is a choice of estimand: the best fit for a typical kind of relative rather than a typical pair. Under a correct
+model it would not matter. Under misspecification no weighting is "right", which is why both are reported. Balancing
+over blocks rather than over the 16 types avoids double-counting near-duplicate types. In block cross-validation the two
+weightings trade wins: inverse variance is slightly better for the models without GxG, block hybrid for the GxG + family
+models (all within ~3 SE).</dd>
 <dt>"Why impose \(m = h^2 r\)? Collado et al. did and got different answers from Clark."</dt>
 <dd>Separate \(m\) and \(r\) make sense if people sort on a latent trait rather than on the phenotype. But then the
 half- and step-sibling formulas (derived for phenotypic assortment) are wrong too. With consistent weights the
 constraint costs almost no fit (additive model, inverse variance: \(\chi^2/\text{df}\) 25.91 vs 25.93 with \(m, r\)
-separate) and implies \(r \approx 0.3\)–\(0.5\) (0.27 hybrid, 0.39 inverse variance, 0.47 log scale), a plausible
+separate) and implies \(r \approx 0.3\)–\(0.5\) (0.32 block hybrid, 0.39 inverse variance, 0.47 log scale), a plausible
 spousal correlation. Under Eftedal's weighting it would need \(r \approx 0.87\).</dd>
 <dt>"Your bootstrap intervals are tiny. Is the model right?"</dt>
 <dd>No. The bootstrap only measures sampling noise in 82 very precise correlations. Model misspecification shows up in the
@@ -362,8 +368,8 @@ family-environment model can drive \(m \to 0\). Adoptive relatives (environment 
 which is why the "all adoptive" hold-out is informative.</dd>
 <dt>"Why does the household term not help?"</dt>
 <dd>In cross-validation, sibling-only household terms predict held-out types worse (2–3 SE). They absorb the sibling
-excess, which lowers \(V_A\) and \(m\), and the model then under-predicts cousins (e.g. held-out 1st cousins by ~0.06
-under hybrid weights). A family environment that decays over the whole tree generalises
+excess, which lowers \(V_A\) and \(m\), and the model then under-predicts cousins (e.g. held-out 1st cousins by ~0.055
+under block-hybrid weights). A family environment that decays over the whole tree generalises
 better.</dd>
 <dt>"Does the corrected step-sibling formula matter?"</dt>
 <dd>Barely for the parameters (step siblings are 3 of 82 categories, ~0.3% of pairs): the additive \(h^2\) moves by
@@ -377,11 +383,11 @@ mimic"), and that question is better answered by the joint-vs-nested loss or by 
 and the \(V_A\) profile.</dd>
 <dt>"Which model fits best?"</dt>
 <dd>By block cross-validation, every model containing the decaying family environment forms a top cluster whose members
-are within ~1 SE of each other (A+F, A+GxG+F, A+F+mat, ...). Additive-only is ~1 SE behind, and sibling-household models
-are clearly worse. So the data support <i>some</i> family-wide environment, but cannot tell whether GxG or a maternal
-excess is also present.</dd>
+are within ~1 SE of each other (A+GxG+F scores best under block hybrid, A+F under inverse variance). Additive-only is
+~1–2 SE behind, and sibling-household models without F are clearly worse. So the data support <i>some</i> family-wide
+environment, but cannot cleanly tell whether GxG is also present.</dd>
 <dt>"Twins of unknown zygosity at 50% MZ?"</dt>
-<dd>Eftedal's assumption; registry ratios suggest ~42% recently. Rerunning at 0.42 changes \(h^2\) by &lt;0.01.</dd>
+<dd>Eftedal's assumption; registry ratios suggest ~42% recently. Rerunning at 0.42 changes \(h^2\) by ≤ 0.011.</dd>
 <dt>"What about selection (people with half or step siblings score lower)?"</dt>
 <dd>Not modelled, as in Eftedal et al. (their SI Table S10). A limitation.</dd>
 </dl>
@@ -399,7 +405,7 @@ python scripts/07_profile.py             # profile over V_A
 module load gcc/14.2.0 R/4.4.2 && Rscript R/make_figures.R</code></pre>
 <ul>
 <li><b>One fit:</b> <code>from eftedal import data as D; from eftedal.fit import fit; from eftedal.presets import main_spec</code>
-then <code>fit(D.load(), main_spec("A+F", "hybrid")).summary()</code>.</li>
+then <code>fit(D.load(), main_spec("A+F", "hybrid_block")).summary()</code>.</li>
 <li><b>New component:</b> add its sharing coefficient in <code>components.py</code>, its parameters in
 <code>model.PARAM_ORDER</code> / <code>DEFAULT_START</code> / <code>required_params</code>, and its term in
 <code>Model.predict</code> and <code>Model.components</code>; add a test.</li>

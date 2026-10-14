@@ -43,7 +43,7 @@ Every choice is a field of `eftedal.model.FitSpec`:
 
 | field | options |
 |-------|---------|
-| `components` | any of `A`, `GxG`, `house`, `family`, `maternal` (core set: `CORE_MODELS`, 16 models), plus the 2025 indicator components `house1`, `house2`, `house3`, `housepart`, `cousins1`, `cousins2` (`MODELS_2025`) |
+| `components` | any of `A`, `GxG`, `house`, `family`, `maternal` (core set: `CORE_MODELS`, 8 models without the maternal term; `CORE_MODELS_WITH_MATERNAL`, 16), plus the 2025 indicator components `house1`, `house2`, `house3`, `housepart`, `cousins1`, `cousins2` (`MODELS_2025`) |
 | `cohort` | `ALL`, `ALL_but_adopted`, `ALL_but_adopted_UZ` (Eftedal "bio + in-law"), `bio_only` |
 | `scale` | `lin`, `log` |
 | `weights` | `invSqErr` ($1/SE^2$ on either scale, as Eftedal et al.), `invvar` (inverse sampling variance on the scale used; $\rho^2/SE^2$ on the log scale by the delta method), `uniform`, `hybrid` / `hybrid_invvar` (equal total weight per relationship type), `hybrid_block` (equal weight per cv block) |
@@ -55,7 +55,7 @@ Every choice is a field of `eftedal.model.FitSpec`:
 | `log_zero`, `adoptive` | handling of unloggable rows and of adoptive pairs; `legacy*` values reproduce the 2025 analysis |
 
 Main settings (`presets.MAIN`, `presets.main_spec`): linear scale, $m = V_A r$, corrected
-step-sibling kernel, co-cousin family degree 2, $\sum V \le 1$; weightings `hybrid` and `invvar`.
+step-sibling kernel, co-cousin family degree 2, $\sum V \le 1$; weightings `hybrid_block` (primary) and `invvar`.
 
 Uncertainty (`eftedal.inference`, `eftedal.cv`): parametric bootstrap, block jackknife over the
 10 cv blocks, full-Hessian sandwich, and (for replication only) the inverse Hessian of the RSS.
@@ -66,7 +66,7 @@ Model comparison: block cross-validation (`eftedal.cv`).
 ```bash
 pytest
 python scripts/01_replicate_eftedal.py     # Eftedal et al. (2025), exactly
-python scripts/02_fit_models.py            # 16 core models x {hybrid, invvar}
+python scripts/02_fit_models.py            # 8 core models x {hybrid_block, invvar}
 python scripts/03_cross_validation.py      # block cross-validation
 python scripts/04_uncertainty.py           # bootstrap + block jackknife (~1 h on one core)
 python scripts/05_robustness.py            # robustness rows, bio vs in-law contrast, phenotypes

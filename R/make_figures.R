@@ -11,13 +11,11 @@ source(file.path(REPO, "R", "plot_functions.R"))
 rd <- function(...) as_tibble(fread(file.path(RESULTS, ...)))
 has <- function(...) file.exists(file.path(RESULTS, ...))
 
-WEIGHT_LABELS <- c(hybrid = "hybrid (type-balanced)", invvar = "inverse variance (1/SE²)",
-                   hybrid_block = "hybrid, balanced over blocks", invSqErr = "Eftedal (log, 1/SE²)")
+WEIGHT_LABELS <- c(hybrid = "hybrid (16 types)", invvar = "inverse variance (1/SE²)",
+                   hybrid_block = "hybrid (block-balanced)", invSqErr = "Eftedal (log, 1/SE²)")
 COHORT_LABELS <- c(bio_only = "Bio only", ALL_but_adopted_UZ = "Bio + in-law")
-MODEL_ORDER <- c("A", "A+mat", "A+H", "A+H+mat", "A+F", "A+F+mat", "A+H+F", "A+H+F+mat",
-                 "A+GxG", "A+GxG+mat", "A+GxG+H", "A+GxG+H+mat", "A+GxG+F", "A+GxG+F+mat",
-                 "A+GxG+H+F", "A+GxG+H+F+mat")
-CHOSEN <- c("A", "A+GxG", "A+F", "A+GxG+F", "A+F+mat")
+MODEL_ORDER <- c("A", "A+H", "A+F", "A+H+F", "A+GxG", "A+GxG+H", "A+GxG+F", "A+GxG+H+F")
+CHOSEN <- c("A", "A+GxG", "A+F", "A+GxG+F")
 FOLD_ORDER <- c("twins", "sibs", "half sibs", "1st cousins", "half cousins", "2nd cousins",
                 "step sibs", "cocousins", "adoptive sibs", "adoptive cousins",
                 "all in-laws", "all adoptive")
@@ -34,9 +32,9 @@ if (has("robustness", "contrast_predictions.csv")) {
   obs <- obs_from(cp)
   pick <- function(setting, w) cs %>% filter(setting == !!setting, weighting == !!w,
                                              cohort_name == "ALL_but_adopted_UZ") %>% pull(fit_id)
-  ids <- c(pick("Eftedal settings", "invSqErr"), pick("main", "invvar"), pick("main", "hybrid"))
+  ids <- c(pick("Eftedal settings", "invSqErr"), pick("main", "invvar"), pick("main", "hybrid_block"))
   labs <- sprintf(c("Eftedal et al. (log, 1/SE²): h²=%.2f", "ours, inverse variance: h²=%.2f",
-                    "ours, hybrid: h²=%.2f"), cs$V_A[match(ids, cs$fit_id)])
+                    "ours, hybrid (block-balanced): h²=%.2f"), cs$V_A[match(ids, cs$fit_id)])
   pr <- bind_rows(lapply(seq_along(ids), function(i) cp %>% filter(fit_id == ids[i]) %>% mutate(model = labs[i])))
   save_fig(plot_fits(obs, pr, colors = setNames(c("#F8766D", "#7CAE00", "#00BFC4"), labs)),
            "01_eftedal_vs_ours", height = 1850)
@@ -70,14 +68,20 @@ if (has("robustness", "phenotypes.csv")) {
 if (has("cv", "cv_paired.csv")) {
   pc <- rd("cv", "cv_paired.csv") %>%
     left_join(rd("cv", "cv_summary.csv") %>% select(model, weights, cv_rmse), by = c("model", "weights")) %>%
-    mutate(model = factor(model, levels = rev(MODEL_ORDER)), weights = WEIGHT_LABELS[weights])
+    mutate(model = factor(model, levels = rev(MODEL_ORDER)), weights = WEIGHT_LABELS[weights],
+           best = model == best)
   g <- ggplot(pc, aes(x = mean_diff, y = model)) +
     geom_vline(xintercept = 0, linetype = "dashed") +
     geom_errorbar(aes(xmin = mean_diff - 1.96 * se_diff, xmax = mean_diff + 1.96 * se_diff),
                   width = 0.3, orientation = "y") +
-    geom_point(size = 2.5) + facet_wrap(~weights, scales = "free_x") +
-    labs(x = "Held-out score minus best model's (paired over 10 blocks; ±1.96 SE)", y = NULL,
-         title = "Block cross-validation: which components help predict unseen relationship types") +
+    geom_point(aes(color = best, size = best)) +
+    geom_text(data = pc %>% filter(best), aes(label = sprintf("best: CV RMSE = %.4f", cv_rmse)),
+              color = "#D55E00", hjust = -0.08, vjust = -0.9, size = 3.2) +
+    scale_color_manual(values = c(`TRUE` = "#D55E00", `FALSE` = "black"), guide = "none") +
+    scale_size_manual(values = c(`TRUE` = 4, `FALSE` = 2.5), guide = "none") +
+    facet_wrap(~weights, scales = "free_x") +
+    labs(x = "CV score minus the best model's (squared-correlation units; paired over the 10 blocks, ±1.96 SE)",
+         y = NULL, title = "Block cross-validation: which components help predict unseen relationship types") +
     theme_bw()
   save_fig(g, "03_cv_model_comparison", width = 3000, height = 1700)
 
@@ -97,7 +101,7 @@ if (has("main", "fits_predictions.csv")) {
   fs <- rd("main", "fits_summary.csv")
   fp <- rd("main", "fits_predictions.csv")
   obs <- obs_from(fp)
-  for (wt in c("hybrid", "invvar")) {
+  for (wt in c("hybrid_block", "invvar")) {
     for (mod in c("A+F", "A+GxG+F", "A+GxG")) {
       ia <- fs %>% filter(model == "A", weights == !!wt) %>% pull(fit_id)
       ib <- fs %>% filter(model == !!mod, weights == !!wt) %>% pull(fit_id)
@@ -106,7 +110,8 @@ if (has("main", "fits_predictions.csv")) {
                                         c("V_A", "V_GxG", "V_family", "r_f", "m", "r"))))
       pr <- bind_rows(fp %>% filter(fit_id == ia) %>% mutate(model = labs[1]),
                       fp %>% filter(fit_id == ib) %>% mutate(model = labs[2]))
-      save_fig(plot_fits(obs, pr, colors = setNames(c("#00BFC4", "#C77CFF"), labs)), height = 1800,
+      save_fig(plot_fits(obs, pr, colors = setNames(c("#00BFC4", "#C77CFF"), labs)) +
+                 labs(title = paste("Weighting:", WEIGHT_LABELS[[wt]])), height = 1850,
                sprintf("04_fit_A_vs_%s_%s", gsub("\\+", "", mod), wt))
     }
   }
@@ -115,8 +120,10 @@ if (has("main", "fits_predictions.csv")) {
     pivot_longer(starts_with("V_"), names_to = "component") %>% filter(!is.na(value)) %>%
     mutate(component = factor(sub("V_", "", component), c("A", "GxG", "house", "family")),
            model = factor(model, levels = MODEL_ORDER), weights = WEIGHT_LABELS[weights])
-  g <- ggplot(comp, aes(x = model, y = value, fill = component)) + geom_col() +
+  g <- ggplot(comp, aes(x = model, y = value, fill = component)) +
+    geom_col(position = position_stack(reverse = TRUE)) +            # A at the bottom
     facet_wrap(~weights, ncol = 1) + scale_fill_brewer(palette = "Set2") +
+    guides(fill = guide_legend(reverse = TRUE)) +
     labs(x = NULL, y = "Variance component", fill = NULL) + theme_bw() +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
   save_fig(g, "04b_components_all_models", width = 3000, height = 2000)
@@ -127,7 +134,9 @@ if (has("uncertainty_main", "intervals.csv")) {
   iv <- rd("uncertainty_main", "intervals.csv") %>%
     filter(param %in% c("V_A", "V_GxG", "V_family", "r_f", "delta", "m", "r")) %>%
     mutate(model = factor(model, levels = rev(CHOSEN)), weights = WEIGHT_LABELS[weights],
-           method = factor(method, c("param_boot x1", "param_boot x1.3", "sandwich", "block jackknife")),
+           method = factor(method, c("param_boot x1", "block jackknife"))) %>%
+    filter(!is.na(method)) %>%
+    mutate(
            lb = ifelse(param == "delta", -0.5, 0), lo = pmax(lo, lb), hi = pmin(hi, 1))
   g <- ggplot(iv, aes(x = estimate, xmin = lo, xmax = hi, y = model, color = method)) +
     geom_pointrange(position = position_dodge(width = 0.6), size = 0.25) +
