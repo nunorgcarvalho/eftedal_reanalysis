@@ -92,7 +92,7 @@ plot_fits <- function(obs, preds, colors = NULL, R2 = NULL, legend = "auto") {
     geom_segment(data = seg, inherit.aes = FALSE, linewidth = 1.5, alpha = 0.6,
                  aes(x = x_min - 0.5, xend = x_max + 0.5, y = pred, yend = pred, color = model,
                      linetype = in_cohort)) +
-    scale_color_manual(values = colors, name = "Model", guide = model_guide) +
+    scale_color_manual(values = colors, breaks = names(colors), name = "Model", guide = model_guide) +
     scale_linetype_manual(values = c(`TRUE` = "solid", `FALSE` = "22"), guide = "none") +
     geom_text_repel(data = labs_df, inherit.aes = FALSE, size = 3, direction = "y", vjust = 1,
                     min.segment.length = 999, aes(x = x, y = y, label = label))
