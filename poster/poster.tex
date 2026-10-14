@@ -64,9 +64,8 @@
     \colorbox{white}{\includegraphics[height=2.2in]{hms}}
   \end{minipage}\hfill
   \begin{minipage}[c]{0.7\linewidth}\centering
-    % TODO: final title
-    {\titlesize\bfseries Estimation choices, not in-laws, drive low heritability estimates\\[0.15em]
-     from family resemblance in Norwegian school test scores\par}
+    {\titlesize\bfseries Relatives\textquoteright{} similarity in test score performance is explained by\\[0.15em]
+     a wide range of genetic and environmental parameters\par}
     \vspace{0.5em}
     {\authorsize Nuno R.\,G. Carvalho\textsuperscript{1,2} \quad and \quad Alexander ``Sasha'' Gusev\textsuperscript{1,2}\par}
     \vspace{0.2em}
@@ -91,23 +90,20 @@
 {\renewcommand{\arraystretch}{2.3}
 \begin{tabular}{@{}l c >{$\displaystyle}l<{$}@{}}
 \toprule
-\textbf{relatives} & \textbf{genetic degree $n$} & \text{\textbf{expected correlation (additive model)}} \\
+\textbf{relatives} & \textbf{genetic degree $n$} & \text{\textbf{expected correlation}} \\
 \midrule
 \relname{cFull}{full siblings}      & 1 & h^2\,\frac{1+m}{2} \\
 \relname{cHalf}{half-siblings}      & 2 & h^2\,\frac{1+2m+rm}{4} \\
 \relname{cStep}{step-siblings}      & 2 & h^2\,m\,\left(\frac{1+r}{2}\right)^{2} \\
 \relname{cAdopt}{adoptive siblings} & -- & 0 \\
 \relname{cCous}{1st cousins}        & 3 & h^2\,\left(\frac{1+m}{2}\right)^{3} \\
-\relname{cCoc}{co-cousins}          & 4 & h^2\,m\,\left(\frac{1+m}{2}\right)^{4} \\
+\relname{cCoc}{co-cousins}          & 2+2 & h^2\,m\,\left(\frac{1+m}{2}\right)^{4} \\
 \bottomrule
 \end{tabular}\par}
 
 \vspace{0.6em}
 {\smallsize\raggedright
-$h^2$: heritability; $m$, $r$: genetic and phenotypic correlation between mates, with $m = h^2 r$ (assortment on the
-phenotype, at equilibrium). $n$ as defined by Eftedal et al.; for relatives-in-law, the summed distance to the
-connecting mates. Half-siblings: $h^2\left(\frac{1+m}{2}\right)^{2}\frac{1+2m+rm}{(1+m)^2}$ (Nagylaki). Step-siblings: corrected; Eftedal et al.\ use
-$h^2 m\big(\frac{1+m}{2}\big)^2$. Adoptive siblings share no genes, so the additive model predicts 0.\par}
+$h^2$: heritability; $m$: genetic correlation between mates; $r$: phenotypic correlation between mates.\par}
 }
 
 % ============================== CONTACT ==============================
