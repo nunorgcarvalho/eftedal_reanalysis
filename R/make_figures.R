@@ -362,7 +362,7 @@ if (has("models", "core_predictions.csv")) {
   if ("part_A0" %in% names(cpp)) {
     cf <- rd("models", "core_fits.csv")
     for (wt in c("hybrid_block")) {   # Marginal Type only (user request)
-      for (mod in c("A", "A+GxG", "A+F", "A+GxG+F", "A>GxG+F")) {
+      for (mod in CORE_ORDER) {
         ttl <- paste0(show_model(mod), " (", WEIGHT_LABELS[[wt]], ")")
         sub <- fmt_par(cf %>% filter(model == !!mod, weights == !!wt), c("V_A", "V_A0", "V_GxG", "V_family", "r_f", "m", "r"))
         save_fig(plot_condensed_components(cpp %>% filter(model == !!mod, weights == !!wt), title = ttl) +
