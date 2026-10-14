@@ -21,12 +21,12 @@
   male/.default=white, female/.default=white,
   line/.style={ped},
   adopted/.style={ped, dash pattern=on 4pt off 3pt},
-  rel/.style={line width=3.2pt, rounded corners=6pt, line cap=round},
-  rellab/.style={font=\small\bfseries, fill=white, inner sep=1.5pt},
+  rel/.style={line width=2.6pt, rounded corners=5pt, line cap=round},
+  rellab/.style={font=\footnotesize\bfseries, fill=white, inner sep=1pt},
 }
 % connector from x1 to x2 at depth d below the leaf row (y = base), label in the middle
 % \connect{colour}{x1}{x2}{depth}{label}{label position: on | below}
 \newcommand{\connect}[6]{%
   \draw[rel, #1] (#2,\base) -- (#2,\base-#4) -- (#3,\base-#4) -- (#3,\base);
-  \ifx#6b\node[rellab, text=#1, below=1mm] at ($(#2,\base-#4)!0.5!(#3,\base-#4)$) {#5};%
+  \ifx#6b\node[rellab, text=#1, below=0.5mm] at ($(#2,\base-#4)!0.5!(#3,\base-#4)$) {#5};%
   \else\node[rellab, text=#1] at ($(#2,\base-#4)!0.5!(#3,\base-#4)$) {#5};\fi}

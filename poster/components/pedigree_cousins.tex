@@ -1,36 +1,36 @@
 % 1st cousins and co-cousins: G is a 1st cousin of both F and H; F and H are co-cousins
 % (F's uncle married H's aunt: no common ancestor, but a shared cousin, G).
-\documentclass[tikz, border=4mm]{standalone}
+\documentclass[tikz, border=2mm]{standalone}
 \input{style/pedstyle}
 \begin{document}
 \begin{tikzpicture}[x=1cm, y=1cm]
-\def\gA{0}\def\gB{-2.6}\def\gC{-5.2}\def\base{\gC-0.42}
+\def\gA{0}\def\gB{-1.9}\def\gC{-3.8}\def\bar{0.95}\def\base{\gC-0.42}
 % grandparents of two unrelated families
-\node[male]   (g1m) at (4,\gA) {};  \node[female] (g1f) at (6,\gA) {};
-\node[male]   (g2m) at (9,\gA) {};  \node[female] (g2f) at (11,\gA) {};
+\node[male]   (g1m) at (2,\gA)   {};  \node[female] (g1f) at (4,\gA)   {};
+\node[male]   (g2m) at (6.5,\gA) {};  \node[female] (g2f) at (8.5,\gA) {};
 \draw[line] (g1m) -- (g1f);  \draw[line] (g2m) -- (g2f);
 % parents: sibling pairs in each family; the families joined by one marriage
-\node[male]   (o1) at (1,\gB)  {};   % in-law
-\node[female] (s1) at (3,\gB)  {};   % family 1, daughter
-\node[male]   (s2) at (7,\gB)  {};   % family 1, son
-\node[female] (t1) at (9,\gB)  {};   % family 2, daughter
-\node[male]   (t2) at (13,\gB) {};   % family 2, son
-\node[female] (o2) at (15,\gB) {};   % in-law
-\draw[line] ($(g1m)!0.5!(g1f)$) -- (5,\gB+1.3);  \draw[line] (3,\gB+1.3) -- (7,\gB+1.3);
-\draw[line] (s1.north) -- (3,\gB+1.3);  \draw[line] (s2.north) -- (7,\gB+1.3);
-\draw[line] ($(g2m)!0.5!(g2f)$) -- (10,\gB+1.3);  \draw[line] (9,\gB+1.3) -- (13,\gB+1.3);
-\draw[line] (t1.north) -- (9,\gB+1.3);  \draw[line] (t2.north) -- (13,\gB+1.3);
+\node[male]   (o1) at (0,\gB)    {};   % in-law
+\node[female] (s1) at (1.5,\gB)  {};   % family 1, daughter
+\node[male]   (s2) at (4.5,\gB)  {};   % family 1, son
+\node[female] (t1) at (6,\gB)    {};   % family 2, daughter
+\node[male]   (t2) at (9,\gB)    {};   % family 2, son
+\node[female] (o2) at (10.5,\gB) {};   % in-law
+\draw[line] ($(g1m)!0.5!(g1f)$) -- (3,\gB+\bar);   \draw[line] (1.5,\gB+\bar) -- (4.5,\gB+\bar);
+\draw[line] (s1.north) -- (1.5,\gB+\bar);  \draw[line] (s2.north) -- (4.5,\gB+\bar);
+\draw[line] ($(g2m)!0.5!(g2f)$) -- (7.5,\gB+\bar); \draw[line] (6,\gB+\bar) -- (9,\gB+\bar);
+\draw[line] (t1.north) -- (6,\gB+\bar);    \draw[line] (t2.north) -- (9,\gB+\bar);
 \draw[line] (o1) -- (s1);  \draw[line] (s2) -- (t1);  \draw[line] (t2) -- (o2);
 % leaves
-\node[female=leaf] (f) at (2,\gC)  {F};
-\node[male=leaf]   (g) at (8,\gC)  {G};
-\node[female=leaf] (h) at (14,\gC) {H};
+\node[female=leaf] (f) at (0.75,\gC) {F};
+\node[male=leaf]   (g) at (5.25,\gC) {G};
+\node[female=leaf] (h) at (9.75,\gC) {H};
 \draw[line] ($(o1)!0.5!(s1)$) -- (f.north);
 \draw[line] ($(s2)!0.5!(t1)$) -- (g.north);
 \draw[line] ($(t2)!0.5!(o2)$) -- (h.north);
 % relationships
-\connect{cCous}{7.85}{2.15}{0.6}{1st cousins}{o}
-\connect{cCous}{8.15}{13.85}{0.6}{1st cousins}{o}
-\connect{cCoc}{1.85}{14.15}{1.35}{co-cousins}{o}
+\connect{cCous}{5.1}{0.9}{0.42}{1st cousins}{o}
+\connect{cCous}{5.4}{9.6}{0.42}{1st cousins}{o}
+\connect{cCoc}{0.6}{9.9}{0.95}{co-cousins}{o}
 \end{tikzpicture}
 \end{document}
