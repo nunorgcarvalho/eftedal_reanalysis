@@ -22,3 +22,13 @@ __pycache__/
 # OS / editor
 .DS_Store
 *.swp
+
+# Poster: institutional logos and LaTeX build products
+poster/logos/
+poster/*.aux
+poster/*.log
+poster/*.out
+poster/*.fls
+poster/*.fdb_latexmk
+poster/*.synctex.gz
+poster/*.pdf

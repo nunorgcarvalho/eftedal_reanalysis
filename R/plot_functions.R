@@ -95,8 +95,12 @@ plot_fits <- function(obs, preds, colors = NULL, R2 = NULL, legend = "auto") {
 }
 
 save_fig <- function(gg, name, width = 3000, height = 1600) {
+  # PNG for notebooks; vector PDF (cairo, for unicode glyphs) for the poster
   dir.create(FIGURES, showWarnings = FALSE, recursive = TRUE)
   ggsave(file.path(FIGURES, paste0(name, ".png")), gg, width = width, height = height,
          units = "px", dpi = 300)
+  ggsave(file.path(FIGURES, paste0(name, ".pdf")), gg, width = width / 300, height = height / 300,
+         units = "in", device = cairo_pdf)
   invisible(gg)
 }
+

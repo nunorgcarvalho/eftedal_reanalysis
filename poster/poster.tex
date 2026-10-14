@@ -1,0 +1,170 @@
+% ASHG 2026 poster. Build: poster/build.sh  (figures come from results/figures/main/*.pdf,
+% made by R/make_figures.R; logos in poster/logos/, untracked).
+% Size: ASHG 2026 recommended poster 72 in wide x 36 in tall (board 96 x 48 in, landscape).
+\documentclass{article}
+\usepackage[paperwidth=72in, paperheight=36in, margin=0in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}                      % scalable math fonts (CM stops at 25pt)
+\usepackage[default]{sourcesans}          % sans-serif body font (scalable)
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, fitting}
+\tcbuselibrary{poster}
+\usepackage{enumitem}
+\usepackage{qrcode}
+\usepackage{fontawesome5}
+
+\graphicspath{{../results/figures/main/}{logos/}}
+
+% ---- colours (figure palette: ours = teal, Eftedal = salmon) ------------------------------
+\definecolor{navy}{HTML}{1F3A5F}
+\definecolor{teal}{HTML}{00A1B0}
+\definecolor{salmon}{HTML}{E8685F}
+\definecolor{paper}{HTML}{F6F7F9}
+\definecolor{ink}{HTML}{1F2328}
+
+% ---- type sizes (pt): body ~36pt is readable from ~2 m ------------------------------------
+\newcommand{\bodysize}{\fontsize{34}{43}\selectfont}
+\newcommand{\smallsize}{\fontsize{26}{32}\selectfont}
+\newcommand{\boxtitlesize}{\fontsize{48}{56}\selectfont}
+\newcommand{\titlesize}{\fontsize{100}{116}\selectfont}
+\newcommand{\authorsize}{\fontsize{50}{60}\selectfont}
+
+\setlist[itemize]{leftmargin=1.1em, itemsep=0.35em, topsep=0.3em, label={\color{teal}\textbullet}}
+\newcommand{\takeaway}[1]{\par\smallskip{\color{navy}\bfseries #1}\par}
+\newcommand{\eftedal}{{\color{salmon}\bfseries Eftedal}}
+\newcommand{\ours}{{\color{teal}\bfseries ours}}
+
+\pagestyle{empty}
+\color{ink}
+
+\begin{document}
+\begin{tcbposter}[
+  coverage = {spread, interior style={fill=paper}},
+  poster = {columns=4, rows=36, spacing=1.2cm},
+  boxes = {enhanced, arc=6mm, boxrule=0pt, colback=white, colframe=navy,
+           fonttitle=\boxtitlesize\bfseries, coltitle=white,
+           left=12mm, right=12mm, top=10mm, bottom=10mm, toptitle=5mm, bottomtitle=5mm,
+           fontupper=\bodysize, before upper={\parskip=0.5em}}
+]
+
+% ============================== HEADER ==============================
+\posterbox[blankest, interior engine=empty, colback=navy, colupper=white,
+           underlay={\fill[navy] (frame.south west) rectangle (frame.north east);},
+           halign=center, valign=center]
+  {name=header, column=1, span=4, row=1, rowspan=6}{%
+  \begin{minipage}[c]{0.13\linewidth}\centering
+    \colorbox{white}{\includegraphics[height=2.2in]{hms}}
+  \end{minipage}\hfill
+  \begin{minipage}[c]{0.7\linewidth}\centering
+    % TODO: final title
+    {\titlesize\bfseries Estimation choices, not in-laws, drive low heritability estimates\\[0.15em]
+     from family resemblance in Norwegian school test scores\par}
+    \vspace{0.5em}
+    {\authorsize Nuno R.\,G. Carvalho\textsuperscript{1,2} \quad and \quad Alexander ``Sasha'' Gusev\textsuperscript{1,2}\par}
+    \vspace{0.2em}
+    {\fontsize{36}{44}\selectfont \textsuperscript{1}Harvard Medical School \quad \textsuperscript{2}Dana-Farber Cancer Institute\par}
+  \end{minipage}\hfill
+  \begin{minipage}[c]{0.13\linewidth}\centering
+    \colorbox{white}{\includegraphics[height=2.2in]{dfci}}
+  \end{minipage}%
+}
+
+% ============================== COLUMN 1 ==============================
+\posterbox[adjusted title=Background]{name=bg, column=1, below=header}{
+\begin{itemize}
+  \item \textbf{Eftedal et al.\ (2025, \textit{PNAS})}: test-score correlations for \textbf{82 categories} of
+        relatives among $\sim$1M Norwegian schoolchildren: twins $\rightarrow$ 2nd cousins, in-laws, adoptees
+  \item Fisherian model (additive genetics + assortative mating):
+        $h^2 = 0.80$ in biological relatives, but \textbf{0.50} once in-laws are added
+  \item Their conclusion: in-laws ``break'' the genetic model
+  \item \textbf{We re-fit their public correlations} with corrected estimation and richer models
+\end{itemize}
+}
+
+\posterbox[adjusted title=Model]{name=model, column=1, below=bg}{
+Predicted correlation of relative category $k$:
+\[
+  \rho_k = V_A\,K_k + V_{\mathrm{GxG}}\,K_k^2 + V_{\mathrm{fam}}\, r_f^{\,f_k} \;\big[+\, V_{\mathrm{house}}\,h_k\big]
+\]
+\vspace{-0.8em}
+\begin{itemize}
+  \item $K_k$: additive genetic sharing under assortative mating (Fisher; Nagylaki), with \mbox{$m = h^2 r$}
+  \item $V_{\mathrm{GxG}}$: pairwise gene--gene interaction
+  \item $V_{\mathrm{fam}}\, r_f^{f}$: family environment decaying with family distance $f$
+  \item Weighted least squares on all 82 correlations
+\end{itemize}
+}
+
+\posterbox[adjusted title=What we fixed]{name=fixes, column=1, between=model and bottom}{
+\begin{itemize}
+  \item \textbf{Log-scale weights}: $\ln\rho$ was weighted by $1/SE^2$, but
+        $\mathrm{Var}(\ln\hat\rho)\approx SE^2/\rho^2$ $\Rightarrow$ distant relatives over-weighted
+        $\sim 1/\rho^2$ ($\times$200 for 2nd cousins). \textbf{We fit on the linear scale.}
+  \item \textbf{$m$ and $r$} were estimated independently; the model implies $m = h^2 r$. \textbf{Coupled.}
+  \item \textbf{Step-sibling covariance}: $m(\tfrac{1+m}{2})^2 \rightarrow m(\tfrac{1+r}{2})^2$
+  \item \textbf{Weights}: inverse variance, and block-balanced (every kind of relative counts equally)
+  \item \textbf{Uncertainty}: bootstrap + leave-one-block-out jackknife; models compared by
+        \textbf{block cross-validation}
+\end{itemize}
+}
+
+% ============================== COLUMN 2 ==============================
+\posterbox[adjusted title=In-laws barely move $h^2$ once estimation is fixed]{name=r1, column=2, below=header}{
+\centering\includegraphics[width=\linewidth]{02_bio_vs_inlaw_contrast}
+\takeaway{Bio-only vs.\ bio + in-law: \eftedal{} 0.80 $\rightarrow$ 0.50; \ours{} 0.84 $\rightarrow$ 0.79.
+Same pattern in all 13 test phenotypes.}
+}
+
+\posterbox[adjusted title=Eftedal et al.'s fit vs.\ ours]{name=r2, column=2, between=r1 and bottom}{
+\centering\includegraphics[width=\linewidth]{01_eftedal_vs_ours}
+\takeaway{Correct weighting stops distant relatives from dragging $h^2$ down; close relatives are fit
+much better.}
+}
+
+% ============================== COLUMN 3 ==============================
+\posterbox[adjusted title=Which components predict unseen relatives?]{name=r3, column=3, below=header}{
+\centering\includegraphics[width=\linewidth]{03_cv_model_comparison}
+\takeaway{Leave one block of relatives out, predict it: a family environment decaying with
+distance (F) generalises; sibling-only household terms (H) do not.}
+}
+
+\posterbox[adjusted title=Best-scoring model: additive + GxG + family]{name=r4, column=3, between=r3 and bottom}{
+\centering\includegraphics[width=\linewidth]{04_fit_A_vs_AGxGF_hybrid_block}
+\takeaway{Adding GxG and a decaying family environment captures twins, adoptees and in-laws.}
+}
+
+% ============================== COLUMN 4 ==============================
+\posterbox[adjusted title=The total is well determined; the split is not]{name=r5, column=4, below=header}{
+\centering\includegraphics[width=\linewidth]{09_profile_VA_loss}
+\takeaway{$V_A$ trades off against $V_{\mathrm{GxG}}$ and $V_{\mathrm{fam}}$ along a shallow valley. Fitting $V_A$ first
+and adding GxG on top (sequential) is rejected by the data.}
+}
+
+\posterbox[adjusted title=Conclusions]{name=concl, column=4, below=r5}{
+\begin{itemize}
+  \item Eftedal et al.'s low $h^2$ comes mostly from \textbf{how the model was fit}, not from in-laws
+  \item With corrected fitting, genetics remains a large source of family resemblance
+  \item A family-wide environment is supported out of sample
+  \item Additive vs.\ GxG vs.\ family environment \textbf{cannot be cleanly separated} with relative correlations alone
+\end{itemize}
+}
+
+\posterbox[adjusted title=References \& contact, colframe=navy!70]{name=refs, column=4, between=concl and bottom}{
+\smallsize
+\begin{minipage}[t]{0.72\linewidth}
+Eftedal et al.\ (2025) \textit{PNAS} 122:e2419627122 \textbullet{}
+Clark (2023) \textit{PNAS} \textbullet{} Collado et al.\ (2023) \textit{Rev.\ Econ.\ Stud.} \textbullet{}
+Fisher (1918) \textbullet{} Nagylaki (1978)\par\medskip
+\faTwitter\ @nunorgcarvalho \quad \faEnvelope\ nuno\_ramosgrangeiacarvalho@dfci.harvard.edu
+\end{minipage}\hfill
+\begin{minipage}[t]{0.24\linewidth}\raggedleft
+  % TODO: point to the public repository / ePoster once available
+  \qrcode[height=2.6in]{https://github.com/nunorgcarvalho/eftedal_reanalysis}
+\end{minipage}
+}
+
+\end{tcbposter}
+\end{document}
