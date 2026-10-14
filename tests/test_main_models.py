@@ -140,3 +140,19 @@ def test_sequential_bootstrap_redoes_stage_one(df):
     seq = fit(df, main_spec("A+GxG", "invvar").with_(sequential_base=("A",)), n_starts=2)
     reps = parametric_bootstrap(df, seq, n_boot=5, seed=1, n_starts=1)
     assert reps["V_A"].std() > 0                     # V_A re-estimated in every replicate
+
+
+def test_a2_gxg_kernel(df):
+    from eftedal import components as C
+    kd = C.KernelData(df)
+    _, k_am = C.genetic_kernels(kd, 0.3, 0.4, stepsib="corrected")
+    _, k_a2 = C.genetic_kernels(kd, 0.3, 0.4, stepsib="corrected", gxg="a2")
+    _, k_a2b = C.genetic_kernels(kd, 0.0, 0.0, stepsib="corrected", gxg="a2")
+    np.testing.assert_allclose(k_a2, k_a2b)                    # independent of m, r
+    get = lambda k, rel: k[df.index[df.rel == rel][0]]
+    assert get(k_a2, "mz") == 1 and get(k_a2, "sibs") == pytest.approx(0.25)
+    assert get(k_a2, "half sibs") == pytest.approx(0.25 ** 2)
+    assert get(k_a2, "1st cousins") == pytest.approx(0.25 ** 3)
+    assert get(k_a2, "uz") == pytest.approx(0.5 * 1 + 0.5 * 0.25)
+    assert get(k_a2, "step sibs") == 0 and get(k_a2, "cocousins") == 0
+    assert get(k_am, "step sibs") > 0                           # the AM version is not

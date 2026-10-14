@@ -110,6 +110,8 @@ class FitSpec:
                  'legacy_raw' exactly the 2025 rule, degenerate minimum included (only for
                               reproducing 2025 fits with a local search from the 2025 start)
     adoptive   : 'zero' | 'legacy_n99' genetic sharing of adoptive pairs (`components`)
+    gxg_kernel : 'am2' (square of the assortative-mating kernel) | 'a2' (square of the
+                 random-mating kernel) for the GxG component (`components.genetic_kernels`)
     cocousin_family_degree : override f for biological co-cousins (None = annotation table)
     drop_duplicate : drop the duplicated 2nd-cousin row (see data/README.md)
     exclude_types  : relationship types (`rel`) removed from the cohort (leave-one-out)
@@ -134,6 +136,7 @@ class FitSpec:
     mz_frac: float = 0.5
     log_zero: str = "structural"
     adoptive: str = "zero"
+    gxg_kernel: str = "am2"
     cocousin_family_degree: float | None = None
     drop_duplicate: bool = False
     exclude_types: tuple[str, ...] = ()
@@ -164,7 +167,7 @@ class FitSpec:
 
     def as_dict(self) -> dict:
         d = {k: getattr(self, k) for k in (
-            "cohort", "scale", "weights", "mr", "stepsib", "uz", "mz_frac", "log_zero", "adoptive",
+            "cohort", "scale", "weights", "mr", "stepsib", "uz", "mz_frac", "log_zero", "adoptive", "gxg_kernel",
             "cocousin_family_degree", "drop_duplicate", "max_total_variance")}
         d["exclude_types"] = ";".join(self.exclude_types)
         d["components"] = "+".join(self.components)
@@ -329,7 +332,7 @@ class Model:
         if any(c in C.GENETIC_COMPONENTS for c in spec.components):
             K, K2 = C.genetic_kernels(self.kd, p["m"], p["r"], stepsib=spec.stepsib,
                                       uz=spec.uz, mz_frac=spec.mz_frac,
-                                      adoptive=spec.adoptive)
+                                      adoptive=spec.adoptive, gxg=spec.gxg_kernel)
             if "A" in spec.components:
                 pred += p["V_A"] * K
             if "GxG" in spec.components:
@@ -350,7 +353,7 @@ class Model:
         if any(c in C.GENETIC_COMPONENTS for c in spec.components):
             K, K2 = C.genetic_kernels(self.kd, p["m"], p["r"], stepsib=spec.stepsib,
                                       uz=spec.uz, mz_frac=spec.mz_frac,
-                                      adoptive=spec.adoptive)
+                                      adoptive=spec.adoptive, gxg=spec.gxg_kernel)
             if "A" in spec.components:
                 out["A"] = p["V_A"] * K
             if "GxG" in spec.components:

@@ -1,6 +1,6 @@
 """Main section 3 (core models) and the joint model set (supplement): fits, block
 cross-validation and block-jackknife intervals, under both weightings. Writes results/models/
-with one file group per model set ({set} = core | joint):
+with one file group per model set ({set} = core | joint | core_a2):
 
 {set}_fits.csv          one row per model x weighting: parameters, V_sum, loss, R2_lin, chi2/df
 {set}_predictions.csv   predictions and per-component contributions for all 82 categories
@@ -23,15 +23,19 @@ from eftedal import data as D
 from eftedal.model import CORE_MODELS, JOINT_MODELS
 from eftedal.presets import MAIN_WEIGHTINGS, main_spec
 
-SETS = {"core": list(CORE_MODELS), "joint": list(JOINT_MODELS)}
+# set name -> (models, FitSpec overrides)
+SETS = {"core": (list(CORE_MODELS), {}),
+        "joint": (list(JOINT_MODELS), {}),
+        # supplement: GxG kernel = square of the random-mating kernel ("a2")
+        "core_a2": (list(CORE_MODELS), {"gxg_kernel": "a2"})}
 PARAMS = ["V_A", "V_GxG", "V_house", "V_family", "V_sum", "pi", "r_f", "m", "r"]
 
 
-def run_set(df, name, models, out, n_starts):
+def run_set(df, name, models, overrides, out, n_starts):
     fits, preds, jks, params, held, scores, summ = [], [], [], [], [], [], []
     for w in MAIN_WEIGHTINGS:
         for m in models:
-            full, fp, ho, sc = cv.cross_validate(df, main_spec(m, w), n_starts=n_starts)
+            full, fp, ho, sc = cv.cross_validate(df, main_spec(m, w, **overrides), n_starts=n_starts)
             tag = dict(model=m, weights=w)
             fits.append({**tag, **full.summary()})
             preds.append(full.predictions().assign(**tag))
@@ -61,7 +65,7 @@ def main(out: Path, n_starts: int, sets):
     out.mkdir(parents=True, exist_ok=True)
     df = D.load("MRE8")
     for name in sets:
-        run_set(df, name, SETS[name], out, n_starts)
+        run_set(df, name, *SETS[name], out, n_starts)
 
 
 if __name__ == "__main__":

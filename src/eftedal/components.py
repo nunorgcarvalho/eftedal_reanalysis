@@ -43,8 +43,13 @@ class KernelData:
 
 def genetic_kernels(data, m: float, r: float, *, stepsib: str = "eftedal",
                     uz: str = "mixture", mz_frac: float = 0.5,
-                    adoptive: str = "zero") -> tuple[np.ndarray, np.ndarray]:
+                    adoptive: str = "zero", gxg: str = "am2") -> tuple[np.ndarray, np.ndarray]:
     """Return (K, K2): additive-genetic and GxG sharing coefficients per row.
+
+    gxg: 'am2' : K2 = K^2, the square of the assortative-mating kernel (incl. the half-sib
+                 multiplier and the in-law kernels)
+         'a2'  : K2 = a^2, the square of the random-mating kernel a = (1/2)^n: half relatives
+                 as full ones of the same degree, in-laws and adoptive pairs 0; independent of m, r
 
     `data` is the annotated table or a `KernelData` built from it.
 
@@ -103,6 +108,14 @@ def genetic_kernels(data, m: float, r: float, *, stepsib: str = "eftedal",
         K2[M["none"]] = K[M["none"]] ** 2
     elif adoptive != "zero":
         raise ValueError(f"unknown adoptive mode {adoptive!r}")
+
+    if gxg == "a2":
+        K2 = np.zeros(kd.size)
+        K2[M["full"]] = 0.25 ** N["full"]
+        K2[M["half"]] = 0.25 ** N["half"]
+        K2[M["full_uz"]] = mz_frac * 0.25 ** (N["full_uz"] - 0.5) + (1 - mz_frac) * 0.25 ** (N["full_uz"] + 0.5)
+    elif gxg != "am2":
+        raise ValueError(f"unknown gxg kernel {gxg!r}")
 
     return K, K2
 
