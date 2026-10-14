@@ -62,11 +62,12 @@
            underlay={\fill[navy] (frame.south west) rectangle (frame.north east);},
            halign=center, valign=center]
   {name=header, column=1, span=13, row=1, rowspan=6}{%
-  \begin{minipage}[c]{0.15\linewidth}\raggedright
+  \hspace*{0.7in}%
+  \begin{minipage}[c]{0.13\linewidth}\raggedright
     \includegraphics[height=1.55in]{hms_dark}\\[0.45in]
     \includegraphics[height=1.55in]{dfci_dark}
   \end{minipage}\hfill
-  \begin{minipage}[c]{0.62\linewidth}\centering
+  \begin{minipage}[c]{0.58\linewidth}\centering
     {\titlesize\bfseries Relatives\textquoteright{} similarity in test score performance is explained by\\[0.15em]
      a wide range of genetic and environmental parameters\par}
     \vspace{0.5em}
@@ -74,20 +75,20 @@
     \vspace{0.2em}
     {\fontsize{36}{44}\selectfont \textsuperscript{1}Harvard Medical School \quad \textsuperscript{2}Dana-Farber Cancer Institute\par}
   \end{minipage}\hfill
-  \begin{minipage}[c]{0.21\linewidth}\raggedright
-    \begin{minipage}[c]{0.62\linewidth}\RaggedRight\fontsize{21}{26}\selectfont
-      Eftedal NH, Eilertsen EM, Sunde HF, Kleppest\o{} TH, Ystrom E, Czajkowski NO (2025).
+  \begin{minipage}[c]{0.235\linewidth}\raggedright
+    \begin{minipage}[c]{0.66\linewidth}\RaggedRight\fontsize{25}{30}\selectfont
+      \textbf{Based on:} Eftedal NH, Eilertsen EM, Sunde HF, Kleppest\o{} TH, Ystrom E, Czajkowski NO (2025).
       Beyond additive genetic effects: Explaining family resemblance in school performance across
       millions of pairs of Norwegian relatives. \textit{PNAS} 122(25):e2419627122.\par\medskip
       \faTwitter\ @nunorgcarvalho\par
       \faEnvelope\ nuno\_ramosgrangeiacarvalho@\allowbreak g.harvard.edu\par
-    \end{minipage}\hfill
-    \begin{minipage}[c]{0.34\linewidth}\centering
+    \end{minipage}\hspace{0.35in}%
+    \begin{minipage}[c]{0.28\linewidth}\centering
       % TODO: point to the public repository / ePoster once available
-      \colorbox{white}{\color{black}\qrcode[height=1.9in]{https://github.com/nunorgcarvalho/eftedal_reanalysis}}\\[0.2em]
-      {\fontsize{21}{26}\selectfont GitHub Repository}
+      \colorbox{white}{\color{black}\qrcode[height=2.4in]{https://github.com/nunorgcarvalho/eftedal_reanalysis}}\\[0.2em]
+      {\fontsize{25}{30}\selectfont GitHub Repository}
     \end{minipage}
-  \end{minipage}%
+  \end{minipage}\hspace*{0.3in}%
 }
 
 % ============================== helpers ==============================
@@ -115,11 +116,11 @@
 \centering
 \includegraphics[scale=2.6]{pedigree_sibs}\par\vspace{0.6em}
 \includegraphics[scale=2.6]{pedigree_cousins}\par\vspace{0.8em}
-{\tablesize\renewcommand{\arraystretch}{1.95}
-\begin{tabular}{@{}l c c >{$\displaystyle}l<{$}@{}}
+{\fontsize{26}{32}\selectfont\renewcommand{\arraystretch}{1.95}\setlength{\tabcolsep}{0.45em}%
+\begin{tabular}[t]{@{}l c c >{$\displaystyle}l<{$}@{}}
 \toprule
-\textbf{relatives} & \textbf{genetic} & \textbf{family} & \text{\textbf{correlation implied}} \\[-0.9em]
-                   & \textbf{degree $n$} & \textbf{degree $f$} & \text{\textbf{by Additive model}} \\
+\textbf{relatives} & $\boldsymbol{n}$ & $\boldsymbol{f}$ & \text{\textbf{correlation implied}} \\[-0.9em]
+                   &                  &                  & \text{\textbf{by Additive model}} \\
 \midrule
 \relname{cFull}{full siblings}      & 1   & 0   & V_A\,\frac{1+m}{2} \\
 \relname{cHalf}{half-siblings}      & 2   & 0.5 & V_A\,\frac{1+2m+rm}{4} \\
@@ -128,11 +129,19 @@
 \relname{cCous}{1st cousins}        & 3   & 1   & V_A\,\left(\frac{1+m}{2}\right)^{3} \\
 \relname{cCoc}{co-cousins}          & 2+2 & 2   & V_A\,m\,\left(\frac{1+m}{2}\right)^{4} \\
 \bottomrule
+\end{tabular}\hfill
+\renewcommand{\arraystretch}{1.5}%
+\begin{tabular}[t]{@{}c >{\raggedright\arraybackslash}p{8.6cm}@{}}
+\toprule
+\textbf{symbol} & \textbf{meaning} \\
+\midrule
+$V_A$ & additive genetic variance \\
+$m$   & mates' genetic correlation \\
+$r$   & mates' phenotypic correlation \\
+$n$   & genetic degree \\
+$f$   & family degree (family-environment models only) \\
+\bottomrule
 \end{tabular}\par}
-\vspace{0.6em}
-{\smallsize\raggedright
-$V_A$: additive genetic variance; $m$: genetic correlation between mates;
-$r$: phenotypic correlation between mates. Family degree ($f$) is only used for family environment models.\par}
 }
 
 % ============================== COLUMNS 2-3 ==============================
@@ -167,16 +176,9 @@ weights & $1/SE^2$: common types (cousins) dominate & equal total weight per typ
 
 \vspace{1.2em}
 \subhead{Additive model: Eftedal et al.\ vs.\ revised}
-\begin{minipage}[t]{0.495\linewidth}\centering
-  \includegraphics[width=\linewidth]{poster/p1_condensedfit_additive}\par
-  {\smallsize Points: pooled correlation of each relative type (95\% CI); bars: model fits.
-   Right of the dashed line: in-laws and adoptees.\par}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.495\linewidth}\centering
-  \includegraphics[width=\linewidth]{poster/p2_additive_params}\par
-  {\smallsize Circle: estimate; box: Marginal Pair CI (visible only where wider than the circle);
-   line: Marginal Type CI.\par}
-\end{minipage}
+\includegraphics[width=\linewidth]{poster/p4_fit_and_params}\par
+{\smallsize Main: points, pooled correlation of each relative type (95\% CI); bars, model fits.
+ Inset: parameter estimates (circle, with Marginal Pair CI as a box behind it) and Marginal Type CIs (line).\par}
 }
 
 % ============================== COLUMN 4 ==============================

@@ -47,7 +47,7 @@ if (has("robustness", "additive_predictions.csv") && has("models", "core_predict
   cols <- setNames(unname(EST_COLS), labs_m)
   g <- ggplot() +
     geom_hline(yintercept = 0) +
-    bio_split(y = 0.55, size = BASE * 0.24) +
+    bio_split(y = 0.228, size = BASE * 0.2) +
     geom_path(data = path, aes(x = x, y = pred, color = model, group = model), linewidth = 0.5, alpha = 0.8) +
     geom_segment(data = pp, aes(x = x - 0.38, xend = x + 0.38, y = pred, yend = pred, color = model),
                  linewidth = 2.2, alpha = 0.85) +
@@ -66,6 +66,7 @@ if (has("robustness", "additive_predictions.csv") && has("models", "core_predict
           legend.justification = c("right", "top"), legend.key.width = unit(1.6, "lines"),
           legend.background = element_rect(fill = "white", color = "grey40"))
   save_poster(g, "p1_condensedfit_additive", width = 8.6, height = 9.6)
+  g_fit <- g
 }
 
 # ---- P2. additive-model parameters by estimator x cohort -------------------------------------
@@ -79,7 +80,7 @@ if (has("poster", "additive_by_cohort.csv")) {
                   "Revised (Marginal Pair)" = "Revised\n(Marginal Pair)",
                   "Revised (Marginal Type)" = "Revised\n(Marginal Type)")
   COHORTS <- c("bio + in-laws" = "all relative types", "bio only" = "biological relatives only")
-  DX <- 0.13   # half the gap between the two cohorts of an estimator
+  DX <- 0.11   # half the gap between the two cohorts of an estimator
   d <- rd("poster", "additive_by_cohort.csv") %>% filter(param %in% names(PARAM_LEVELS)) %>%
     mutate(est = factor(label, EST_LEVELS), param = factor(PARAM_LEVELS[param], PARAM_LEVELS),
            cohort = factor(COHORTS[cohort_name], COHORTS),
@@ -88,7 +89,10 @@ if (has("poster", "additive_by_cohort.csv")) {
                         EST_COLS[as.character(est)]))
   mt <- d %>% filter(method == "block jackknife") %>%
     mutate(clip_lo = lo < 0, clip_hi = hi > 1, lo = pmax(lo, 0), hi = pmin(hi, 1))
-  mp <- d %>% filter(method == "parametric bootstrap")
+  mp <- d %>% filter(method == "parametric bootstrap") %>%
+    mutate(tcol = ifelse(cohort == COHORTS[2], sapply(EST_COLS[as.character(est)], lighten, f = 0.25),
+                         EST_COLS[as.character(est)]),
+           tx = ifelse(cohort == COHORTS[1], x - 0.06, x + 0.06), hj = ifelse(cohort == COHORTS[1], 1, 0))
   arrow_end <- arrow(length = unit(0.09, "in"), type = "closed")
   key <- tibble(cohort = factor(COHORTS, COHORTS), col = c("grey35", "grey75"))
   ekey <- tibble(est = factor(EST_LABELS, EST_LABELS))
@@ -101,26 +105,41 @@ if (has("poster", "additive_by_cohort.csv")) {
     geom_rect(data = mp, aes(xmin = x - 0.035, xmax = x + 0.035, ymin = lo, ymax = hi, fill = col),
               color = "grey15", linewidth = 0.3) +
     geom_point(data = mp, aes(x = x, y = estimate, fill = col), shape = 21, size = 3.4, stroke = 0.6, color = "grey15") +
+    geom_text(data = mp, aes(x = tx, y = estimate, label = sprintf("%.2f", estimate), color = tcol, hjust = hj),
+              size = BASE * 0.2, fontface = "bold") +
     # legend for the two shades (grey stand-ins)
-    geom_point(data = key, aes(x = 1, y = -1, shape = cohort, fill = col), size = 4.5) +
+    geom_point(data = key, aes(x = 1, y = 0.5, shape = cohort, fill = col), size = 4.5, alpha = 0) +
     scale_shape_manual(values = c(21, 21), name = NULL,
-                       guide = guide_legend(order = 2, override.aes = list(fill = c("grey35", "grey75"), size = 4.5))) +
+                       guide = guide_legend(order = 2, override.aes = list(fill = c("grey35", "grey75"), size = 4.5, alpha = 1))) +
     # legend for the estimator colours (as in the fit figure)
-    geom_point(data = ekey, aes(x = 1, y = -1, size = est), shape = 22) +
+    geom_point(data = ekey, aes(x = 1, y = 0.5, size = est), shape = 22, alpha = 0) +
     scale_size_manual(values = rep(4.5, 3), name = NULL,
-                      guide = guide_legend(order = 1, override.aes = list(fill = unname(EST_COLS), color = "grey15"))) +
+                      guide = guide_legend(order = 1, override.aes = list(fill = unname(EST_COLS), color = "grey15", alpha = 1))) +
     scale_color_identity() + scale_fill_identity() +
     facet_wrap(~param, nrow = 1, labeller = label_parsed) +
     scale_x_continuous(breaks = NULL, expand = expansion(add = 0.45)) +
-    scale_y_continuous(breaks = seq(0, 1, 0.1), expand = expansion(add = 0.02)) +
-    coord_cartesian(ylim = c(0, 1)) +
+    scale_y_continuous(breaks = seq(0, 1, 0.1), expand = c(0, 0)) +
+    coord_cartesian(ylim = c(0, 1), clip = "off") +
     labs(x = NULL, y = "Estimate") +
     theme_bw(base_size = BASE) +
     theme(panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(),
           strip.text = element_text(size = BASE * 1.1), legend.position = "bottom",
           legend.box = "vertical", legend.spacing.y = unit(0.1, "lines"), legend.margin = margin(0, 0, 0, 0),
+          legend.key.spacing.x = unit(1.2, "lines"),
           panel.spacing.x = unit(0.8, "lines"))
   save_poster(g, "p2_additive_params", width = 8.6, height = 9.6)
+  g_par <- g
+}
+
+# ---- P4. P1 and P2 merged: the parameter panels as an inset over the low-correlation region ----
+# (in-laws and adoptees, right of the divider); the inset's estimator legend replaces P1's legend.
+if (exists("g_fit") && exists("g_par")) {
+  inset <- g_par + theme(plot.background = element_rect(fill = "white", color = "grey40", linewidth = 0.6),
+                         plot.margin = margin(6, 8, 4, 6), axis.title.y = element_text(size = BASE * 0.9))
+  g <- g_fit + theme(legend.position = "none") +
+    annotation_custom(ggplotGrob(inset), xmin = match("1st cousins", CONDENSED_ORDER) - 0.38,
+                      xmax = length(CONDENSED_ORDER) + 0.55, ymin = 0.305, ymax = 0.995)
+  save_poster(g, "p4_fit_and_params", width = 16, height = 9.6)
 }
 
 # ---- P3. core models, Marginal Type only ------------------------------------------------------
