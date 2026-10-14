@@ -28,7 +28,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-from .fit import FitResult, fit, random_mating_VA
+from .fit import FitResult, derived_params, fit
 
 
 def numerical_jacobian(f, x, h=1e-6):
@@ -150,7 +150,7 @@ def parametric_bootstrap(data: pd.DataFrame, res: FitResult, n_boot: int = 500, 
         row = {k: v for k, v in r.params.items()}
         row["c"] = (1 + 2 * r.params["m"] + r.params["r"] * r.params["m"]) / (1 + r.params["m"]) ** 2 \
             if "m" in r.params else np.nan
-        row["V_A0"] = random_mating_VA(r.params)
+        row.update(derived_params(r.params))
         row["rep"] = b
         row["loss"] = r.loss
         reps.append(row)

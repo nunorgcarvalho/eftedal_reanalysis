@@ -10,15 +10,16 @@ corr.csv         correlations between parameters across replicates (identifiabil
 import argparse
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from eftedal import data as D
-from eftedal.fit import fit
+from eftedal.fit import DERIVED, derived_params, fit
 from eftedal.inference import parametric_bootstrap, percentile_table
 from eftedal.model import CORE_MODELS
 from eftedal.presets import MAIN_WEIGHTINGS, main_spec
 
-PARAMS = ["V_A", "V_GxG", "V_house", "V_family", "V_sum", "V_A0", "pi", "r_f", "m", "r"]
+PARAMS = ["V_A", "V_GxG", "V_house", "V_family", "V_sum", "V_A0", "V_fam_sib", "V_fam_ext", "pi", "r_f", "m", "r"]
 
 
 def main(out: Path, n_boot: int, n_starts: int):
@@ -28,14 +29,14 @@ def main(out: Path, n_boot: int, n_starts: int):
     for k, (w, m) in enumerate([(w, m) for w in MAIN_WEIGHTINGS for m in CORE_MODELS]):
         res = fit(df, main_spec(m, w), n_starts=n_starts)
         b = parametric_bootstrap(df, res, n_boot=n_boot, seed=100 + k, n_starts=3)
-        b["V_sum"] = b[[c for c in b if c.startswith("V_") and c != "V_A0"]].sum(axis=1)
+        b["V_sum"] = b[[c for c in b if c.startswith("V_") and c not in DERIVED]].sum(axis=1)
         est = {p: v for p, v in res.params.items() if p in PARAMS}
         est["V_sum"] = res.summary()["V_sum"]
-        est["V_A0"] = res.summary()["V_A0"]
+        est.update({k: v for k, v in derived_params(res.params).items() if not np.isnan(v)})
         tag = dict(model=m, weights=w)
         ints.append(percentile_table(b, est, method="param_boot").assign(**tag))
         reps.append(b.assign(**tag))
-        c = b[[p for p in PARAMS if p in b and p not in ("V_sum", "V_A0") and b[p].std() > 0]].corr()
+        c = b[[p for p in PARAMS if p in b and p != "V_sum" and p not in DERIVED and b[p].std() > 0]].corr()
         c = c.stack().rename("corr").reset_index().rename(columns={"level_0": "p1", "level_1": "p2"})
         corrs.append(c[c.p1 < c.p2].assign(**tag))
         print(w, m, flush=True)

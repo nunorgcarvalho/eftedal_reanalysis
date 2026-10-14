@@ -191,3 +191,22 @@ def test_component_decay_scaled_to_kernel_one(df):
     assert g.total[sib] == pytest.approx((0.5 * 1.25 / 2 + 0.25 / 4) / 0.75)
     e = component_decay(df, FitSpec(components=("family",), **{**MAIN, "mr": "free"}), dict(V_family=1.0, r_f=0.5))
     np.testing.assert_allclose(e.total, 0.5 ** df.family_degree.to_numpy())
+
+
+def test_family_split(df):
+    from eftedal.fit import variance_sum
+    r = fit(df, main_spec("A+GxG+F", "invvar"), n_starts=2)
+    s, p = r.summary(), r.predictions()
+    assert s["V_fam_sib"] + s["V_fam_ext"] == pytest.approx(r.params["V_family"])
+    assert s["V_sum"] == pytest.approx(variance_sum(r.params))   # derived parts not double-counted
+    np.testing.assert_allclose(p.part_fam_sib + p.part_fam_ext, p.comp_family)
+    f = Model(df, main_spec("A+GxG+F")).f
+    np.testing.assert_allclose(p.part_fam_sib[f >= 1], 0)     # only pairs closer than degree 1
+    sib = (p.rel == "sibs").idxmax()
+    assert p.part_fam_sib[sib] == pytest.approx(s["V_fam_sib"])
+    assert p.part_fam_ext[sib] == pytest.approx(s["V_fam_ext"])
+    # r_f = 0: everything sib-specific
+    e = Model(df, main_spec("A+F"))
+    from eftedal.fit import family_split
+    sib0, ext0 = family_split(e, {"V_family": 0.2, "r_f": 0.0})
+    np.testing.assert_allclose(ext0, 0); np.testing.assert_allclose(sib0, 0.2 * (e.f == 0))

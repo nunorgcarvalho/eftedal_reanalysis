@@ -28,7 +28,7 @@ SETS = {"core": (list(CORE_MODELS), {}),
         "joint": (list(JOINT_MODELS), {}),
         # supplement: the earlier GxG kernel, square of the assortative-mating kernel
         "core_am2": (list(CORE_MODELS), {"gxg_kernel": "am2"})}
-PARAMS = ["V_A", "V_GxG", "V_house", "V_family", "V_sum", "V_A0", "pi", "r_f", "m", "r"]
+PARAMS = ["V_A", "V_GxG", "V_house", "V_family", "V_sum", "V_A0", "V_fam_sib", "V_fam_ext", "pi", "r_f", "m", "r"]
 
 
 def run_set(df, name, models, overrides, out, n_starts):
@@ -41,7 +41,8 @@ def run_set(df, name, models, overrides, out, n_starts):
             preds.append(full.predictions().assign(**tag))
             fp = fp.assign(**tag)
             params.append(fp)
-            ps = [p for p in PARAMS if p in full.params or p in ("V_sum", "V_A0")]
+            ps = [p for p in PARAMS if p in full.params or p in ("V_sum", "V_A0")
+                  or (p.startswith("V_fam_") and "V_family" in full.params)]
             jks.append(cv.jackknife(fp, full.params, ps,
                                     blocks=[f for f in fp["fold"] if f in D.CV_BLOCKS]).assign(**tag))
             held.append(ho.assign(**tag))

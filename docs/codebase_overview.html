@@ -212,7 +212,13 @@ the same jackknife and bootstrap replicates as \(V_A\)'s.</p>
 <table>
 <tr><th>term</th><th>formula</th><th>where</th></tr>
 <tr><td>Household (H)</td><td>\(V_{house}\,(h^{full}_k + \pi\,h^{part}_k)\). Full-time pairs (twins, full sibs, maternal half sibs, adoptive sibs) share fully; part-time pairs (paternal half sibs, step sibs) share a fraction \(\pi \in [0,1]\). \(\pi = 1\) and \(\pi = 0\) recover the 2025 "house1" and "house2".</td><td><code class="fn">components.household_share</code></td></tr>
-<tr><td>Decaying family environment (F)</td><td>\(V_{fam}\, r_f^{\,f_k}\): an environment shared within the extended family, decaying by \(r_f\) per unit of family degree. Applies to adoptive relatives too, which are what separate it from assortative mating.</td><td><code>Model.predict</code></td></tr>
+<tr><td>Decaying family environment (F)</td><td>\(V_{fam}\, r_f^{\,f_k}\): an environment shared within the extended family, decaying by \(r_f\) per unit of family degree. Applies to adoptive relatives too, which are what separate it from assortative mating.
+<br>For display it is split (a reparameterisation, like \(V_A^{(0)} = V_A(1-m)\)) by reading the exponential kernel as nested
+environment layers, each shared by all pairs up to some family degree, cut at degree 1: <b>sib-specific</b>
+\(V_{fam}(1 - r_f)\), contributing \(V_{fam}\max(r_f^{\,f_k} - r_f, 0)\) (only \(f_k &lt; 1\): sibs, twins, adoptive sibs, partly half sibs),
+and <b>extended family</b> \(V_{fam}\, r_f\), contributing \(V_{fam}\, r_f^{\,\max(f_k, 1)}\). With \(r_f \to 0\) the term is all
+sib-specific (a sibling excess); with \(r_f \to 1\) all extended. Reported as <code>V_fam_sib</code> / <code>V_fam_ext</code>
+with CIs from the same refits.</td><td><code>Model.predict</code>, <code class="fn">fit.family_split</code></td></tr>
 <tr><td>Maternal inflation (mat) <span class="muted">— implemented, not in the main model set</span></td><td>multiply the prediction by \(1+\delta\) for categories related <i>only</i> through mothers (\(M_k = 1\) if <code>side == 'maternal'</code>). \(\delta \in [-0.5, 1]\), so a paternal excess is allowed. A phenomenological contrast parameter (custody, kin networks, misattributed paternity, mtDNA). It is identified within half sibs, cousins, half cousins, 2nd cousins and co-cousins.</td><td><code class="fn">components.maternal_indicator</code></td></tr>
 </table>
 <p><b>Core models</b> (<code>model.CORE_MODELS</code>, 9): A, A→GxG, A+GxG, A→F, A+F, A+GxG→F, A+F→GxG, A→GxG+F,

@@ -33,14 +33,16 @@ show_model <- function(x) gsub(">", " → ", x)
 COMP_ORDER <- c("A", "GxG", "house", "family")
 COMP_FILL <- c(A = "#4C8CB5", GxG = "#E3894B", house = "#9B7BB8", family = "#6FAF7A")
 # bar segments: the additive component split into its random-mating part V_A0 = V_A(1 - m) and the
-# excess due to assortative mating, V_A m
-SEG_ORDER <- c("A0", "A_AM", "GxG", "house", "family")
-# A_AM: same blue as A0, distinguished by white diagonal stripes (its hex differs by one unit so the
-# legend key can recognise it)
-SEG_FILL <- c(A0 = "#4C8CB5", A_AM = "#4C8CB6", GxG = "#E3894B", house = "#9B7BB8", family = "#6FAF7A")
-STRIPE_FILL <- "#4C8CB6"
-SEG_LABELS <- c(A0 = "A (random mating)", A_AM = "A (excess under AM)",
-                GxG = "GxG", house = "house", family = "familial environment")
+# excess due to assortative mating, V_A m; the familial component split into its extended-family part
+# V_fam r_f (shared by relatives of family degree >= 1) and the sib-specific part V_fam (1 - r_f)
+SEG_ORDER <- c("A0", "A_AM", "GxG", "house", "fam_ext", "fam_sib")
+# A_AM / fam_sib: same colour as A0 / fam_ext, distinguished by white diagonal stripes (/ and \
+# respectively); their hex differs by one unit so the legend key can recognise them
+SEG_FILL <- c(A0 = "#4C8CB5", A_AM = "#4C8CB6", GxG = "#E3894B", house = "#9B7BB8",
+              fam_ext = "#6FAF7A", fam_sib = "#6FAF7B")
+STRIPE_DIR <- c("#4C8CB6" = 1, "#6FAF7B" = -1)   # fill -> stripe direction (slope sign)
+SEG_LABELS <- c(A0 = "A (random mating)", A_AM = "A (excess under AM)", GxG = "GxG", house = "house",
+                fam_ext = "familial environment (extended)", fam_sib = "familial environment (sib-specific)")
 COMP_LINE <- c(A = "#1F4E6E", GxG = "#9A4A14", house = "#5B3F78", family = "#2F6B3A")
 FOLD_ORDER <- c("twins", "sibs", "half sibs", "1st cousins", "half cousins", "2nd cousins",
                 "step sibs", "cocousins", "adoptive sibs", "adoptive cousins",
@@ -81,22 +83,30 @@ stripe_segments <- function(r, spacing = 0.035, slope = 0.6) {
   bind_rows(lapply(seq_len(nrow(r)), function(i) {
     xmin <- r$xmin[i]; xmax <- r$xmax[i]; ymin <- r$ymin[i]; ymax <- r$ymax[i]
     if (ymax - ymin <= 1e-6) return(NULL)
-    cs <- seq(ymin - slope * xmax, ymax - slope * xmin, by = spacing)
-    out <- lapply(cs, function(c0) {
-      xs <- sort(c(xmin, xmax, (ymin - c0) / slope, (ymax - c0) / slope))
-      xa <- max(xmin, (ymin - c0) / slope); xb <- min(xmax, (ymax - c0) / slope)
+    cr <- range(c(ymin, ymax) - slope * rep(c(xmin, xmax), each = 2))   # intercepts touching the rectangle
+    out <- lapply(seq(cr[1], cr[2], by = spacing), function(c0) {
+      xy <- sort(c((ymin - c0) / slope, (ymax - c0) / slope))
+      xa <- max(xmin, xy[1]); xb <- min(xmax, xy[2])
       if (xb <= xa) return(NULL)
       tibble(x = xa, xend = xb, y = slope * xa + c0, yend = slope * xb + c0)
     })
     bind_rows(out) %>% mutate(weights = r$weights[i], signif = r$signif[i])
   }))
 }
+# stripes for every striped segment: A_AM rising (/), fam_sib falling (\)
+seg_stripes <- function(seg, spacing = 0.035, slope = 0.6) {
+  bind_rows(stripe_segments(seg %>% filter(segment == "A_AM"), spacing, slope),
+            stripe_segments(seg %>% filter(segment == "fam_sib"), spacing, -slope))
+}
 # legend key: plain filled square, with stripes for the AM-excess fill
 draw_key_striped <- function(data, params, size) {
   rect <- grid::rectGrob(gp = grid::gpar(col = NA, fill = scales::alpha(data$fill %||% "grey35", data$alpha %||% 1)))
-  if (!identical(toupper(data$fill), toupper(STRIPE_FILL))) return(rect)
+  dir <- STRIPE_DIR[toupper(data$fill %||% "")]
+  if (is.na(dir)) return(rect)
   s <- seq(-1, 1, by = 0.28)
-  grid::grobTree(rect, grid::segmentsGrob(x0 = pmax(0, -s), y0 = pmax(0, s), x1 = pmin(1, 1 - s), y1 = pmin(1, 1 + s),
+  y0 <- pmax(0, s); y1 <- pmin(1, 1 + s)
+  if (dir < 0) { y0 <- 1 - y0; y1 <- 1 - y1 }
+  grid::grobTree(rect, grid::segmentsGrob(x0 = pmax(0, -s), y0 = y0, x1 = pmin(1, 1 - s), y1 = y1,
                                           gp = grid::gpar(col = "white", lwd = 1.3)),
                  vp = grid::viewport(clip = "on"))
 }
@@ -121,18 +131,26 @@ stacked_components <- function(jk, order, title) {
   # bar segments: A split into V_A0 and the AM excess when V_A0 is available (CI stays on total V_A)
   va0 <- jk %>% filter(param == "V_A0") %>% select(weights, model, V_A0 = estimate) %>%
     mutate(weights = factor(weights, c("invvar", "hybrid_block")), model = factor(model, order))
+  # likewise the familial component into its extended and sib-specific parts (CI on total V_fam)
+  fsib <- jk %>% filter(param == "V_fam_sib") %>% select(weights, model, V_fam_sib = estimate) %>%
+    mutate(weights = factor(weights, c("invvar", "hybrid_block")), model = factor(model, order))
   seg <- d %>% select(weights, model, xm, component, estimate, signif) %>%
-    left_join(va0, by = c("weights", "model"))
+    left_join(va0, by = c("weights", "model")) %>% left_join(fsib, by = c("weights", "model"))
   seg <- bind_rows(
     seg %>% filter(component == "A") %>%
       reframe(segment = c("A0", "A_AM"),
               estimate = if (is.na(V_A0)) c(estimate, 0) else c(V_A0, estimate - V_A0),
               .by = c(weights, model, xm, signif)),
-    seg %>% filter(component != "A") %>% transmute(weights, model, xm, signif, segment = as.character(component), estimate)) %>%
+    seg %>% filter(component == "family") %>%
+      reframe(segment = c("fam_ext", "fam_sib"),
+              estimate = if (is.na(V_fam_sib)) c(estimate, 0) else c(estimate - V_fam_sib, V_fam_sib),
+              .by = c(weights, model, xm, signif)),
+    seg %>% filter(!component %in% c("A", "family")) %>%
+      transmute(weights, model, xm, signif, segment = as.character(component), estimate)) %>%
     mutate(segment = factor(segment, SEG_ORDER))
   seg <- seg %>% arrange(weights, model, segment) %>% group_by(weights, model) %>%
     mutate(ymax = cumsum(estimate), ymin = ymax - estimate, xmin = xm - 0.35, xmax = xm + 0.35) %>% ungroup()
-  stripes <- stripe_segments(seg %>% filter(segment == "A_AM"))
+  stripes <- seg_stripes(seg)
   ggplot() +
     geom_rect(data = seg, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = segment, alpha = signif),
               key_glyph = draw_key_striped) +
@@ -157,6 +175,7 @@ stacked_components <- function(jk, order, title) {
          subtitle = paste0("Black outline and diamond: sum of the components, with its 95% Marginal Type CI (black, centre)\n",
                            "Coloured: each component's 95% Marginal Type CI, at the top of its segment\n",
                            "A: V_A\u2070 = V_A(1 \u2212 m) (solid) + excess under assortative mating (striped); CI for total V_A\n",
+                           "Familial env.: extended V_fam r_f (solid) + sib-specific V_fam(1 \u2212 r_f) (striped); CI for total V_fam\n",
                            "Faded: the component's CI includes 0. Arrowhead: the CI runs past [0, 1]")) +
     theme_bw() + theme(legend.position = "bottom", panel.grid.major.x = element_blank(),
                        panel.grid.minor.x = element_blank(), panel.spacing = unit(1.2, "lines"),
@@ -171,7 +190,7 @@ plot_condensed_components <- function(preds, title = NULL) {
   obs <- obs_from(preds)
   po <- pool_by_type(obs) %>%
     mutate(lo = corr - z95 * se, hi = corr + z95 * se, label = str_wrap(CONDENSED_LABELS[rel], 10))
-  parts <- c(A0 = "part_A0", A_AM = "part_A_AM", GxG = "comp_GxG", house = "comp_house", family = "comp_family")
+  parts <- c(A0 = "part_A0", A_AM = "part_A_AM", GxG = "comp_GxG", house = "comp_house", fam_ext = "part_fam_ext", fam_sib = "part_fam_sib")
   parts <- parts[parts %in% names(preds)]
   parts <- parts[sapply(parts, function(cl) any(!is.na(preds[[cl]])))]   # components in this model
   w <- obs %>% transmute(row, w = 1 / se^2)
@@ -185,7 +204,7 @@ plot_condensed_components <- function(preds, title = NULL) {
     mutate(xmin = x - 0.35, xmax = x + 0.35, signif = TRUE, weights = "all")
   tot <- pp %>% group_by(rel, x) %>% summarize(pred = max(ymax), .groups = "drop")
   lab <- po %>% left_join(tot, by = c("rel", "x")) %>% mutate(y = pmax(hi, pred) + 0.02)
-  stripes <- stripe_segments(pp %>% filter(segment == "A_AM"), spacing = 0.02, slope = 0.25)
+  stripes <- seg_stripes(pp, spacing = 0.02, slope = 0.25)
   ggplot() +
     bio_split() +
     geom_rect(data = pp, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = segment),
@@ -202,7 +221,8 @@ plot_condensed_components <- function(preds, title = NULL) {
     coord_cartesian(ylim = c(-0.05, 1)) +
     labs(x = "Relationship Type", y = "Correlation", title = title,
          caption = paste0("Points: inverse-variance pooled correlation of each relationship type (95% CI).\n",
-                          "Bars: predicted correlation split by component; A = V_A\u2070 \u00d7 (1/2)\u207f under random mating + the excess under AM.")) +
+                          "Bars: predicted correlation split by component; A = V_A\u2070 \u00d7 (1/2)\u207f under random mating + the excess under AM;\n",
+                          "familial env. = extended V_fam r_f^max(f, 1) + sib-specific V_fam max(r_f^f \u2212 r_f, 0) (f: family degree).")) +
     theme_bw() +
     theme(axis.ticks.x = element_blank(), panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
           panel.grid.major.y = element_line(linetype = "dashed"), panel.grid.minor.y = element_line(linetype = "dashed"),
@@ -215,7 +235,7 @@ plot_condensed_components <- function(preds, title = NULL) {
 # scaled so a pair whose kernels are all 1 (MZ twins) has correlation 1. Categories within a type are
 # pooled with the observations' inverse-variance weights, as in the condensed fit plots.
 plot_component_decay <- function(dec, title = NULL, subtitle = NULL) {
-  parts <- c(A0 = "part_A0", A_AM = "part_A_AM", GxG = "comp_GxG", house = "comp_house", family = "comp_family")
+  parts <- c(A0 = "part_A0", A_AM = "part_A_AM", GxG = "comp_GxG", house = "comp_house", fam_ext = "part_fam_ext", fam_sib = "part_fam_sib")
   parts <- parts[parts %in% names(dec)]
   pp <- dec %>% filter(rel %in% CONDENSED_ORDER) %>% mutate(w = 1 / se^2) %>%
     select(rel, w, all_of(unname(parts))) %>%
@@ -227,7 +247,7 @@ plot_component_decay <- function(dec, title = NULL, subtitle = NULL) {
     mutate(xmin = x - 0.35, xmax = x + 0.35, signif = TRUE, weights = "all")
   lab <- pp %>% group_by(rel, x) %>% summarize(y = max(ymax), .groups = "drop") %>%
     mutate(label = paste0(str_wrap(CONDENSED_LABELS[rel], 10), "\n", sprintf("%.2f", y)))
-  stripes <- stripe_segments(pp %>% filter(segment == "A_AM"), spacing = 0.025, slope = 0.25)
+  stripes <- seg_stripes(pp, spacing = 0.025, slope = 0.25)
   ggplot() +
     bio_split(y = 0.8) +
     geom_rect(data = pp, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = segment),
@@ -242,7 +262,8 @@ plot_component_decay <- function(dec, title = NULL, subtitle = NULL) {
     coord_cartesian(ylim = c(0, 1.14)) +
     labs(x = "Relationship Type", y = "Correlation (scaled: all kernels 1 \u2192 1)", title = title, subtitle = subtitle,
          caption = paste0("Contributions divided by the summed variance components",
-                          if ("part_A0" %in% names(dec)) "; A = V_A\u2070 \u00d7 (1/2)\u207f under random mating + the excess under AM." else ".")) +
+                          if ("part_A0" %in% names(dec)) "; A = V_A\u2070 \u00d7 (1/2)\u207f under random mating + the excess under AM." else ".",
+                          if ("part_fam_sib" %in% names(dec)) "\nFamilial env. = extended r_f^max(f, 1) + sib-specific max(r_f^f \u2212 r_f, 0) (f: family degree)." else "")) +
     theme_bw() +
     theme(axis.ticks.x = element_blank(), panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
           panel.grid.major.y = element_line(linetype = "dashed"), panel.grid.minor.y = element_blank(),
@@ -364,7 +385,7 @@ if (has("models", "core_predictions.csv")) {
     for (wt in c("hybrid_block")) {   # Marginal Type only (user request)
       for (mod in CORE_ORDER) {
         ttl <- paste0(show_model(mod), " (", WEIGHT_LABELS[[wt]], ")")
-        sub <- fmt_par(cf %>% filter(model == !!mod, weights == !!wt), c("V_A", "V_A0", "V_GxG", "V_family", "r_f", "m", "r"))
+        sub <- fmt_par(cf %>% filter(model == !!mod, weights == !!wt), c("V_A", "V_A0", "V_GxG", "V_family", "V_fam_ext", "V_fam_sib", "r_f", "m", "r"))
         save_fig(plot_condensed_components(cpp %>% filter(model == !!mod, weights == !!wt), title = ttl) +
                    labs(subtitle = sub),
                  sprintf("m3d_condensedcomp_%s_%s", gsub("\\+", "", gsub(">", "_to_", mod)), wt), width = 2600, height = 1500)

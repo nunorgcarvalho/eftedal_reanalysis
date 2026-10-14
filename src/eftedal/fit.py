@@ -39,8 +39,8 @@ class FitResult:
         for p in PARAM_ORDER:
             d[p] = self.params.get(p, np.nan)
         d["c"] = half_multiplier_or_nan(self.params)
-        d["V_sum"] = sum(v for k, v in self.params.items() if k.startswith("V_"))
-        d["V_A0"] = random_mating_VA(self.params)
+        d["V_sum"] = variance_sum(self.params)
+        d.update(derived_params(self.params))
         d.update(self.stats)
         d["loss"] = self.loss
         d["n_free"] = len(self.free)
@@ -61,6 +61,8 @@ class FitResult:
             df[f"comp_{c}"] = comps[c].to_numpy()
         if "A" in comps:
             df["part_A0"], df["part_A_AM"] = additive_split(self.model, self.params, comps["A"].to_numpy())
+        if "family" in comps:
+            df["part_fam_sib"], df["part_fam_ext"] = family_split(self.model, self.params)
         return df
 
 
@@ -71,6 +73,15 @@ def additive_split(model: Model, p: dict, comp_A: np.ndarray) -> tuple[np.ndarra
                                 mz_frac=model.spec.mz_frac)
     part_A0 = random_mating_VA(p) * a_rm
     return part_A0, comp_A - part_A0
+
+
+def family_split(model: Model, p: dict) -> tuple[np.ndarray, np.ndarray]:
+    """Split the familial contribution V_fam r_f^f by reading the exponential kernel as nested
+    environment layers, each shared by all pairs up to some family degree, cut at degree 1:
+    sib-specific V_fam max(r_f^f - r_f, 0) (only pairs with f < 1, e.g. sibs, twins, adoptive sibs,
+    partly half-sibs) and extended V_fam r_f^max(f, 1). They sum to V_fam r_f^f."""
+    V, r, f = p["V_family"], p["r_f"], model.f
+    return V * np.maximum(r ** f - r, 0.0), V * r ** np.maximum(f, 1.0)
 
 
 def component_decay(data: pd.DataFrame, spec: FitSpec, params: dict) -> pd.DataFrame:
@@ -92,6 +103,9 @@ def component_decay(data: pd.DataFrame, spec: FitSpec, params: dict) -> pd.DataF
     if "A" in comps:
         a0, am = additive_split(model, p, total * comps["A"].to_numpy())
         df["part_A0"], df["part_A_AM"] = a0 / total, am / total
+    if "family" in comps:
+        sib, ext = family_split(model, p)
+        df["part_fam_sib"], df["part_fam_ext"] = sib / total, ext / total
     df["total"] = comps.sum(axis=1).to_numpy()
     return df.assign(**{k: v for k, v in p.items()})
 
@@ -103,6 +117,27 @@ def random_mating_VA(p: dict) -> float:
     if "V_A" in p and "m" in p:
         return p["V_A"] * (1 - p["m"])
     return np.nan
+
+
+def family_split_V(p: dict) -> tuple[float, float]:
+    """V_fam = V_fam (1 - r_f) [sib-specific] + V_fam r_f [extended family]; see `family_split`."""
+    if "V_family" in p and "r_f" in p:
+        return p["V_family"] * (1 - p["r_f"]), p["V_family"] * p["r_f"]
+    return np.nan, np.nan
+
+
+# reparameterisations of the fitted parameters (not variance components of their own: they are
+# excluded from V_sum)
+DERIVED = ("V_A0", "V_fam_sib", "V_fam_ext")
+
+
+def derived_params(p: dict) -> dict:
+    sib, ext = family_split_V(p)
+    return {"V_A0": random_mating_VA(p), "V_fam_sib": sib, "V_fam_ext": ext}
+
+
+def variance_sum(p: dict) -> float:
+    return sum(v for k, v in p.items() if k.startswith("V_") and k not in DERIVED and k != "V_sum")
 
 
 def half_multiplier_or_nan(p: dict) -> float:
