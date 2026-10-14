@@ -72,7 +72,7 @@ if (has("robustness", "additive_predictions.csv") && has("models", "core_predict
 # Diamond: point estimate, its width = Marginal Pair CI (bootstrap; widened to at least 0.014 so it
 # stays visible); line behind it = Marginal Type CI (jackknife), arrowheads where it leaves [0, 1].
 if (has("poster", "additive_by_cohort.csv")) {
-  PARAM_LABELS <- c(V_A = "h²", m = "m (mates' genetic corr.)", r = "r (mates' phenotypic corr.)")
+  PARAM_LABELS <- c(V_A = "h²", m = "m", r = "r")
   d <- rd("poster", "additive_by_cohort.csv") %>% filter(param %in% names(PARAM_LABELS)) %>%
     mutate(label = factor(label, EST_LEVELS), param = factor(PARAM_LABELS[param], PARAM_LABELS),
            cohort_name = factor(cohort_name, c("bio + in-laws", "bio only")),
