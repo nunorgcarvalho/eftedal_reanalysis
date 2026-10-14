@@ -76,34 +76,110 @@
   \end{minipage}%
 }
 
-% ============================== RELATIVES ==============================
+% ============================== helpers ==============================
 % swatch in a relationship colour (matches the pedigree connectors)
 \newcommand{\relswatch}[1]{\textcolor{#1}{\rule[0.18em]{1.6em}{0.32em}}}
 \newcommand{\relname}[2]{\relswatch{#1}\hspace{0.5em}{\color{#1}\bfseries #2}}
+\newcommand{\tablesize}{\fontsize{30}{38}\selectfont}
+\newcommand{\subhead}[1]{{\color{navy}\bfseries\fontsize{40}{48}\selectfont #1\par}\smallskip}
+\newcommand{\refcite}[1]{{\color{navy}[#1]}}
 
-\posterbox[adjusted title=Kinds of relatives]{name=rel, column=1, span=2, below=header}{
+% ============================== COLUMN 1 ==============================
+\posterbox[adjusted title=Background]{name=bg, column=1, below=header}{
+\begin{itemize}
+  \item Relatives have similar test scores due to shared genetics and shared environments
+  \item \refcite{Eftedal et al.\ 2025, \textit{PNAS}}: fit the \textbf{Additive model} to school test scores of
+        $\sim$1M Norwegian children
+  \begin{itemize}
+    \item identified the relationship type of each pair of relatives
+    \item fit the observed correlations as a function of the Additive model's parameters
+  \end{itemize}
+\end{itemize}
+}
+
+\posterbox[adjusted title=Relative types]{name=rel, column=1, between=bg and bottom}{
 \centering
-\includegraphics[scale=4.0]{pedigree_sibs}\hfill
-\includegraphics[scale=4.0]{pedigree_cousins}
-
-\vspace{1.2em}
-{\renewcommand{\arraystretch}{2.3}
-\begin{tabular}{@{}l c >{$\displaystyle}l<{$}@{}}
+\includegraphics[scale=2.6]{pedigree_sibs}\par\vspace{0.6em}
+\includegraphics[scale=2.6]{pedigree_cousins}\par\vspace{0.8em}
+{\tablesize\renewcommand{\arraystretch}{1.95}
+\begin{tabular}{@{}l c c >{$\displaystyle}l<{$}@{}}
 \toprule
-\textbf{relatives} & \textbf{genetic degree $n$} & \text{\textbf{expected correlation}} \\
+\textbf{relatives} & \textbf{genetic} & \textbf{family} & \text{\textbf{correlation implied}} \\[-0.9em]
+                   & \textbf{degree $n$} & \textbf{degree $f$} & \text{\textbf{by Additive model}} \\
 \midrule
-\relname{cFull}{full siblings}      & 1 & h^2\,\frac{1+m}{2} \\
-\relname{cHalf}{half-siblings}      & 2 & h^2\,\frac{1+2m+rm}{4} \\
-\relname{cStep}{step-siblings}      & 2 & h^2\,m\,\left(\frac{1+r}{2}\right)^{2} \\
-\relname{cAdopt}{adoptive siblings} & -- & 0 \\
-\relname{cCous}{1st cousins}        & 3 & h^2\,\left(\frac{1+m}{2}\right)^{3} \\
-\relname{cCoc}{co-cousins}          & 2+2 & h^2\,m\,\left(\frac{1+m}{2}\right)^{4} \\
+\relname{cFull}{full siblings}      & 1   & 0   & V_A\,\frac{1+m}{2} \\
+\relname{cHalf}{half-siblings}      & 2   & 0.5 & V_A\,\frac{1+2m+rm}{4} \\
+\relname{cStep}{step-siblings}      & 1+1 & 1   & V_A\,m\,\left(\frac{1+r}{2}\right)^{2} \\
+\relname{cAdopt}{adoptive siblings} & --  & 0   & 0 \\
+\relname{cCous}{1st cousins}        & 3   & 1   & V_A\,\left(\frac{1+m}{2}\right)^{3} \\
+\relname{cCoc}{co-cousins}          & 2+2 & 2   & V_A\,m\,\left(\frac{1+m}{2}\right)^{4} \\
 \bottomrule
 \end{tabular}\par}
-
 \vspace{0.6em}
 {\smallsize\raggedright
-$h^2$: heritability; $m$: genetic correlation between mates; $r$: phenotypic correlation between mates.\par}
+$V_A$: additive genetic variance (heritability, $h^2$); $m$: genetic correlation between mates;
+$r$: phenotypic correlation between mates.\par}
+}
+
+% ============================== COLUMNS 2-3 ==============================
+\posterbox[adjusted title=Revising Eftedal et al.'s results]{name=rev, column=2, span=2, between=header and bottom}{
+\begin{minipage}[t]{0.46\linewidth}
+\subhead{Two types of fits}
+{\tablesize\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{@{}>{\bfseries\raggedright\arraybackslash}p{0.17\linewidth} >{\raggedright\arraybackslash}p{0.39\linewidth} >{\raggedright\arraybackslash}p{0.39\linewidth}@{}}
+\toprule
+ & \textbf{Marginal Pair} & \textbf{Marginal Type} \\
+\midrule
+unit & each \textbf{pair} of relatives & each \textbf{relationship type} \\
+weights & $1/SE^2$: common types (cousins) dominate & equal total weight per type \\
+95\% CI & parametric bootstrap: sampling noise only & leave one type out: depends on which relatives exist \\
+\bottomrule
+\end{tabular}\par}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.5\linewidth}
+\subhead{Problems in Eftedal et al.'s estimator}
+\begin{itemize}
+  \item Only optimized for Marginal Pair, not Marginal Type
+  \item Log-transformed correlations: more weight to distant relatives
+  \item Incorrect inverse-variance weights: more weight to distant relatives
+  \item Incorrect expected correlation for step-siblings
+  \item Phenotypic ($r$) and genetic ($m$) correlations between mates estimated independently,
+        although the model implies $m = V_A\,r$
+  % optional additions (uncomment if wanted):
+  % \item Relatives through twins of unknown zygosity left out of the fit
+  % \item CIs from resampling relationship categories in proportion to $1/SE^2$
+\end{itemize}
+\end{minipage}
+
+\vspace{1.2em}
+\subhead{Additive model: Eftedal et al.\ vs.\ revised}
+\begin{minipage}[t]{0.495\linewidth}\centering
+  \includegraphics[width=\linewidth]{poster/p1_condensedfit_additive}\par
+  {\smallsize Points: pooled correlation of each relationship type (95\% CI); bars: model fits.
+   Right of the dashed line: in-laws and adoptees.\par}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.495\linewidth}\centering
+  \includegraphics[width=\linewidth]{poster/p2_additive_params}\par
+  {\smallsize Diamond: estimate, width = Marginal Pair CI; line: Marginal Type CI.
+   Dark: bio + in-laws; light: bio only.\par}
+\end{minipage}
+}
+
+% ============================== COLUMN 4 ==============================
+\posterbox[adjusted title=Models with GxG and family environment]{name=gxg, column=4, below=header}{
+\centering\includegraphics[width=\linewidth]{poster/p3_components_core_type}\par
+{\smallsize\raggedright Marginal Type fits; whiskers: 95\% Marginal Type CIs; black: sum of components.
+ A $\rightarrow$ B: B fitted after A, with A held fixed.\par}
+}
+
+\posterbox[adjusted title=Takeaways]{name=take, column=4, below=gxg}{
+\begin{itemize}
+  \item Revising Eftedal et al.'s estimator for the Additive model yields \textbf{high heritability}
+        estimates that explain different relative types better
+  \item Additive, GxG and family-environment components are \textbf{collinear}: weak evidence for
+        significant components beyond the Additive model
+  \item No single model fully explains correlations across all relative types
+\end{itemize}
 }
 
 % ============================== CONTACT ==============================

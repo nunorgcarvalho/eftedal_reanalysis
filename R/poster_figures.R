@@ -65,7 +65,7 @@ if (has("robustness", "additive_predictions.csv") && has("models", "core_predict
           legend.position = "inside", legend.position.inside = c(0.99, 0.985),
           legend.justification = c("right", "top"), legend.key.width = unit(1.6, "lines"),
           legend.background = element_rect(fill = "white", color = "grey40"))
-  save_poster(g, "p1_condensedfit_additive", width = 8.6, height = 6.0)
+  save_poster(g, "p1_condensedfit_additive", width = 8.6, height = 7.4)
 }
 
 # ---- P2. additive-model parameters by estimator x cohort -------------------------------------
@@ -106,7 +106,7 @@ if (has("poster", "additive_by_cohort.csv")) {
     theme(strip.placement = "outside", strip.text.y.left = element_text(angle = 0, face = "bold"),
           strip.background.y = element_blank(), panel.grid.minor = element_blank(),
           panel.grid.major.y = element_blank(), panel.spacing.x = unit(0.9, "lines"))
-  save_poster(g, "p2_additive_params", width = 8.6, height = 5.6)
+  save_poster(g, "p2_additive_params", width = 8.6, height = 7.4)
 }
 
 # ---- P3. core models, Marginal Type only ------------------------------------------------------
@@ -119,6 +119,6 @@ if (has("models", "core_jackknife.csv")) {
     theme(legend.position = "bottom", panel.grid.major.x = element_blank(), panel.grid.minor = element_blank(),
           strip.background = element_blank(), strip.text = element_blank(),
           axis.text.x = element_text(size = BASE * 0.9, color = "black"))
-  save_poster(g, "p3_components_core_type", width = 8.6, height = 6.4)
+  save_poster(g, "p3_components_core_type", width = 8.6, height = 7.4)
 }
 cat("poster figures written to", FIGURES, "\n")
