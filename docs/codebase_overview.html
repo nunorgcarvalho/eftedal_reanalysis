@@ -202,11 +202,11 @@ assortative mating.</p>
 <tr><td>Decaying family environment (F)</td><td>\(V_{fam}\, r_f^{\,f_k}\): an environment shared within the extended family, decaying by \(r_f\) per unit of family degree. Applies to adoptive relatives too, which are what separate it from assortative mating.</td><td><code>Model.predict</code></td></tr>
 <tr><td>Maternal inflation (mat) <span class="muted">— implemented, not in the main model set</span></td><td>multiply the prediction by \(1+\delta\) for categories related <i>only</i> through mothers (\(M_k = 1\) if <code>side == 'maternal'</code>). \(\delta \in [-0.5, 1]\), so a paternal excess is allowed. A phenomenological contrast parameter (custody, kin networks, misattributed paternity, mtDNA). It is identified within half sibs, cousins, half cousins, 2nd cousins and co-cousins.</td><td><code class="fn">components.maternal_indicator</code></td></tr>
 </table>
-<p><b>Core models</b> (<code>model.CORE_MODELS</code>, 6): {A, A→GxG} × {none, H(\(\pi\)), F}. A, A+H and A+F are
-fitted jointly. The A→GxG models are <b>two-step</b>: step 1 fits A alone; step 2 fits GxG and the environment term on
-top with the whole additive part frozen (\(V_A\) and \(r\), hence \(m\); <code>model.SEQUENTIAL_CARRY</code>).
-Refits (jackknife, CV, bootstrap) redo both steps. The <b>all-joint set</b> {A, A+GxG} × {none, H, F, H+F}
-(<code>model.JOINT_MODELS</code>, 8) is kept for the supplement; the 2025 set (M01–M05b) as <code>model.MODELS_2025</code>.</p>
+<p><b>Core models</b> (<code>model.CORE_MODELS</code>, 8): A, A→GxG, A+GxG, A+F, A+GxG→F, A+F→GxG, A→GxG+F,
+A+GxG+F. <b>X→Y</b> is two-step: step 1 fits X; step 2 fits Y on top with every parameter estimated in step 1 frozen
+(<code>model.SEQUENTIAL_CARRY = ("all",)</code>). Names without → are fitted jointly. Refits (jackknife, CV, bootstrap) redo
+both steps. The <b>all-joint set</b> {A, A+GxG} × {none, H, F, H+F} (<code>model.JOINT_MODELS</code>, 8) is kept for the
+supplement, as is the 2025 set (<code>model.MODELS_2025</code>).</p>
 
 <h3 id="constraints">Parameters and constraints</h3>
 <ul>
@@ -292,14 +292,15 @@ agree, a hidden better valley is unlikely. <code>at_bound</code> lists parameter
 <h3 id="sequential">Two-step (sequential) estimation of GxG</h3>
 <p><code>FitSpec.sequential_base</code> fits a base model first, then the full model with the
 <code>sequential_carry</code> parameters held at their step-1 estimates (<code class="fn">fit._fit_sequential</code>). The core
-A→GxG models use base A and carry \(V_A\) and \(r\) (hence \(m\)): the additive contribution to every correlation is
-exactly that of model A, and step 2 fits GxG and any environment term to what A leaves over. The result keeps the
+two-step models carry everything estimated in step 1 (e.g. for A→GxG: \(V_A\) and \(r\), hence \(m\); for A+F→GxG
+also \(V_{fam}\) and \(r_f\)), so the step-1 model's contribution to every correlation is unchanged and step 2 fits
+the remaining components to what it leaves over. The result keeps the
 sequential spec, so the jackknife, cross-validation and bootstrap redo both steps; degrees of freedom count both steps'
 parameters. Wald/sandwich covariances would be conditional on step 1 and are not used.</p>
 <p><b>What it does and does not estimate.</b> This is the summary-statistic version of <b>sequential (type I) sums of
 squares</b>: with collinear terms, whichever enters first absorbs the signal they share. Two-step \(V_{GxG}\) is therefore
-"the GxG-shaped signal the best additive model cannot mimic", not \(V_{GxG}\) under the joint model. On these data it is
-≈ 0.01–0.02 (0 next to H or F), against ≈ 0.22–0.35 when fitted jointly (supplement), and the profile over \(V_A\) puts the
+"the GxG-shaped signal the best additive model cannot mimic", not \(V_{GxG}\) under the joint model. On these data GxG adds ≈ 0.01
+after A or after A+F, and F adds ≤ 0.05 after A or A+GxG, against V_GxG ≈ 0.3 and V_fam ≈ 0.15–0.2 when fitted jointly, and the profile over \(V_A\) puts the
 two-step \(V_A\) outside the 95% quasi-likelihood cut-off of the joint models. Both are reported; the joint split is poorly
 identified (the profile valley), the two-step split is a convention.</p>
 
