@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 
 from . import data as D
-from .fit import fit
+from .fit import fit, random_mating_VA
 from .model import FitSpec
 
 
@@ -54,6 +54,7 @@ def cross_validate(data: pd.DataFrame, spec: FitSpec, *, n_starts: int = 12,
                 starts=[full.theta])
         p = dict(r.params)
         p["V_sum"] = sum(v for k, v in r.params.items() if k.startswith("V_"))
+        p["V_A0"] = random_mating_VA(r.params)
         p.update(fold=name, loss=r.loss, n_converged_to_best=r.n_converged_to_best,
                  at_bound=",".join(r.at_bound()))
         params.append(p)
@@ -84,7 +85,8 @@ def jackknife(fold_params: pd.DataFrame, full_params: dict, params: list[str],
     blocks = D.CV_BLOCKS if blocks is None else blocks
     fp = fold_params[fold_params["fold"].isin(blocks)]     # single-block folds present
     full_params = dict(full_params)
-    full_params.setdefault("V_sum", sum(v for k, v in full_params.items() if k.startswith("V_")))
+    full_params.setdefault("V_sum", sum(v for k, v in full_params.items() if k.startswith("V_") and k != "V_A0"))
+    full_params.setdefault("V_A0", random_mating_VA(full_params))
     B = len(fp)
     rows = []
     for p in params:

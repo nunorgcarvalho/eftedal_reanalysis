@@ -22,7 +22,7 @@ def test_model_sets():
 
 def test_two_step_freezes_the_additive_part(df):
     a = fit(df, main_spec("A", "invvar"), n_starts=2)
-    s = fit(df, main_spec("A>GxG+F", "invvar"), n_starts=2)
+    s = fit(df, main_spec("A>GxG+F", "invvar"), n_starts=2)  # a2 kernel (MAIN)
     for p in ("V_A", "r", "m"):
         assert s.params[p] == pytest.approx(a.params[p])
     assert set(s.free) == {"V_GxG", "V_family", "r_f"}
@@ -156,3 +156,14 @@ def test_a2_gxg_kernel(df):
     assert get(k_a2, "uz") == pytest.approx(0.5 * 1 + 0.5 * 0.25)
     assert get(k_a2, "step sibs") == 0 and get(k_a2, "cocousins") == 0
     assert get(k_am, "step sibs") > 0                           # the AM version is not
+
+
+def test_random_mating_VA(df):
+    r = fit(df, main_spec("A", "invvar"), n_starts=2)
+    assert r.summary()["V_A0"] == pytest.approx(r.params["V_A"] * (1 - r.params["m"]))
+    from eftedal import cv
+    full, fp, _, _ = cv.cross_validate(df, main_spec("A", "invvar"), n_starts=1,
+                                       folds={b: D.rels_in_blocks(df, b) for b in ("sibs", "twins")})
+    np.testing.assert_allclose(fp["V_A0"], fp["V_A"] * (1 - fp["m"]))
+    jk = cv.jackknife(fp, full.params, ["V_A0"], blocks=["sibs", "twins"]).iloc[0]
+    assert jk["estimate"] == pytest.approx(r.params["V_A"] * (1 - r.params["m"]), rel=1e-4)

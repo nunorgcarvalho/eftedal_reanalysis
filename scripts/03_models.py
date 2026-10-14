@@ -1,6 +1,6 @@
 """Main section 3 (core models) and the joint model set (supplement): fits, block
 cross-validation and block-jackknife intervals, under both weightings. Writes results/models/
-with one file group per model set ({set} = core | joint | core_a2):
+with one file group per model set ({set} = core | joint | core_am2):
 
 {set}_fits.csv          one row per model x weighting: parameters, V_sum, loss, R2_lin, chi2/df
 {set}_predictions.csv   predictions and per-component contributions for all 82 categories
@@ -26,9 +26,9 @@ from eftedal.presets import MAIN_WEIGHTINGS, main_spec
 # set name -> (models, FitSpec overrides)
 SETS = {"core": (list(CORE_MODELS), {}),
         "joint": (list(JOINT_MODELS), {}),
-        # supplement: GxG kernel = square of the random-mating kernel ("a2")
-        "core_a2": (list(CORE_MODELS), {"gxg_kernel": "a2"})}
-PARAMS = ["V_A", "V_GxG", "V_house", "V_family", "V_sum", "pi", "r_f", "m", "r"]
+        # supplement: the earlier GxG kernel, square of the assortative-mating kernel
+        "core_am2": (list(CORE_MODELS), {"gxg_kernel": "am2"})}
+PARAMS = ["V_A", "V_GxG", "V_house", "V_family", "V_sum", "V_A0", "pi", "r_f", "m", "r"]
 
 
 def run_set(df, name, models, overrides, out, n_starts):
@@ -41,7 +41,7 @@ def run_set(df, name, models, overrides, out, n_starts):
             preds.append(full.predictions().assign(**tag))
             fp = fp.assign(**tag)
             params.append(fp)
-            ps = [p for p in PARAMS if p in full.params or p == "V_sum"]
+            ps = [p for p in PARAMS if p in full.params or p in ("V_sum", "V_A0")]
             jks.append(cv.jackknife(fp, full.params, ps,
                                     blocks=[f for f in fp["fold"] if f in D.CV_BLOCKS]).assign(**tag))
             held.append(ho.assign(**tag))

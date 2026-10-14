@@ -39,6 +39,7 @@ class FitResult:
             d[p] = self.params.get(p, np.nan)
         d["c"] = half_multiplier_or_nan(self.params)
         d["V_sum"] = sum(v for k, v in self.params.items() if k.startswith("V_"))
+        d["V_A0"] = random_mating_VA(self.params)
         d.update(self.stats)
         d["loss"] = self.loss
         d["n_free"] = len(self.free)
@@ -58,6 +59,15 @@ class FitResult:
         for c in comps:
             df[f"comp_{c}"] = comps[c].to_numpy()
         return df
+
+
+def random_mating_VA(p: dict) -> float:
+    """V_A^(0) = V_A (1 - m): additive variance the trait would have under random mating, from the
+    equilibrium approximation V_A = V_A^(0) / (1 - rho_g) (relative_covariance v1, eq. VA-eq;
+    rho_g = m). In units of the observed (equilibrium) phenotypic variance."""
+    if "V_A" in p and "m" in p:
+        return p["V_A"] * (1 - p["m"])
+    return np.nan
 
 
 def half_multiplier_or_nan(p: dict) -> float:

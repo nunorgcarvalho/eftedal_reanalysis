@@ -27,7 +27,7 @@ from eftedal import data as D
 from eftedal.inference import parametric_bootstrap
 from eftedal.presets import main_spec
 
-REPORT = ["V_A", "m", "r"]
+REPORT = ["V_A", "V_A0", "m", "r"]
 
 # Eftedal et al.'s estimator in our framework: log scale, 1/SE^2 weights on the log scale,
 # m and r separate, their step-sibling kernel, bio + in-law cohort without UZ-linked categories.
@@ -61,7 +61,8 @@ def _jk_rows(df, spec, n_starts, n_boot, seed, **tag):
                                        folds={b: D.rels_in_blocks(df, b) for b in D.CV_BLOCKS})
     jk = cv.jackknife(fp, full.params, REPORT, blocks=list(fp["fold"]))
     reps = parametric_bootstrap(df, full, n_boot=n_boot, seed=seed, n_starts=2)
-    bt = pd.DataFrame([{"param": p, "estimate": full.params[p], "se": reps[p].std(),
+    est = {**full.params, "V_A0": full.summary()["V_A0"]}
+    bt = pd.DataFrame([{"param": p, "estimate": est[p], "se": reps[p].std(),
                         "lo": reps[p].quantile(0.025), "hi": reps[p].quantile(0.975),
                         "method": "parametric bootstrap"} for p in REPORT])
     t = pd.concat([jk, bt], ignore_index=True).assign(

@@ -17,7 +17,7 @@ LEGACY = dict(uz="exponent", log_zero="legacy", adoptive="legacy_n99",
 # 'hybrid') or 'invvar' (1/SE^2; the model taken literally).
 MAIN = dict(scale="lin", mr="equilibrium", stepsib="corrected", uz="mixture", mz_frac=0.5,
             log_zero="structural", adoptive="zero", cocousin_family_degree=None,
-            max_total_variance=1.0)
+            max_total_variance=1.0, gxg_kernel="a2")   # GxG kernel a^2 (user decision 2026-10-14)
 MAIN_WEIGHTINGS = ("hybrid_block", "invvar")
 
 
