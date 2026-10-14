@@ -40,6 +40,13 @@ It depends on what the interactions are, and for the usual reading of ``GxG'' it
     $A$, and the GxG correlation of relatives then exceeds even $K^2$.
   \item In both cases AM on a phenotype that contains GxG also creates a within-person covariance between the
     additive and GxG values, and hence cross terms $\Cov[A_i,G_j]$ between relatives. Our model omits them.
+  \item \textbf{Linkage} (Section~\ref{sec:linkage}) matters only for interactions between nearby loci, but
+    there it dominates. A tightly linked (cis) pair behaves as one haplotype locus: half of its GxG
+    variance is shared like additive variance (kernel $a$) and half like dominance. Its kernel is
+    $(a+\delta)/2$ rather than $a^2$, which is $4\times$ larger for first cousins, already under random mating.
+    AM then scales GxG sharing by a similar factor at every recombination fraction. For cis GxG the
+    true kernel can even exceed $K^2$ for siblings and more distant relatives. Uniform or main-effect-scaled
+    interactions over all pairs are $\approx95\%$ unlinked and stay near item 1.
 \end{enumerate}
 All claims are verified against an allele-level forward simulation
 (Fig.~\ref{fig:check}, Table~\ref{tab:check}). Code is in \texttt{theory/gxg\_kernel/}:
@@ -147,7 +154,7 @@ $\Cov[A_i,G_j]+\Cov[G_i,A_j]$ to the phenotypic covariance. At $\rho_y=0.45$ thi
 $0.05$--$0.07$ in correlation units for first-degree relatives, as large as or larger than the AM increment in
 $K_G$ itself (Table~\ref{tab:real}). Neither our model nor Eftedal's has it.
 
-\section{When \texorpdfstring{$K^2$}{K2} is right: scale epistasis}
+\section{When \texorpdfstring{$K^2$}{K2} is right: scale epistasis}\label{sec:scale}
 If interaction effects follow the additive ones, $\gamma_{kl}=\lambda\beta_k\beta_l$, then
 $G=\tfrac\lambda2(A^2-\sum_k\beta_k^2x_k^2)$. Up to an $O(1/M)$ term this is a quadratic function of the
 additive value, i.e.\ a nonlinear scale on $A$. For mean-zero bivariate-normal $(A_i,A_j)$,
@@ -166,7 +173,7 @@ $Y$ is steeper in $A$ (the upper tail for $\lambda>0$), so over generations the 
 lower. $A$ becomes skewed, and it correlates with its own square, and hence with $G$. In simulation
 (\texttt{results/*\_curved}) \input{results/curved_sentence.tex}
 
-\section{Simulation check}
+\section{Simulation check}\label{sec:sim}
 \texttt{simulate.py}: $N=20{,}000$ per generation, $M=1{,}000$ unlinked loci, 20 generations of rank-matching
 AM on $Y$, two children per couple, and a second assortative union for 30\% of the last parental generation
 (half and step siblings). Three replicates per setting.
@@ -206,6 +213,137 @@ avuncular $2.7\times$ / $4.2\times$ and first cousins $3.3\times$ / $6.4\times$,
 $2.2\times$ / $4.5\times$.
 \textbf{Scale epistasis:} \input{results/aligned_sentence.tex}
 
+\section{Linked interacting loci}\label{sec:linkage}
+Everything above assumes unlinked loci. Here the interacting loci sit on a genetic map, and the pair
+$(k,l)$ has recombination fraction $c_{kl}\in[0,\frac12]$. Code: \texttt{digenic.py} (exact random-mating
+coefficients by gene dropping), \texttt{ag\_linked\_model.py} (pathMgr model), \texttt{simulate\_linked.py}
+(haplotype-level simulation) and \texttt{compare\_linked.py}.
+
+\subsection{Cis and trans parts of a pair}
+Write the centred allele values on an individual's two haplotypes as $h_{1k},h_{2k}$, so $x_k=h_{1k}+h_{2k}$
+and
+\[
+x_kx_l=\underbrace{h_{1k}h_{1l}+h_{2k}h_{2l}}_{\text{cis}}+\underbrace{h_{1k}h_{2l}+h_{2k}h_{1l}}_{\text{trans}} .
+\]
+At linkage equilibrium the two parts are uncorrelated and each carries half of the pair's variance. A
+meiosis passes on one of the parent's cis products with probability $1-c$ and one of its trans products
+with probability $c$. A product across the two parental gametes becomes a trans product in the child.
+For $c=\frac12$ this is the unlinked transmission of Section~3. For $c=0$ the pair is a single locus whose alleles
+are haplotypes: the cis part is that locus's \emph{additive} value and the trans part its \emph{dominance}
+deviation.
+
+\subsection{Random mating}
+The pair contributes $\gamma_{kl}^2\,\psi_{ij}(c_{kl})$ to $\Cov[G_i,G_j]$, where
+$\psi_{ij}(c)=\E[a_{ij}(k)\,a_{ij}(l)]$ is the expected product of the realized relatedness at the two loci,
+the digenic identity coefficient (Cockerham 1956; Weir \& Cockerham 1977). With
+$s=(1-c)^2+c^2$, the probability that two meioses of one parent are concordant at the two loci,
+\[
+\psi_{\rm PO}=\tfrac14,\quad \psi_{\rm FS}=\tfrac{s}{4}+\tfrac18,\quad \psi_{\rm HS}=\tfrac{s}{8},\quad
+\psi_{\text{lineal},\,n\text{ meioses}}=\tfrac14\left(\tfrac{1-c}{2}\right)^{n-1},\qquad
+\psi(0)=\tfrac{a+\delta}{2},\quad \psi(\tfrac12)=a^2 ,
+\]
+with $\delta$ the probability that both alleles are IBD ($\frac14$ for full siblings, $0$ for the other
+classes here). Table~\ref{tab:psi} gives gene-dropping values. Parent--offspring is unaffected, because a parent shares exactly
+one allele with a child at every locus. For every other class linkage increases GxG sharing, and the
+increase grows with the distance of the relationship: complete linkage multiplies first-cousin sharing by $4$
+and second-cousin sharing by $16$. Fully linked GxG is half additive-like (kernel $a$) and half
+dominance-like (kernel $\delta$). A variance-components model will therefore absorb it into $V_A$ and the
+sibling excess, not into an $a^2$-shaped term.
+
+\begin{table}[h]\centering\small
+\caption{Random-mating GxG kernel $\psi(c)$ for a pair of loci at recombination fraction $c$ (gene
+dropping, $4\times10^5$ draws; agrees with the closed forms above to $\pm0.0005$).}\label{tab:psi}
+\input{results/linked/psi_table.tex}
+\end{table}
+
+\subsection{Assortative mating}
+Per recombination bin $b$ (fraction $c_b$, base variance $V_{b0}$), the transmission is linear to leading order, as
+in Section~3:
+\[
+G^{\rm cis}_{b,o}=\tfrac{1-c_b}{2}\left(G^{\rm cis}_{b,m}+G^{\rm cis}_{b,f}\right)+\tfrac{c_b}{2}\left(G^{\rm trans}_{b,m}+G^{\rm trans}_{b,f}\right)+s_{cb},
+\qquad G^{\rm trans}_{b,o}=\tfrac14B_{b,mf}+s_{tb},
+\]
+with $\Var[B_b]=2V_{b0}$, $\Var[s_{cb}]=\frac{V_{b0}}{2}-\frac{V_{b0}}{4}\big((1-c_b)^2+c_b^2\big)$ and
+$\Var[s_{tb}]=\frac38V_{b0}$. Mates are matched on $Y=A+\sum_b(G^{\rm cis}_b+G^{\rm trans}_b)+E$.
+\texttt{ag\_linked\_model.py} solves the equilibrium of this system and builds the stationary pathMgr model for
+each class. At $\rho_y=0$ it reproduces the gene-dropping $\psi$ exactly, and at $c=\frac12$ it reproduces
+the unlinked model of Section~3 to machine precision. Table~\ref{tab:linkreal} uses the illustrative
+parameters of Table~\ref{tab:real}, with all interacting pairs at one $c$.
+\begin{enumerate}
+  \item \textbf{Linkage and AM roughly multiply.} At $\rho_y=0.45$, AM raises GxG sharing by a similar factor
+    at every $c$ (first cousins $\times1.29$ at $c=0$, $\times1.33$ at $c=\frac12$). Linkage is the larger
+    effect for anyone beyond first-degree relatives.
+  \item \textbf{The cis part does inherit sorting, as the additive value does, but only its own share.} At
+    $c\approx0$ half of GxG is transmitted with coefficient $\frac12$, like $A$, so mate correlation on it
+    accumulates across generations. That mate correlation comes from GxG's own contribution to $Y$
+    (order $\rho_y V_{GxG}/V_Y$), however, not from the $\beta$-aligned cross-locus structure that inflates
+    $K_A$. The increment is therefore modest.
+  \item \textbf{$K^2$ is no longer an upper bound.} Tightly linked GxG grows like $a/2$ rather than $a^2$.
+    At $\rho_y=0.45$ and $c=0$ its kernel exceeds $K_A^2$ for full siblings ($0.396$ vs $0.368$), half
+    siblings ($0.150$ vs $0.145$), grandparents ($0.156$ vs $0.136$) and first cousins ($0.081$ vs $0.051$).
+    It is below $K_A^2$ only for parent--offspring and in-laws. This mirrors Section~3, where unlinked GxG
+    is far \emph{below} $K^2$ for every class.
+  \item $V_{GxG}$ barely changes with $c$ ($0.203$--$0.207$), and the A--GxG cross term grows mildly with
+    linkage.
+\end{enumerate}
+
+\begin{table}[h]\centering\small
+\caption{GxG kernel with all interacting pairs at recombination fraction $c$; base $V_{A0}=0.40$,
+$V_{G0}=0.20$, $V_E=0.40$ (linked path model). RM: random mating.}\label{tab:linkreal}
+\input{results/linked/realistic_table.tex}
+\end{table}
+
+\subsection{Effect distributions}
+GxG on a real genome is a mixture over $c$: genome-wide pairs are mostly unlinked (two loci fall on the
+same chromosome with probability $\sum_iL_i^2/(\sum_iL_i)^2\approx5\%$ for human autosomes, and are tightly
+linked far more rarely), whereas cis interactions within a gene or regulatory domain have $c\approx0$. Which
+distribution holds is a question about the biology of $\gamma_{kl}$:
+\begin{enumerate}
+  \item[(1)] \textbf{Uniform}, $\gamma_{kl}$ i.i.d.\ over all pairs. GxG variance is $\approx95\%$
+    unlinked, so the kernel is $a^2$ up to a few percent.
+  \item[(2)] \textbf{Scaled by main effects}, $\gamma_{kl}=\beta_k\beta_l\delta_{kl}$ with $\delta_{kl}$
+    i.i.d. The \emph{mean} of $\delta$ matters. With $\E[\delta]=0$ the signs are unrelated to the additive
+    effects and the result is the same as (1); the weighting only redistributes variance among pairs. With
+    $\E[\delta]=\mu\ne0$, $G$ contains $\frac\mu2\big(A^2-\sum_k\beta_k^2x_k^2\big)$: genome-wide
+    \emph{scale} epistasis (Section~\ref{sec:scale}), for which the AM-adjusted $K^2$ is right.
+  \item[(3)] \textbf{Scaled by main effects and proximity.} A weight $(1-c_{kl})$ does not localize
+    the interactions. Because $c\le\frac12$, it lies in $[\frac12,1]$, so unlinked pairs keep a quarter of
+    the variance weight of the tightest pairs and vastly outnumber them. In the simulation it moves the
+    unlinked share of GxG variance only from $95\%$ to $88\%$. A proximity weight must vanish for unlinked
+    pairs: $1-2c_{kl}=e^{-2d_{kl}}$ (Haldane, $d$ in Morgans), or more generally $e^{-d_{kl}/\lambda}$ on the
+    same chromosome with a biological length scale $\lambda$. We use $\lambda=0.1$\,cM (within a gene,
+    $\sim$100\,kb) and $\lambda=5$\,cM ($\sim$5\,Mb, across neighbouring genes).
+  \item[(3d)] \textbf{Directional and local}, $\gamma_{kl}=\beta_k\beta_le^{-d_{kl}/\lambda}$ (no random
+    sign): scale epistasis \emph{within} genes.
+\end{enumerate}
+
+\paragraph{Simulation.} $20$ chromosomes of $1$\,M, each with $25$ genes of $4$ loci spread over $0.1$\,cM
+($M=2000$); Haldane map; $N=20{,}000$; $V_{A0}=0.45$, $V_{G0}=0.30$, $V_E=0.25$; $20$ generations of random
+mating or strong AM ($\rho_y\approx0.86$); three replicates; relative classes and measures as in
+Section~\ref{sec:sim}. Predictions use each architecture's realized distribution of GxG variance over $c$
+(10 bins). Within-chromosome AM disequilibrium builds up on a time scale of $1/c$ generations, so for tight
+pairs the simulation is still approaching equilibrium at generation $20$ ($V_A=1.16$ against an
+equilibrium value of $1.32$ for architecture 3c). We therefore compare with the path model iterated for the
+same number of generations from the linkage-equilibrium base. That model gives $V_A=1.16$, $V_{GxG}=0.38$,
+against the simulation's $1.16$, $0.38$. The equilibrium predictions are $0.02$--$0.03$ higher for the tight
+architectures. Figure~\ref{fig:linked}. \input{results/linked/sim_sentence.tex}
+
+\paragraph{Why local directional epistasis behaves like random-sign epistasis.} Architectures 3c and 3d
+give the same kernels within replicate noise, and both match the path model, which uses only the variances.
+AM's $\beta$-aligned cross-locus covariances, $\Cov[x_k,x_m]\propto\beta_k\beta_m$, enter $\Cov[G_i,G_j]$
+through products over \emph{pairs of pairs}, $\sum\gamma_{kl}\gamma_{mn}\,C_{km}C_{ln}$. When directional
+interactions cover all $O(M^2)$ pairs (genome-wide scale epistasis) these terms add up to an $O(1)$ effect, and
+they are what make $K^2$ exact in Section~\ref{sec:scale}. When the directional pairs are local, only $O(M)$
+of them exist, and the sum is $O(1/M)$. Directionality matters for the kernel only when the nonlinearity
+acts on a genome-wide aggregate.
+
+\begin{figure}[h]\centering
+\includegraphics[width=\linewidth]{results/linked/kernel_linked.pdf}
+\caption{Simulated GxG correlation between relatives (open circles, 95\% CI over three replicates) with
+linked interacting loci, by effect architecture (rows) and mating regime (columns), against the linked path
+model, the current kernel $K_A^2$, and $a^2$.}\label{fig:linked}
+\end{figure}
+
 \section{Implications for the reanalysis}
 \begin{enumerate}
   \item \textbf{What the fitted ``GxG'' term currently means.} With kernel $K^2$ it is a \emph{scale /
@@ -224,10 +362,15 @@ $2.2\times$ / $4.5\times$.
     $a^2$ kernel) is consistent; including only one of them is not.
   \item Suggested follow-up: refit the core models with GxG kernel $a^2$ (``random GxG'') next to $K^2$
     (``scale''), and compare by block cross-validation.
+  \item \textbf{Cis GxG is not separately identifiable from these data.} Its kernel $(a+\delta)/2$ is (exactly at random mating, approximately under AM) a
+    linear combination of the additive kernel and the sibling (dominance-like) excess, so in the fitted models it
+    loads on $V_A$ and on whatever term carries the sibling excess. The ``GxG'' term with kernel $a^2$ (or
+    $K^2$) speaks only to interactions between unlinked loci, which are the bulk of genome-wide pairs.
 \end{enumerate}
 
 \paragraph{Caveats.}
-Unlinked loci (tight linkage increases GxG sharing between close relatives, as under random mating); the
+Sections 2--6 assume unlinked loci (Section~\ref{sec:linkage} relaxes this; there the AM equilibrium for
+very tight pairs is approached on a time scale of $1/c$ generations, and the simulation runs $20$); the
 infinitesimal limit; interaction effects independent of additive effects (case 1) or exactly aligned with them
 (case 2), with real architectures plausibly a mixture, whose kernel is the corresponding mixture; primary
 phenotypic AM at equilibrium; no dominance.
