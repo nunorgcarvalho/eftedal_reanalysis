@@ -36,7 +36,7 @@ COMP_FILL <- c(A = "#4C8CB5", GxG = "#E3894B", house = "#9B7BB8", family = "#6FA
 # excess due to assortative mating, V_A m
 SEG_ORDER <- c("A0", "A_AM", "GxG", "house", "family")
 SEG_FILL <- c(A0 = "#4C8CB5", A_AM = "#A9CBE3", GxG = "#E3894B", house = "#9B7BB8", family = "#6FAF7A")
-SEG_LABELS <- c(A0 = "A, random mating (V_A\u2070)", A_AM = "A, excess from AM (V_A m)",
+SEG_LABELS <- c(A0 = "A (random mating)", A_AM = "A (excess under AM)",
                 GxG = "GxG", house = "house", family = "family")
 COMP_LINE <- c(A = "#1F4E6E", GxG = "#9A4A14", house = "#5B3F78", family = "#2F6B3A")
 FOLD_ORDER <- c("twins", "sibs", "half sibs", "1st cousins", "half cousins", "2nd cousins",
@@ -210,23 +210,6 @@ if (has("models", "core_jackknife.csv")) {
   save_fig(stacked_components(rd("models", "core_jackknife.csv"), CORE_ORDER,
                               "Core models: variance components"),
            "m3_components_core", width = 2700, height = 2300)
-}
-if (has("models", "core_jackknife.csv")) {
-  va <- rd("models", "core_jackknife.csv") %>% filter(param %in% c("V_A", "V_A0")) %>%
-    mutate(param = factor(param, c("V_A", "V_A0"), c("V_A (equilibrium)", "V_A\u2070 = V_A(1 \u2212 m) (random mating)")),
-           model = factor(show_model(model), rev(show_model(CORE_ORDER))),
-           weights = factor(WEIGHT_LABELS[weights], WEIGHT_LABELS[c("invvar", "hybrid_block")]),
-           clip_lo = lo < 0, clip_hi = hi > 1)
-  g <- ggplot(va, aes(x = estimate, y = model, color = param)) +
-    geom_errorbar(aes(xmin = pmax(lo, 0), xmax = pmin(hi, 1)), width = 0.25, orientation = "y",
-                  position = position_dodge(width = 0.5)) +
-    geom_point(size = 2.4, position = position_dodge(width = 0.5)) +
-    facet_wrap(~weights) + scale_x_continuous(limits = c(0, 1), expand = c(0, 0)) +
-    scale_color_manual(values = c("#1F4E6E", "#7FB3D5"), name = NULL) + coord_cartesian(clip = "off") +
-    labs(x = "Additive variance (95% Marginal Type CI)", y = NULL,
-         title = "Additive variance at equilibrium vs under random mating") +
-    theme_bw() + theme(legend.position = "bottom")
-  save_fig(g, "m3c_VA_vs_VA0_core", width = 2600, height = 1300)
 }
 if (has("models", "core_predictions.csv")) {
   fs <- rd("models", "core_fits.csv")
