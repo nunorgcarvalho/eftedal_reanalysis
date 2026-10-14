@@ -58,7 +58,7 @@ stacked_components <- function(jk, order, title) {
     scale_color_manual(values = COMP_LINE) +
     coord_cartesian(ylim = c(0, 1.1)) +
     labs(x = NULL, y = "Variance component (proportion of phenotypic variance)", title = title,
-         subtitle = "Coloured bars: 95% block-jackknife interval of each component; black diamond and bar: sum of the components") +
+         subtitle = "Coloured whiskers: 95% block-jackknife interval of each component (drawn at the top of its segment)\nBlack diamond and whisker: sum of the components with its 95% block-jackknife interval") +
     theme_bw() + theme(legend.position = "bottom", panel.grid.major.x = element_blank())
 }
 
@@ -83,7 +83,7 @@ if (has("robustness", "additive_predictions.csv") && has("models", "core_predict
   cp <- rd("models", "core_predictions.csv") %>% filter(model == "A")
   cf <- rd("models", "core_fits.csv") %>% filter(model == "A")
   ie <- ar %>% filter(variant == "Eftedal settings", cohort_name == "ALL_but_adopted_UZ") %>% pull(fit_id)
-  labs <- c(sprintf("Eftedal et al.: h²=%.2f", ar$V_A[ar$fit_id == ie]),
+  labs <- c(sprintf("Eftedal et al.: h²=%.2f", ar$V_A[which(ar$fit_id == ie)]),
             sprintf("ours, inverse variance: h²=%.2f", cf$V_A[cf$weights == "invvar"]),
             sprintf("ours, hybrid (block-balanced): h²=%.2f", cf$V_A[cf$weights == "hybrid_block"]))
   pr <- bind_rows(ap %>% filter(fit_id == ie) %>% mutate(model = labs[1]),
@@ -97,10 +97,13 @@ if (has("robustness", "additive_predictions.csv") && has("models", "core_predict
 if (has("corrections", "inlaw.csv")) {
   il <- rd("corrections", "inlaw.csv") %>%
     mutate(label = factor(label, rev(unique(label))),
-           panel = ifelse(quantity == "difference", "Difference (bio only − with in-laws)", "h² (additive model)"),
+           panel = factor(ifelse(quantity == "difference", "Difference (bio only − with in-laws)", "h² (additive model)"),
+                          c("h² (additive model)", "Difference (bio only − with in-laws)")),
            quantity = factor(quantity, c("bio only", "bio + in-law", "difference")))
   g <- ggplot(il, aes(x = estimate, xmin = lo, xmax = hi, y = label, color = quantity)) +
-    geom_vline(data = tibble(panel = "Difference (bio only − with in-laws)", v = 0), aes(xintercept = v),
+    geom_vline(data = tibble(panel = factor("Difference (bio only − with in-laws)",
+                                            c("h² (additive model)", "Difference (bio only − with in-laws)")), v = 0),
+               aes(xintercept = v),
                linetype = "dashed") +
     geom_pointrange(position = position_dodge(width = 0.45), size = 0.45, linewidth = 0.8) +
     facet_wrap(~panel, scales = "free_x") +
