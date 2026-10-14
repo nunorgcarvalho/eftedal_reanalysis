@@ -1,5 +1,6 @@
 """Profile over V_A: hold V_A at each value of a grid, refit every other parameter, and record
-the loss and the refitted components. Shows how flat the loss is along the direction in which
+the loss and the refitted components; the joint fit and the two-step core model (additive part
+frozen at the A-only fit) are marked. Shows how flat the loss is along the direction in which
 V_A trades off against V_GxG / V_family. Writes results/profile/profile_VA.csv with, per point:
 
 loss_rel   loss / minimum loss over the grid and the joint fit
@@ -17,7 +18,8 @@ from eftedal import data as D
 from eftedal.fit import fit
 from eftedal.presets import MAIN_WEIGHTINGS, main_spec
 
-MODELS = ["A+GxG", "A+F", "A+GxG+F"]
+# joint model -> its two-step core counterpart (None: no two-step version)
+MODELS = {"A+GxG": "A>GxG", "A+GxG+H": "A>GxG+H", "A+GxG+F": "A>GxG+F", "A+F": None}
 GRID = np.round(np.arange(0.20, 0.901, 0.025), 3)
 
 
@@ -26,14 +28,14 @@ def main(out: Path, n_starts: int):
     df = D.load("MRE8")
     rows = []
     for w in MAIN_WEIGHTINGS:
-        a_only = fit(df, main_spec("A", w), n_starts=n_starts)
-        for m in MODELS:
+        for m, two_step in MODELS.items():
             joint = fit(df, main_spec(m, w), n_starts=n_starts)
-            seq = fit(df, main_spec(m, w).with_(sequential_base=("A",)), n_starts=n_starts)
-            pts = [("grid", v) for v in GRID] + [("joint", joint.params["V_A"]),
-                                                  ("sequential", a_only.params["V_A"])]
+            seq = fit(df, main_spec(two_step, w), n_starts=n_starts) if two_step else None
+            pts = [("grid", v) for v in GRID] + [("joint", joint.params["V_A"])]
+            if seq is not None:
+                pts.append(("two-step", seq.params["V_A"]))
             for kind, v in pts:
-                res = joint if kind == "joint" else fit(
+                res = joint if kind == "joint" else seq if kind == "two-step" else fit(
                     df, main_spec(m, w).with_(fixed=(("V_A", float(v)),)), n_starts=n_starts,
                     starts=[np.delete(joint.theta, joint.free.index("V_A"))])
                 d = {k: res.params.get(k) for k in ("V_A", "V_GxG", "V_family", "r_f", "m", "r")}

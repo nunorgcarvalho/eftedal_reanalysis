@@ -1,13 +1,12 @@
-"""Robustness rows, the bio-only vs bio+in-law contrast, all phenotypes, and the 2025 model
-set under the main settings. Writes results/robustness/:
+"""Supplement: robustness rows for the additive model and the in-law contrast for every
+phenotype. Writes results/robustness/:
 
 additive_rows.csv     (+ additive_predictions.csv) additive model under the main settings and one-at-a-time departures
                       (log scale with delta-method weights, separate m/r, Eftedal step-sib
                       kernel, block-balanced hybrid, duplicated row dropped, MZ fraction 0.42,
                       Eftedal's own settings), in the full and in Eftedal's bio+in-law cohort
-contrast.csv          (+ contrast_predictions.csv) bio-only vs bio+in-law h2 under Eftedal's settings and ours (headline)
-phenotypes.csv        the contrast for all 13 phenotypes
-models_2025.csv       the 2025 model set (M01-M05b) under the main settings (supplement)
+phenotypes.csv        bio-only vs bio + in-law h2 for all 13 phenotypes (MRE8 is main section 2,
+                      scripts/02_corrections.py)
 """
 
 import argparse
@@ -18,8 +17,7 @@ import pandas as pd
 from eftedal import data as D
 from eftedal import eftedal2025 as E
 from eftedal.fit import fit
-from eftedal.model import MODELS_2025
-from eftedal.presets import MAIN_WEIGHTINGS, main_spec
+from eftedal.presets import main_spec
 
 PHENOTYPES = ["MRE8", "MRE5", "MR5", "MR8", "MR9", "math5", "math8", "math9",
               "read5", "read8", "read9", "eng5", "eng8"]
@@ -45,11 +43,11 @@ VARIANTS = [
     ("Eftedal settings", "invSqErr", EFTEDAL_SETTINGS),
 ]
 
+# (name, weights, overrides, bio-only cohort, bio + in-law cohort)
 CONTRAST_SETTINGS = [
-    ("Eftedal settings", "invSqErr", EFTEDAL_SETTINGS),
-    ("main", "hybrid_block", {}),
-    ("main", "invvar", {}),
-    ("log scale, delta-method weights", "invvar", {"scale": "log"}),
+    ("Eftedal settings", "invSqErr", EFTEDAL_SETTINGS, "bio_only", "ALL_but_adopted_UZ"),
+    ("main", "hybrid_block", {}, "bio", "ALL_but_adopted"),
+    ("main", "invvar", {}, "bio", "ALL_but_adopted"),
 ]
 
 
@@ -80,25 +78,13 @@ def additive_rows(df, n_starts):
     return pd.DataFrame(rows), pd.concat(preds, ignore_index=True)
 
 
-def contrast(df, n_starts, phenotype="MRE8", with_preds=False):
-    rows, preds = [], []
-    for name, w, kw in CONTRAST_SETTINGS:
-        for cohort in ("bio_only", "ALL_but_adopted_UZ"):
-            res = fit(df, main_spec("A", w, cohort=cohort, **kw), n_starts=n_starts)
-            tag = dict(setting=name, weighting=w, cohort_name=cohort, phenotype=phenotype)
-            rows.append(_row(res, fit_id=len(rows), **tag))
-            preds.append(_preds(res, len(rows) - 1, **tag))
-    if with_preds:
-        return pd.DataFrame(rows), pd.concat(preds, ignore_index=True)
-    return pd.DataFrame(rows)
-
-
-def models_2025(df, n_starts):
+def contrast(df, n_starts, phenotype="MRE8"):
     rows = []
-    for w in MAIN_WEIGHTINGS:
-        for m in MODELS_2025:
-            res = fit(df, main_spec(m, w), n_starts=n_starts)
-            rows.append(_row(res, model=m, weighting=w))
+    for name, w, kw, c_bio, c_all in CONTRAST_SETTINGS:
+        for part, cohort in (("bio only", c_bio), ("bio + in-law", c_all)):
+            res = fit(df, main_spec("A", w, cohort=cohort, **kw), n_starts=n_starts)
+            rows.append(_row(res, setting=name, weighting=w, part=part, cohort_name=cohort,
+                             phenotype=phenotype))
     return pd.DataFrame(rows)
 
 
@@ -108,12 +94,8 @@ def main(out: Path, n_starts: int):
     rows, preds = additive_rows(df, n_starts)
     rows.to_csv(out / "additive_rows.csv", index=False)
     preds.to_csv(out / "additive_predictions.csv", index=False)
-    rows, preds = contrast(df, n_starts, with_preds=True)
-    rows.to_csv(out / "contrast.csv", index=False)
-    preds.to_csv(out / "contrast_predictions.csv", index=False)
     pd.concat([contrast(D.load(p), n_starts, p) for p in PHENOTYPES],
               ignore_index=True).to_csv(out / "phenotypes.csv", index=False)
-    models_2025(df, n_starts).to_csv(out / "models_2025.csv", index=False)
 
 
 if __name__ == "__main__":
