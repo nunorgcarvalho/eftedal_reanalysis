@@ -35,3 +35,9 @@ poster/*.pdf
 poster/components/*.pdf
 poster/components/*.aux
 poster/components/*.log
+
+# theory notes: LaTeX build products (PDFs are tracked)
+theory/**/*.aux
+theory/**/*.log
+theory/**/*.out
+theory/**/__pycache__/

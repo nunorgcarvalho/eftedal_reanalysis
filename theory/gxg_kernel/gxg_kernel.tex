@@ -1,0 +1,235 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,booktabs,graphicx,xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\E}{\operatorname{E}}
+\newcommand{\VA}{V_A}
+\newcommand{\VG}{V_{GxG}}
+\setlength{\parskip}{4pt}
+\setlength{\emergencystretch}{2em}
+
+\title{Is $K^2$ the right GxG kernel under assortative mating?}
+\author{Derivation and simulation check for \texttt{eftedal\_reanalysis}}
+\date{2026-10-14}
+
+\begin{document}
+\maketitle
+
+\paragraph{Question.}
+The models fitted to the Eftedal et al.\ (2025) correlations write the contribution of pairwise gene--gene
+interaction (GxG) to the correlation of relatives $i,j$ as $\VG\,K_{ij}^2$, where $K_{ij}$ is the
+\emph{assortative-mating (AM) adjusted} additive kernel (e.g.\ $K=\frac{1+m}{2}$ for siblings). Is this
+right for additive-by-additive epistasis under primary phenotypic AM at equilibrium?
+
+\paragraph{Answer.}
+It depends on what the interactions are, and for the usual reading of ``GxG'' it is not.
+\begin{enumerate}
+  \item \textbf{Random pairwise epistasis} (interaction effects $\gamma_{kl}$ unrelated to the additive
+    effects $\beta_k$): $K^2$ is \emph{wrong}. AM's inflation of the additive kernel lives entirely in
+    cross-locus genotype correlations aligned with $\beta_k\beta_l$, which GxG does not see. The GxG kernel
+    stays close to the squared pedigree relatedness $a_{ij}^2$ ($a_{ij}=2\phi_{ij}$). It gains only a small
+    extra term from sorting on GxG itself, and that term is transmitted with coefficient $\frac14$ per meiosis
+    instead of $\frac12$. In simulation $K^2$ overstates the GxG correlation of relatives by $1.7$--$2.3\times$
+    for siblings and $2.5$--$6.4\times$ for second- and third-degree relatives, depending on the strength of
+    AM.
+  \item \textbf{Scale (``aligned'') epistasis} (GxG is a nonlinear function of the additive value, e.g.\
+    $\gamma_{kl}\propto\beta_k\beta_l$ so $G\propto A^2$): $K^2$ is \emph{exactly right} when $(A_i,A_j)$ is
+    bivariate normal, i.e.\ when the curvature is weak. With stronger curvature, AM on the curved scale skews
+    $A$, and the GxG correlation of relatives then exceeds even $K^2$.
+  \item In both cases AM on a phenotype that contains GxG also creates a within-person covariance between the
+    additive and GxG values, and hence cross terms $\Cov[A_i,G_j]$ between relatives. Our model omits them.
+\end{enumerate}
+All claims are verified against an allele-level forward simulation
+(Fig.~\ref{fig:check}, Table~\ref{tab:check}). Code is in \texttt{theory/gxg\_kernel/}:
+\texttt{simulate.py}, \texttt{ag\_path\_model.py} (pathMgr) and \texttt{compare.py}.
+
+\section{Model}
+$M$ unlinked biallelic loci; standardized genotypes $x_k=(g_k-2p_k)/\sqrt{2p_kq_k}$ (base-generation
+frequencies). For individual $i$,
+\[
+A_i=\sum_k \beta_k x_{ik},\qquad
+G_i=\sum_{k<l}\gamma_{kl}\,x_{ik}x_{il},\qquad
+Y_i=A_i+G_i+E_i .
+\]
+Mates are matched on $Y$ with phenotypic correlation $\rho_y$ (primary phenotypic AM), constant across
+generations, to equilibrium. Base (linkage-equilibrium, random-mating) variances are
+$V_{A0}=\sum\beta_k^2$ and $V_{G0}=\sum\gamma_{kl}^2$. ``Leading order'' means as $M\to\infty$ with
+$V_{A0},V_{G0}$ fixed (infinitesimal limit). No dominance, no inbreeding, no linkage.
+
+\section{Random mating: \texorpdfstring{$K^2$}{K2} with \texorpdfstring{$K=a$}{K=a}}
+With unlinked loci and no inbreeding, IBD at different loci is independent given the pedigree and
+$\Cov[x_{ik},x_{jk}]=a_{ij}$, so
+\[
+\Cov[G_i,G_j]=\sum_{k<l}\gamma_{kl}^2\,\E[x_{ik}x_{jk}]\,\E[x_{il}x_{jl}]=a_{ij}^2\,V_{G0}
+\]
+(Cockerham 1954). Under random mating the GxG kernel is the square of the additive kernel. Under AM the
+question is \emph{which} quantity gets squared.
+
+\section{Assortative mating, random epistasis}
+\subsection{Additive inflation does not reach GxG}
+The relative-covariance writeup (popstatgenwriteups, \texttt{relative\_covariance} v1, eq.~\texttt{same-cross})
+shows that at AM equilibrium the same-locus covariance of relatives' genotypes is the random-mating (IBD)
+value, up to $O(1/M_e)$. Everything AM adds to the additive covariance sits in cross-locus covariances
+$\Cov[x_{ik},x_{jl}]\propto\beta_k\beta_l$ ($k\neq l$). Those are $O(1/M)$ each but $O(M^2)$ in number,
+which is why the additive kernel inflates from $a_{ij}$ to $K_{ij}$.
+
+The GxG covariance is $\sum\gamma_{kl}\gamma_{k'l'}\Cov[x_{ik}x_{il},x_{jk'}x_{jl'}]$. When $\gamma$ is
+independent of $\beta$, a $\beta_k\beta_l$-aligned structure enters only through sums such as
+$\sum_{kl}\gamma_{kl}^2\beta_k^2=O(V_{A}V_{G}/M)$ or $\sum_l(\sum_k\gamma_{kl}\beta_k)^2=O(V_AV_G/M)$. These
+vanish at leading order. So the mechanism that turns $a$ into $K$ for $A$ does nothing for $G$. If it were
+the only effect, the GxG kernel under AM would simply be $a_{ij}^2$.
+
+\subsection{What AM does do to GxG: sorting on G itself}
+Mates are matched on $Y$, which contains $G$, so mates' GxG values correlate:
+$\mu_G\equiv\Cov[G_m,G_f]/\VG$. Whether that passes to offspring follows from an exact identity. Loci are
+transmitted independently, and $\E[x_{ok}\mid\text{parents}]=(x_{mk}+x_{fk})/2$, so
+\begin{equation}\label{eq:Gtransmit}
+\E[G_o\mid \text{parents}]=\sum_{k<l}\gamma_{kl}\frac{(x_{mk}+x_{fk})(x_{ml}+x_{fl})}{4}
+=\tfrac14 G_m+\tfrac14 G_f+\tfrac14 B_{mf},
+\end{equation}
+where $B_{mf}=\sum_{k<l}\gamma_{kl}(x_{mk}x_{fl}+x_{fk}x_{ml})$.
+$B_{mf}$ is a \emph{cross-parent interaction value}: interactions between one parent's allele at $k$ and the
+other's at $l$. To leading order:
+\begin{itemize}
+  \item $\Var[B_{mf}]=2V_{G0}$, and $B_{mf}$ is uncorrelated with every $A$, $G$, $E$ in the pedigree. Every
+    covariance it could have with sorted quantities is an odd moment or a $\beta$/$\gamma$-misaligned sum of
+    order $1/M$. It is shared only by the couple's children.
+  \item The segregation residual $s_G=G_o-\E[G_o\mid\text{parents}]$ has variance $\frac34 V_{G0}$ and is
+    uncorrelated with $s_A$. Both depend only on per-locus second moments, which AM leaves at their base
+    values.
+\end{itemize}
+So, to leading order, GxG is transmitted \emph{linearly}, like an additive trait but with half the path
+coefficient and an extra full-sibling-shared term:
+\[
+G_o=\tfrac14 G_m+\tfrac14 G_f+\tfrac14 B_{mf}+s_G,\qquad A_o=\tfrac12 A_m+\tfrac12 A_f+s_A .
+\]
+This is a linear path model with one co-path per couple on $Y$, which is exactly what pathMgr represents.
+\texttt{ag\_path\_model.py} builds it over a pedigree for each relationship class.
+
+\subsection{Equilibrium}
+With $V_Y=\VA+\VG+2c+V_E$ and $c=\Cov[A,G]$ within a person, the co-path gives
+$\Cov[X_m,Z_f]=\rho_y\Cov[X,Y]\Cov[Z,Y]/V_Y$, so
+\begin{align*}
+\VA&=\frac{\VA+\rho_y(\VA+c)^2/V_Y}{2}+\frac{V_{A0}}2, &
+\VG&=V_{G0}+\frac{\rho_y(\VG+c)^2}{7V_Y},\\
+c&=\frac{d}{3}, &
+d&=\Cov[A_m,G_f]=\frac{\rho_y(\VA+c)(\VG+c)}{V_Y}.
+\end{align*}
+Equivalently $\VG=V_{G0}/(1-\mu_G/7)$, against $\VA=V_{A0}/(1-m)$ for the additive part: AM inflates GxG
+variance about seven times more weakly. In the stationary pathMgr model the descendants' variances reproduce
+the founders' exactly, which checks this fixed point.
+
+\subsection{Resulting kernels}
+Two classes have closed forms in GxG units:
+\[
+\text{parent--offspring: } K_G=\frac{1+\mu_G}{4},\qquad
+\text{full siblings: } K_G=\frac{1+\mu_G}{8}+\frac{V_{G0}}{8\VG}=\frac14+\frac{3\mu_G}{28}.
+\]
+Compare $K^2=\big(\frac{1+m}{2}\big)^2=\frac14+\frac m2+\frac{m^2}4$. At random mating ($\mu_G=0$) every class
+reduces to $a^2$, which pathMgr reproduces exactly. Table~\ref{tab:real} gives all classes at illustrative,
+test-score-like parameters. The AM increment over $a^2$ is small for close relatives and negligible for
+in-laws, whereas $K^2$ inflates steadily with distance.
+
+\begin{table}[h]\centering\small
+\input{results/realistic_table.tex}
+\caption{GxG kernels at base $V_{A0}=0.40$, $V_{G0}=0.20$, $V_E=0.40$ (random epistasis; pathMgr path model).
+$K_G$: correct kernel; $K_A^2$: the current model's kernel built from the AM-adjusted additive kernel $K_A$;
+$a^2$: squared pedigree relatedness. ``cross'' is $(\Cov[A_i,G_j]+\Cov[G_i,A_j])/(2\sqrt{\VA\VG})$, the
+A--GxG cross term our model omits.}\label{tab:real}
+\end{table}
+
+\subsection{The A--GxG cross term}
+Because mates are matched on $A+G$, $\Cov[A_m,G_f]=d\neq0$, and offspring inherit a within-person covariance
+$c=d/3$. Relatives then also covary through $\Cov[A_i,G_j]$, contributing
+$\Cov[A_i,G_j]+\Cov[G_i,A_j]$ to the phenotypic covariance. At $\rho_y=0.45$ this cross term is
+$0.05$--$0.07$ in correlation units for first-degree relatives, as large as or larger than the AM increment in
+$K_G$ itself (Table~\ref{tab:real}). Neither our model nor Eftedal's has it.
+
+\section{When \texorpdfstring{$K^2$}{K2} is right: scale epistasis}
+If interaction effects follow the additive ones, $\gamma_{kl}=\lambda\beta_k\beta_l$, then
+$G=\tfrac\lambda2(A^2-\sum_k\beta_k^2x_k^2)$. Up to an $O(1/M)$ term this is a quadratic function of the
+additive value, i.e.\ a nonlinear scale on $A$. For mean-zero bivariate-normal $(A_i,A_j)$,
+$\Cov[A_i^2,A_j^2]=2\Cov[A_i,A_j]^2$ (Isserlis) and $\Var[A^2]=2\VA^2$, so
+\[
+\frac{\Cov[G_i,G_j]}{\VG}=K_{ij}^2\quad\text{exactly, AM included.}
+\]
+More generally, for any smooth scale $f(A)$, $\Cov[f(A_i),f(A_j)]=\sum_n c_n^2\,n!\,(K_{ij}\VA)^n$ (Hermite
+expansion), and $K^2$ is its second-order term. So the current kernel is the correct kernel for
+\emph{non-additivity of scale}: a phenotype that is a curved function of a single additive liability. It is
+not the kernel for interactions between independently acting loci.
+
+\paragraph{Caveat: AM on a curved scale distorts $A$.} The identity needs $(A_i,A_j)$ bivariate normal. AM on
+$Y=A+\lambda A^2/2+E$ breaks this when the curvature matters. Matching on $Y$ assorts more precisely where
+$Y$ is steeper in $A$ (the upper tail for $\lambda>0$), so over generations the upper tail spreads more than the
+lower. $A$ becomes skewed, and it correlates with its own square, and hence with $G$. In simulation
+(\texttt{results/*\_curved}) \input{results/curved_sentence.tex}
+
+\section{Simulation check}
+\texttt{simulate.py}: $N=20{,}000$ per generation, $M=1{,}000$ unlinked loci, 20 generations of rank-matching
+AM on $Y$, two children per couple, and a second assortative union for 30\% of the last parental generation
+(half and step siblings). Three replicates per setting.
+\begin{itemize}
+  \item Random epistasis: 4,000 random locus pairs, base $V_{A0}=0.45$, $V_{G0}=0.30$, $V_E=0.25$.
+  \item Scale epistasis: $G\propto A^2$. The identity test uses negligible curvature ($V_{G0}=10^{-4}$;
+    the kernel ratio does not depend on the size of $\lambda$); the curvature caveat uses $V_{G0}=0.03$
+    (\texttt{*\_curved}).
+  \item AM: strong ($\rho_y\approx0.86$) or moderate ($\rho_y\approx0.64$).
+\end{itemize}
+Predictions are evaluated at each replicate's measured base variances and $\rho_y$. The equilibrium $\VG$
+and $c$ match the fixed point (e.g.\ strong: $c=0.069$--$0.070$ simulated vs $0.067$--$0.074$ predicted).
+
+\begin{figure}[h]\centering
+\includegraphics[width=\linewidth]{results/kernel_check.pdf}
+\caption{Correlation of GxG values between relatives: simulation (open circles, 95\% CI over replicates) against
+the path model of this note, the current kernel $K^2$, and $a^2$.}\label{fig:check}
+\end{figure}
+
+\begin{table}[h]\centering\small
+\input{results/check_table.tex}
+\caption{Simulated GxG kernel vs predictions (strong AM; moderate AM in \texttt{results/comparison.csv}).
+Random-epistasis rows compare with the path model; scale-epistasis rows with $K_A^2$ computed from the
+simulated additive kernel.}\label{tab:check}
+\end{table}
+
+\paragraph{Result.}
+\textbf{Random epistasis:} the path model matches every class in both AM regimes to within $0.01$, with one
+exception. Mother--offspring under strong AM is $0.320$ simulated vs $0.305$ predicted, and the gap does not
+shrink with $M=3{,}000$ loci. It comes from an asymmetry of the simulated mating scheme, which adds matching
+noise to the female's score only. In a diagnostic run $\Cov[B_{mf},G_m]/\VG=+0.024$ and
+$\Cov[B_{mf},G_f]/\VG=-0.019$: zero in sum, as the theory requires, but not separately. Classes that
+depend on both parents symmetrically (e.g.\ full siblings, $0.274$ vs $0.273$) are unaffected. The measured
+$\Var[B_{mf}]=2.01\,V_{G0}$ matches the derivation.
+$K^2$ is too large everywhere. Under moderate / strong AM it overstates siblings $1.7\times$ / $2.3\times$,
+avuncular $2.7\times$ / $4.2\times$ and first cousins $3.3\times$ / $6.4\times$, and step siblings
+$2.2\times$ / $4.5\times$.
+\textbf{Scale epistasis:} \input{results/aligned_sentence.tex}
+
+\section{Implications for the reanalysis}
+\begin{enumerate}
+  \item \textbf{What the fitted ``GxG'' term currently means.} With kernel $K^2$ it is a \emph{scale /
+    nonlinearity} component (a curved function of the additive value), not interaction among independent
+    loci. That is a legitimate and arguably plausible model for test scores (floor and ceiling effects), but it
+    should be labelled as such.
+  \item \textbf{For classical random GxG, replace $K^2$ by $K_G$.} A simple and adequate approximation is
+    $a_{ij}^2$, which ignores sorting on GxG: at $\rho_y\approx0.45$ it errs by $\le0.023$ for first-degree
+    relatives and by $\le0.015$ for every other class in Table~\ref{tab:real}. With $a^2$, GxG contributes $1$ to MZ twins, $\tfrac14$ to DZ twins, full siblings and
+    parent--offspring, $\tfrac1{16}$ to second-degree relatives (half siblings, avuncular, grandparent),
+    $\tfrac1{64}$ to first cousins, and essentially nothing to more distant relatives or in-laws. It becomes almost a ``close-relative excess'' term, identified mainly by the MZ/DZ contrast.
+    Expect it to compete much less with the family-environment term and with $V_A$.
+  \item \textbf{UZ-linked classes.} The MZ/DZ mixture should be applied to the squared kernel
+    ($p\,a_{\rm MZ}^2+(1-p)\,a_{\rm DZ}^2$), as the code already does for $K^2$.
+  \item \textbf{The A--GxG cross term} is at least as large as the AM correction to $K_G$. Ignoring both (the
+    $a^2$ kernel) is consistent; including only one of them is not.
+  \item Suggested follow-up: refit the core models with GxG kernel $a^2$ (``random GxG'') next to $K^2$
+    (``scale''), and compare by block cross-validation.
+\end{enumerate}
+
+\paragraph{Caveats.}
+Unlinked loci (tight linkage increases GxG sharing between close relatives, as under random mating); the
+infinitesimal limit; interaction effects independent of additive effects (case 1) or exactly aligned with them
+(case 2), with real architectures plausibly a mixture, whose kernel is the corresponding mixture; primary
+phenotypic AM at equilibrium; no dominance.
+
+\end{document}
