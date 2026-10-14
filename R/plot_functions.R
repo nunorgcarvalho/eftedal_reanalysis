@@ -134,30 +134,37 @@ pool_by_type <- function(obs) {
 }
 
 plot_fits_condensed <- function(obs, preds, colors, title = NULL) {
-  po <- pool_by_type(obs)
+  po <- pool_by_type(obs) %>%
+    mutate(lo = corr - z95 * se, hi = corr + z95 * se, label = str_wrap(CONDENSED_LABELS[rel], 10))
   w <- obs %>% transmute(row, w = 1 / se^2)
   pp <- preds %>% filter(rel %in% CONDENSED_ORDER) %>% inner_join(w, by = "row") %>%
     group_by(model, rel) %>% summarize(pred = sum(w * pred) / sum(w), .groups = "drop") %>%
     mutate(x = match(rel, CONDENSED_ORDER))
   path <- pp %>% reframe(x = c(x - 0.35, x + 0.35), pred = c(pred, pred), .by = c(model, rel)) %>%
     arrange(model, x)
+  lab <- po %>% left_join(pp %>% group_by(rel) %>% summarize(pmax = max(pred)), by = "rel") %>%
+    mutate(y = pmax(hi, pmax) + 0.02)
   ggplot() +
     geom_hline(yintercept = 0) +
     geom_path(data = path, aes(x = x, y = pred, color = model, group = model), linewidth = 0.3, alpha = 0.8) +
     geom_segment(data = pp, aes(x = x - 0.35, xend = x + 0.35, y = pred, yend = pred, color = model),
-                 linewidth = 0.9) +
-    geom_errorbar(data = po, aes(x = x, ymin = corr - z95 * se, ymax = corr + z95 * se), width = 0.15) +
-    geom_point(data = po, aes(x = x, y = corr), size = 2.6) +
-    scale_x_continuous(breaks = seq_along(CONDENSED_ORDER), labels = CONDENSED_LABELS[CONDENSED_ORDER],
-                       expand = expansion(add = 0.6)) +
-    scale_y_continuous(breaks = seq(0, 1, by = 0.1)) +
-    scale_color_manual(values = colors, breaks = names(colors), name = NULL) +
-    coord_cartesian(ylim = c(-0.02, 0.92)) +
-    labs(x = NULL, y = "Correlation", title = title,
+                 linewidth = 0.9, alpha = 0.8) +
+    geom_errorbar(data = po, aes(x = x, ymin = lo, ymax = hi), width = 0.12) +
+    geom_point(data = po, aes(x = x, y = corr), size = 1.9) +
+    geom_text(data = lab, aes(x = x, y = y, label = label), size = 2.6, vjust = 0, lineheight = 0.85) +
+    scale_x_continuous(breaks = NULL, expand = expansion(add = 0.6)) +
+    scale_y_continuous(breaks = seq(-0.05, 1, by = 0.05), expand = c(0, 0)) +
+    scale_color_manual(values = colors, breaks = names(colors), name = "Model") +
+    coord_cartesian(ylim = c(-0.05, 1)) +
+    labs(x = "Relationship Type", y = "Correlation", title = title,
          caption = "Points: inverse-variance pooled correlation of each relationship type (95% CI); bars: model predictions pooled with the same weights") +
     theme_bw() +
-    theme(axis.text.x = element_text(angle = 40, hjust = 1), panel.grid.minor = element_blank(),
+    theme(axis.ticks.x = element_blank(),
+          panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
+          panel.grid.major.y = element_line(linetype = "dashed"),
+          panel.grid.minor.y = element_line(linetype = "dashed"),
           legend.position = "inside", legend.position.inside = c(0.985, 0.98),
           legend.justification = c("right", "top"),
-          legend.background = element_rect(fill = "white", color = "black"))
+          legend.box.background = element_rect(fill = "white", color = "black"),
+          legend.box.margin = margin(1, 1, 1, 1))
 }
