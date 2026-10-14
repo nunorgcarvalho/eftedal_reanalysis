@@ -163,6 +163,53 @@ stacked_components <- function(jk, order, title) {
                        plot.margin = margin(10, 10, 5, 5))
 }
 
+# Condensed fit-component plot for one model: per relationship type, the inverse-variance pooled
+# observed correlation (point, 95% CI) and the predicted correlation as a stacked bar of its parts
+# (V_A0 * a_k under random mating, the AM excess of the additive part, GxG, house, familial env.),
+# each pooled with the same weights as the observations.
+plot_condensed_components <- function(preds, title = NULL) {
+  obs <- obs_from(preds)
+  po <- pool_by_type(obs) %>%
+    mutate(lo = corr - z95 * se, hi = corr + z95 * se, label = str_wrap(CONDENSED_LABELS[rel], 10))
+  parts <- c(A0 = "part_A0", A_AM = "part_A_AM", GxG = "comp_GxG", house = "comp_house", family = "comp_family")
+  parts <- parts[parts %in% names(preds)]
+  parts <- parts[sapply(parts, function(cl) any(!is.na(preds[[cl]])))]   # components in this model
+  w <- obs %>% transmute(row, w = 1 / se^2)
+  pp <- preds %>% filter(rel %in% CONDENSED_ORDER) %>% inner_join(w, by = "row") %>%
+    select(rel, w, all_of(unname(parts))) %>%
+    pivot_longer(all_of(unname(parts)), names_to = "col", values_to = "value") %>%
+    mutate(segment = factor(names(parts)[match(col, parts)], SEG_ORDER)) %>%
+    group_by(rel, segment) %>% summarize(value = sum(w * value) / sum(w), .groups = "drop") %>%
+    mutate(x = match(rel, CONDENSED_ORDER)) %>% arrange(x, segment) %>%
+    group_by(rel) %>% mutate(ymax = cumsum(value), ymin = ymax - value) %>% ungroup() %>%
+    mutate(xmin = x - 0.35, xmax = x + 0.35, signif = TRUE, weights = "all")
+  tot <- pp %>% group_by(rel, x) %>% summarize(pred = max(ymax), .groups = "drop")
+  lab <- po %>% left_join(tot, by = c("rel", "x")) %>% mutate(y = pmax(hi, pred) + 0.02)
+  stripes <- stripe_segments(pp %>% filter(segment == "A_AM"), spacing = 0.02, slope = 0.25)
+  ggplot() +
+    geom_hline(yintercept = 0) +
+    geom_vline(xintercept = match("step sibs", CONDENSED_ORDER) - 0.5, linetype = "dashed", color = "grey55") +
+    geom_rect(data = pp, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = segment),
+              key_glyph = draw_key_striped) +
+    {if (nrow(stripes)) geom_segment(data = stripes, aes(x = x, xend = xend, y = y, yend = yend),
+                                     color = "white", linewidth = 0.35)} +
+    geom_errorbar(data = po, aes(x = x, ymin = lo, ymax = hi), width = 0.12) +
+    geom_point(data = po, aes(x = x, y = corr), size = 1.9) +
+    geom_text(data = lab, aes(x = x, y = y, label = label), size = 2.6, vjust = 0, lineheight = 0.85) +
+    scale_fill_manual(values = SEG_FILL, labels = SEG_LABELS, breaks = SEG_ORDER, name = "Predicted from") +
+    scale_x_continuous(breaks = NULL, expand = expansion(add = 0.6)) +
+    scale_y_continuous(breaks = seq(-0.05, 1, by = 0.05), expand = c(0, 0)) +
+    coord_cartesian(ylim = c(-0.05, 1)) +
+    labs(x = "Relationship Type", y = "Correlation", title = title,
+         caption = paste0("Points: inverse-variance pooled correlation of each relationship type (95% CI).\n",
+                          "Bars: predicted correlation split by component; A = V_A\u2070 \u00d7 (1/2)\u207f under random mating + the excess under AM.")) +
+    theme_bw() +
+    theme(axis.ticks.x = element_blank(), panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
+          panel.grid.major.y = element_line(linetype = "dashed"), panel.grid.minor.y = element_line(linetype = "dashed"),
+          legend.position = "inside", legend.position.inside = c(0.985, 0.98), legend.justification = c("right", "top"),
+          legend.box.background = element_rect(fill = "white", color = "black"), legend.box.margin = margin(1, 1, 1, 1))
+}
+
 # ---- M1. Eftedal's estimator -> ours ----------------------------------------------------------
 if (has("corrections", "steps.csv")) {
   st <- rd("corrections", "steps.csv")
@@ -266,6 +313,23 @@ if (has("models", "core_predictions.csv")) {
                sprintf("m3b_eftedalfit_%s_%s", cmp, wt))
       save_fig(plot_fits_condensed(obs, pr, colors = cols, title = WEIGHT_LABELS[[wt]]),
                sprintf("m3b_condensedfit_%s_%s", cmp, wt), width = 2600, height = 1500)
+    }
+  }
+}
+
+# ---- M3d. condensed fit-component plots ------------------------------------------------------
+if (has("models", "core_predictions.csv")) {
+  cpp <- rd("models", "core_predictions.csv")
+  if ("part_A0" %in% names(cpp)) {
+    cf <- rd("models", "core_fits.csv")
+    for (wt in c("invvar", "hybrid_block")) {
+      for (mod in c("A", "A+GxG", "A+F", "A+GxG+F")) {
+        ttl <- paste0(show_model(mod), " (", WEIGHT_LABELS[[wt]], ")")
+        sub <- fmt_par(cf %>% filter(model == !!mod, weights == !!wt), c("V_A", "V_A0", "V_GxG", "V_family", "r_f", "m", "r"))
+        save_fig(plot_condensed_components(cpp %>% filter(model == !!mod, weights == !!wt), title = ttl) +
+                   labs(subtitle = sub),
+                 sprintf("m3d_condensedcomp_%s_%s", gsub("[+>]", "", mod), wt), width = 2600, height = 1500)
+      }
     }
   }
 }

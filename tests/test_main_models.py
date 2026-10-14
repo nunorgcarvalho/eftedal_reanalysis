@@ -167,3 +167,14 @@ def test_random_mating_VA(df):
     np.testing.assert_allclose(fp["V_A0"], fp["V_A"] * (1 - fp["m"]))
     jk = cv.jackknife(fp, full.params, ["V_A0"], blocks=["sibs", "twins"]).iloc[0]
     assert jk["estimate"] == pytest.approx(r.params["V_A"] * (1 - r.params["m"]), rel=1e-4)
+
+
+def test_additive_split_rm_and_am(df):
+    r = fit(df, main_spec("A+GxG+F", "invvar"), n_starts=2)
+    p = r.predictions()
+    np.testing.assert_allclose(p.part_A0 + p.part_A_AM, p.comp_A)
+    assert (p.part_A_AM >= -1e-12).all()                      # AM only adds sharing
+    inlaw = p.rel.isin(["step sibs", "cocousins"])
+    np.testing.assert_allclose(p.loc[inlaw, "part_A0"], 0)    # in-laws share nothing by descent
+    sib = p.index[p.rel == "sibs"][0]
+    assert p.part_A0[sib] == pytest.approx(r.summary()["V_A0"] * 0.5)

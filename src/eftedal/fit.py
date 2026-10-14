@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
 
+from . import components as C
 from .model import FitSpec, Model, PARAM_ORDER
 
 
@@ -58,6 +59,14 @@ class FitResult:
         comps = self.model.components(self.params)
         for c in comps:
             df[f"comp_{c}"] = comps[c].to_numpy()
+        if "A" in comps:
+            # split the additive contribution: what V_A0 = V_A (1 - m) would give under random mating
+            # (V_A0 * a_k, a_k = (1/2)^n; 0 for in-laws and adoptees), and the excess due to AM
+            m = self.model
+            a_rm, _ = C.genetic_kernels(m.kd, 0.0, 0.0, stepsib=m.spec.stepsib, uz=m.spec.uz,
+                                        mz_frac=m.spec.mz_frac)
+            df["part_A0"] = random_mating_VA(self.params) * a_rm
+            df["part_A_AM"] = df["comp_A"] - df["part_A0"]
         return df
 
 
