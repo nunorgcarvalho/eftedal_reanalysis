@@ -1,10 +1,13 @@
-% ASHG 2026 poster. Build: poster/build.sh  (figures come from results/figures/main/*.pdf,
-% made by R/make_figures.R; logos in poster/logos/, untracked).
+% ASHG 2026 poster. Build: poster/build.sh  (diagrams from components/*.tex; logos in
+% poster/logos/, untracked; result figures from results/figures/ once they are placed).
 % Size: ASHG 2026 recommended poster 72 in wide x 36 in tall (board 96 x 48 in, landscape).
 \documentclass{article}
 \usepackage[paperwidth=72in, paperheight=36in, margin=0in]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}                      % scalable math fonts (CM stops at 25pt)
+% lmodern fixes the math-extension font (big delimiters) at 10pt; let it scale with the text
+\DeclareFontFamily{OMX}{lmex}{}
+\DeclareFontShape{OMX}{lmex}{m}{n}{<->lmex10}{}
 \usepackage[default]{sourcesans}          % sans-serif body font (scalable)
 \usepackage{amsmath, amssymb}
 \usepackage{graphicx}
@@ -15,8 +18,10 @@
 \usepackage{enumitem}
 \usepackage{qrcode}
 \usepackage{fontawesome5}
+\usepackage{booktabs, array}
 
-\graphicspath{{../results/figures/main/}{logos/}{components/}}
+\graphicspath{{../results/figures/}{logos/}{components/}}
+\input{components/style/palette}   % relationship-type colours, shared with the pedigrees
 
 % ---- colours (figure palette: ours = teal, Eftedal = salmon) ------------------------------
 \definecolor{navy}{HTML}{1F3A5F}
@@ -72,87 +77,41 @@
   \end{minipage}%
 }
 
-% ============================== COLUMN 1 ==============================
-\posterbox[adjusted title=Background]{name=bg, column=1, below=header}{
-\begin{itemize}
-  \item \textbf{Eftedal et al.\ (2025, \textit{PNAS})}: test-score correlations for \textbf{82 categories} of
-        relatives among $\sim$1M Norwegian schoolchildren: twins $\rightarrow$ 2nd cousins, in-laws, adoptees
-  \item Fisherian model (additive genetics + assortative mating):
-        $h^2 = 0.80$ in biological relatives, but \textbf{0.50} once in-laws are added
-  \item Their conclusion: in-laws ``break'' the genetic model
-  \item \textbf{We re-fit their public correlations} with corrected estimation and richer models
-\end{itemize}
+% ============================== RELATIVES ==============================
+% swatch in a relationship colour (matches the pedigree connectors)
+\newcommand{\relswatch}[1]{\textcolor{#1}{\rule[0.18em]{1.6em}{0.32em}}}
+\newcommand{\relname}[2]{\relswatch{#1}\hspace{0.5em}{\color{#1}\bfseries #2}}
+
+\posterbox[adjusted title=Kinds of relatives]{name=rel, column=1, span=2, below=header}{
+\centering
+\includegraphics[scale=4.0]{pedigree_sibs}\hfill
+\includegraphics[scale=4.0]{pedigree_cousins}
+
+\vspace{1.2em}
+{\renewcommand{\arraystretch}{2.3}
+\begin{tabular}{@{}l c >{$\displaystyle}l<{$}@{}}
+\toprule
+\textbf{relatives} & \textbf{genetic degree $n$} & \text{\textbf{expected correlation (additive model)}} \\
+\midrule
+\relname{cFull}{full siblings}      & 1 & h^2\,\frac{1+m}{2} \\
+\relname{cHalf}{half-siblings}      & 2 & h^2\,\frac{1+2m+rm}{4} \\
+\relname{cStep}{step-siblings}      & 2 & h^2\,m\,\left(\frac{1+r}{2}\right)^{2} \\
+\relname{cAdopt}{adoptive siblings} & -- & 0 \\
+\relname{cCous}{1st cousins}        & 3 & h^2\,\left(\frac{1+m}{2}\right)^{3} \\
+\relname{cCoc}{co-cousins}          & 4 & h^2\,m\,\left(\frac{1+m}{2}\right)^{4} \\
+\bottomrule
+\end{tabular}\par}
+
+\vspace{0.6em}
+{\smallsize\raggedright
+$h^2$: heritability; $m$, $r$: genetic and phenotypic correlation between mates, with $m = h^2 r$ (assortment on the
+phenotype, at equilibrium). $n$ as defined by Eftedal et al.; for relatives-in-law, the summed distance to the
+connecting mates. Half-siblings: $h^2\left(\frac{1+m}{2}\right)^{2}\frac{1+2m+rm}{(1+m)^2}$ (Nagylaki). Step-siblings: corrected; Eftedal et al.\ use
+$h^2 m\big(\frac{1+m}{2}\big)^2$. Adoptive siblings share no genes, so the additive model predicts 0.\par}
 }
 
-\posterbox[adjusted title=Model]{name=model, column=1, below=bg}{
-Predicted correlation of relative category $k$:
-\[
-  \rho_k = V_A\,K_k + V_{\mathrm{GxG}}\,K_k^2 + V_{\mathrm{fam}}\, r_f^{\,f_k} \;\big[+\, V_{\mathrm{house}}\,h_k\big]
-\]
-\vspace{-0.8em}
-\begin{itemize}
-  \item $K_k$: additive genetic sharing under assortative mating (Fisher; Nagylaki), with \mbox{$m = h^2 r$}
-  \item $V_{\mathrm{GxG}}$: pairwise gene--gene interaction
-  \item $V_{\mathrm{fam}}\, r_f^{f}$: family environment decaying with family distance $f$
-  \item Weighted least squares on all 82 correlations
-\end{itemize}
-}
-
-\posterbox[adjusted title=What we fixed]{name=fixes, column=1, between=model and bottom}{
-\begin{itemize}
-  \item \textbf{Log-scale weights}: $\ln\rho$ was weighted by $1/SE^2$, but
-        $\mathrm{Var}(\ln\hat\rho)\approx SE^2/\rho^2$ $\Rightarrow$ distant relatives over-weighted
-        $\sim 1/\rho^2$ ($\times$200 for 2nd cousins). \textbf{We fit on the linear scale.}
-  \item \textbf{$m$ and $r$} were estimated independently; the model implies $m = h^2 r$. \textbf{Coupled.}
-  \item \textbf{Step-sibling covariance}: $m(\tfrac{1+m}{2})^2 \rightarrow m(\tfrac{1+r}{2})^2$
-  \item \textbf{Weights}: inverse variance, and block-balanced (every kind of relative counts equally)
-  \item \textbf{Uncertainty}: bootstrap + leave-one-block-out jackknife; models compared by
-        \textbf{block cross-validation}
-\end{itemize}
-}
-
-% ============================== COLUMN 2 ==============================
-\posterbox[adjusted title=In-laws barely move $h^2$ once estimation is fixed]{name=r1, column=2, below=header}{
-\centering\includegraphics[width=\linewidth]{02_bio_vs_inlaw_contrast}
-\takeaway{Bio-only vs.\ bio + in-law: \eftedal{} 0.80 $\rightarrow$ 0.50; \ours{} 0.84 $\rightarrow$ 0.79.
-Same pattern in all 13 test phenotypes.}
-}
-
-\posterbox[adjusted title=Eftedal et al.'s fit vs.\ ours]{name=r2, column=2, between=r1 and bottom}{
-\centering\includegraphics[width=\linewidth]{01_eftedal_vs_ours}
-\takeaway{Correct weighting stops distant relatives from dragging $h^2$ down; close relatives are fit
-much better.}
-}
-
-% ============================== COLUMN 3 ==============================
-\posterbox[adjusted title=Which components predict unseen relatives?]{name=r3, column=3, below=header}{
-\centering\includegraphics[width=\linewidth]{03_cv_model_comparison}
-\takeaway{Leave one block of relatives out, predict it: a family environment decaying with
-distance (F) generalises; sibling-only household terms (H) do not.}
-}
-
-\posterbox[adjusted title=Best-scoring model: additive + GxG + family]{name=r4, column=3, between=r3 and bottom}{
-\centering\includegraphics[width=\linewidth]{04_fit_A_vs_AGxGF_hybrid_block}
-\takeaway{Adding GxG and a decaying family environment captures twins, adoptees and in-laws.}
-}
-
-% ============================== COLUMN 4 ==============================
-\posterbox[adjusted title=The total is well determined; the split is not]{name=r5, column=4, below=header}{
-\centering\includegraphics[width=\linewidth]{09_profile_VA_loss}
-\takeaway{$V_A$ trades off against $V_{\mathrm{GxG}}$ and $V_{\mathrm{fam}}$ along a shallow valley. Fitting $V_A$ first
-and adding GxG on top (sequential) is rejected by the data.}
-}
-
-\posterbox[adjusted title=Conclusions]{name=concl, column=4, below=r5}{
-\begin{itemize}
-  \item Eftedal et al.'s low $h^2$ comes mostly from \textbf{how the model was fit}, not from in-laws
-  \item With corrected fitting, genetics remains a large source of family resemblance
-  \item A family-wide environment is supported out of sample
-  \item Additive vs.\ GxG vs.\ family environment \textbf{cannot be cleanly separated} with relative correlations alone
-\end{itemize}
-}
-
-\posterbox[adjusted title=References \& contact, colframe=navy!70]{name=refs, column=4, between=concl and bottom}{
+% ============================== CONTACT ==============================
+\posterbox[adjusted title=References \& contact, colframe=navy!70]{name=refs, column=4, above=bottom}{
 \smallsize
 \begin{minipage}[t]{0.72\linewidth}
 Eftedal et al.\ (2025) \textit{PNAS} 122:e2419627122 \textbullet{}
