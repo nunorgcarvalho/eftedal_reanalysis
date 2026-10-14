@@ -96,6 +96,11 @@ analysis and for checking it. Function names are given as <code>module.function<
 <code>src/eftedal/</code>.</p>
 
 <h2 id="glance">At a glance</h2>
+<div class="note"><b>Terminology (always in this order).</b> <b>Marginal Pair</b> treats pairs as the unit: one fit with
+1/SE² weights (<code>weights='invvar'</code>), and the parametric-bootstrap CI (sampling noise only).
+<b>Marginal Type</b> treats relationship types as the unit: one fit with every type getting equal weight
+(<code>weights='hybrid_block'</code>), and the leave-one-type-out jackknife CI. "Types" are the 10 groups in
+<code>cv_block</code>, which merge near-duplicates. The point estimate is always the full-data fit.</div>
 <p>Eftedal et al. (2025, <i>PNAS</i>) published 82 phenotypic correlations between categories of Norwegian
 relatives (twins to 2nd cousins, step siblings, "co-cousins", adoptive relatives) for school test scores. Each
 category has one correlation \(\hat\rho_k\) with a standard error \(SE_k\). We fit models that predict every
@@ -191,9 +196,16 @@ correlate through their phenotypes: \(m = h^2 r\), where \(h^2 = V_A\) on the co
 analysis imposes this (<code>FitSpec.mr = 'equilibrium'</code>; <code class="fn">model.Model.unpack</code>
 sets \(m = V_A r\)), so \(r\) is estimated and \(m\) derived. Eftedal et al. estimate them separately
 (<code>mr = 'free'</code>).</p>
-<p><b>GxG.</b> \(K^{(2)}_k = K_k^2\): a pairwise interaction is shared only if both loci are shared. For UZ-linked
-categories, both kernels are averaged over the MZ/DZ alternatives. This form is <i>assumed</i>, not derived under
-assortative mating.</p>
+<p><b>GxG.</b> Main kernel (<code>FitSpec.gxg_kernel = 'a2'</code>): the square of the <i>random-mating</i>
+kernel, \(K^{(2)}_k = a_k^2\) with \(a_k = (1/2)^{n_k}\). Half relatives count as full relatives of the same degree;
+step siblings, co-cousins and adoptive pairs share no GxG; there is no dependence on \(m\) or \(r\). A pairwise
+interaction is shared only if both loci are shared IBD. For UZ-linked categories the squares are averaged over the
+MZ/DZ alternatives. The earlier kernel, the square of the full assortative-mating kernel (<code>'am2'</code>), is kept
+for comparison in the supplement (model set <code>core_am2</code>).</p>
+<p><b>Random-mating additive variance.</b> \(V_A^{(0)} = V_A(1-m)\), from the equilibrium approximation
+\(V_A = V_A^{(0)}/(1-\rho_g)\) (popstatgenwriteups, <i>relative_covariance</i> v1, eq. VA-eq; \(\rho_g = m\)). It is
+computed for every fit and every refit (<code class="fn">fit.random_mating_VA</code>), so its intervals come from
+the same jackknife and bootstrap replicates as \(V_A\)'s.</p>
 
 <h3 id="env">Environment and maternal terms</h3>
 <table>
@@ -226,8 +238,8 @@ step-sibling kernel, co-cousin \(f = 2\), \(\sum V \le 1\), UZ mixture at 0.5; w
 <h3 id="weights">Weights: what each one estimates</h3>
 <table>
 <tr><th>weighting</th><th>\(w_k\)</th><th>what it targets</th></tr>
-<tr><td><code>invvar</code></td><td>\(1/SE_k^2\)</td><td>If the model were correct (and categories independent), this is the Gaussian maximum-likelihood fit, the most precise possible. Under misspecification it is the best fit for a <i>typical pair</i>: dominated by cousins and co-cousins, because there are millions of them.</td></tr>
-<tr><td><code>hybrid_block</code> (main)</td><td>\(\dfrac{1/SE_k^2}{\sum_{j \in b(k)} 1/SE_j^2}\)</td><td>Every block \(b\) of relationship types (the 10 cv blocks) gets total weight 1, split within the block by precision. The best fit for a <i>typical kind of relative</i>. Near-duplicate types (e.g. 1st cousins and 1st cousins via UZ twins) share one block's weight instead of each getting a full share. Moves leverage toward close relatives (the twin block gets 1/10 of the total).</td></tr>
+<tr><td><code>invvar</code> = Marginal Pair</td><td>\(1/SE_k^2\)</td><td>If the model were correct (and categories independent), this is the Gaussian maximum-likelihood fit, the most precise possible. Under misspecification it is the best fit for a <i>typical pair</i>: dominated by cousins and co-cousins, because there are millions of them.</td></tr>
+<tr><td><code>hybrid_block</code> = Marginal Type</td><td>\(\dfrac{1/SE_k^2}{\sum_{j \in b(k)} 1/SE_j^2}\)</td><td>Every block \(b\) of relationship types (the 10 cv blocks) gets total weight 1, split within the block by precision. The best fit for a <i>typical kind of relative</i>. Near-duplicate types (e.g. 1st cousins and 1st cousins via UZ twins) share one block's weight instead of each getting a full share. Moves leverage toward close relatives (the twin block gets 1/10 of the total).</td></tr>
 <tr><td><code>hybrid</code></td><td>same, balanced over the 16 relationship types</td><td>the 2025 poster's version; not used in the main analysis</td></tr>
 </table>
 <p>If the model were right, every weighting would estimate the same parameters, and only the precision would differ. That
@@ -282,8 +294,8 @@ agree, a hidden better valley is unlikely. <code>at_bound</code> lists parameter
 <h2 id="uncertainty">Uncertainty</h2>
 <table>
 <tr><th>method</th><th>what it assumes / measures</th><th>where</th></tr>
-<tr><td>Parametric bootstrap</td><td>Treat each reported \(SE_k\) as the true sampling SD, draw \(\rho^*_k \sim N(\hat\rho_k, SE_k^2)\) independently, refit with the <i>same</i> weighting, take percentile intervals. Measures <b>sampling noise only</b> and assumes the model is right. Repeated with SEs ×1.3 for pair overlap between categories.</td><td><code class="fn">inference.parametric_bootstrap</code></td></tr>
-<tr><td>Block jackknife</td><td>Refit leaving out each of the 10 cv blocks; \(SE = \sqrt{\tfrac{B-1}{B}\sum_b(\theta_{(b)} - \bar\theta)^2}\). Measures how much the answer depends on <b>which relationship types exist</b>, i.e. sensitivity to misspecification. Crude with 10 heterogeneous blocks, so also read its min–max range.</td><td><code class="fn">cv.jackknife</code></td></tr>
+<tr><td>Parametric bootstrap = Marginal Pair CI</td><td>Treat each reported \(SE_k\) as the true sampling SD, draw \(\rho^*_k \sim N(\hat\rho_k, SE_k^2)\) independently, refit with the <i>same</i> weighting, take percentile intervals. Measures <b>sampling noise only</b> and assumes the model is right. Repeated with SEs ×1.3 for pair overlap between categories.</td><td><code class="fn">inference.parametric_bootstrap</code></td></tr>
+<tr><td>Leave-one-type-out jackknife = Marginal Type CI</td><td>Refit leaving out each of the 10 cv blocks; \(SE = \sqrt{\tfrac{B-1}{B}\sum_b(\theta_{(b)} - \bar\theta)^2}\). Measures how much the answer depends on <b>which relationship types exist</b>, i.e. sensitivity to misspecification. Crude with 10 heterogeneous blocks, so also read its min–max range.</td><td><code class="fn">cv.jackknife</code></td></tr>
 <tr><td>Sandwich (cross-check)</td><td>\(\operatorname{Cov} = A^{-1} B A^{-1}\), \(A = \tfrac12\nabla^2 L\) (full Hessian), \(B = J^\top W S W J\), \(S = \operatorname{diag}(SE^2)\). Agrees with the bootstrap. The Gauss–Newton version (\(A = J^\top W J\)) drops the residual-curvature term and can be off by 10× under misspecification.</td><td><code class="fn">inference.covariance</code></td></tr>
 <tr><td>Profile over \(V_A\)</td><td>Hold \(V_A\) fixed on a grid and refit everything else (<code>FitSpec.fixed</code>). The loss increase is plotted in units of the residual variance (a quasi-likelihood ratio, which already allows for misfit); 3.84 is a rough 95% cut-off. Shows directly how \(V_A\) trades off against \(V_{GxG}\) or \(V_{fam}\): a long, shallow valley means the data pin down their sum, not their split.</td><td><code>scripts/06_profile.py</code></td></tr>
 <tr><td>Inverse Hessian of the RSS (replication only)</td><td>Eftedal's code. Not a covariance: multiplying all weights by a constant leaves the estimate unchanged but rescales this "SE" by \(1/\sqrt{\text{constant}}\). Explains the absurd intervals (tiny or huge) seen in 2025.</td><td><code>covariance(method='hessian_rss')</code></td></tr>
