@@ -118,15 +118,18 @@ save_fig <- function(gg, name, width = 3000, height = 1600) {
 # Categories of a relationship type (maternal/paternal/other x gender composition) are pooled by a
 # fixed-effect (inverse-variance) meta-analysis: rho = sum(w rho) / sum(w), SE = 1 / sqrt(sum(w)),
 # w = 1/SE^2. Predictions are pooled with the same weights. UZ twins and relatives through UZ twins
-# are omitted. A dashed line separates the biological relatives from the in-laws and adoptees.
+# are omitted. A dashed line separates the biological relatives from the in-laws (step-sibs,
+# co-cousins) and adoptees.
 CONDENSED_ORDER <- c("mz", "dz", "sibs", "half sibs", "1st cousins", "half cousins", "2nd cousins",
-                     "cocousins", "step sibs", "adoptive sibs", "adoptive 1st cousins",
+                     "step sibs", "cocousins", "adoptive sibs", "adoptive 1st cousins",
                      "adoptive 2nd cousins", "adoptive cocousins")
 CONDENSED_LABELS <- c(mz = "MZ twins", uz = "UZ twins", dz = "DZ twins", sibs = "full-sibs",
                       `half sibs` = "half-sibs", `1st cousins` = "1st cousins", `half cousins` = "half cousins",
                       `2nd cousins` = "2nd cousins", cocousins = "co-cousins", `step sibs` = "step-sibs",
                       `adoptive sibs` = "adoptive sibs", `adoptive 1st cousins` = "adoptive 1st cousins",
                       `adoptive 2nd cousins` = "adoptive 2nd cousins", `adoptive cocousins` = "adoptive co-cousins")
+
+CONDENSED_SPLIT <- match("step sibs", CONDENSED_ORDER) - 0.5   # x of the bio | in-law dashed line
 
 pool_by_type <- function(obs) {
   obs %>% filter(rel %in% CONDENSED_ORDER) %>% mutate(w = 1 / se^2) %>%
@@ -147,7 +150,7 @@ plot_fits_condensed <- function(obs, preds, colors, title = NULL) {
     mutate(y = pmax(hi, pmax) + 0.02)
   ggplot() +
     geom_hline(yintercept = 0) +
-    geom_vline(xintercept = match("step sibs", CONDENSED_ORDER) - 0.5, linetype = "dashed", color = "grey55") +
+    geom_vline(xintercept = CONDENSED_SPLIT, linetype = "dashed", color = "grey55") +
     geom_path(data = path, aes(x = x, y = pred, color = model, group = model), linewidth = 0.3, alpha = 0.8) +
     geom_segment(data = pp, aes(x = x - 0.35, xend = x + 0.35, y = pred, yend = pred, color = model),
                  linewidth = 0.9, alpha = 0.8) +

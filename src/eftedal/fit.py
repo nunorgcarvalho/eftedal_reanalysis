@@ -60,14 +60,40 @@ class FitResult:
         for c in comps:
             df[f"comp_{c}"] = comps[c].to_numpy()
         if "A" in comps:
-            # split the additive contribution: what V_A0 = V_A (1 - m) would give under random mating
-            # (V_A0 * a_k, a_k = (1/2)^n; 0 for in-laws and adoptees), and the excess due to AM
-            m = self.model
-            a_rm, _ = C.genetic_kernels(m.kd, 0.0, 0.0, stepsib=m.spec.stepsib, uz=m.spec.uz,
-                                        mz_frac=m.spec.mz_frac)
-            df["part_A0"] = random_mating_VA(self.params) * a_rm
-            df["part_A_AM"] = df["comp_A"] - df["part_A0"]
+            df["part_A0"], df["part_A_AM"] = additive_split(self.model, self.params, comps["A"].to_numpy())
         return df
+
+
+def additive_split(model: Model, p: dict, comp_A: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Split the additive contribution `comp_A`: what V_A0 = V_A (1 - m) would give under random
+    mating (V_A0 * a_k, a_k = (1/2)^n; 0 for in-laws and adoptees), and the excess due to AM."""
+    a_rm, _ = C.genetic_kernels(model.kd, 0.0, 0.0, stepsib=model.spec.stepsib, uz=model.spec.uz,
+                                mz_frac=model.spec.mz_frac)
+    part_A0 = random_mating_VA(p) * a_rm
+    return part_A0, comp_A - part_A0
+
+
+def component_decay(data: pd.DataFrame, spec: FitSpec, params: dict) -> pd.DataFrame:
+    """Per-category contributions of `spec`'s components at given parameters (no fitting), divided
+    by the summed variance components, so a pair whose kernels are all 1 (e.g. MZ twins) gets 1:
+    how shared genetics / environment decays across relationship types. Under mr='equilibrium',
+    r defaults to m / V_A; m and r are 0 when there is no additive component."""
+    model = Model(data, spec)
+    p = dict(params)
+    if "A" in spec.components:
+        p.setdefault("r", p["m"] / p["V_A"] if spec.mr == "equilibrium" else p["m"])
+    else:
+        p.setdefault("m", 0.0), p.setdefault("r", 0.0)
+    total = sum(v for k, v in p.items() if k.startswith("V_"))
+    df = model.data[["row", "rel", "side", "sex", "se"]].copy()
+    comps = model.components(p) / total
+    for c in comps:
+        df[f"comp_{c}"] = comps[c].to_numpy()
+    if "A" in comps:
+        a0, am = additive_split(model, p, total * comps["A"].to_numpy())
+        df["part_A0"], df["part_A_AM"] = a0 / total, am / total
+    df["total"] = comps.sum(axis=1).to_numpy()
+    return df.assign(**{k: v for k, v in p.items()})
 
 
 def random_mating_VA(p: dict) -> float:

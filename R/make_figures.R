@@ -187,12 +187,12 @@ plot_condensed_components <- function(preds, title = NULL) {
   lab <- po %>% left_join(tot, by = c("rel", "x")) %>% mutate(y = pmax(hi, pred) + 0.02)
   stripes <- stripe_segments(pp %>% filter(segment == "A_AM"), spacing = 0.02, slope = 0.25)
   ggplot() +
-    geom_hline(yintercept = 0) +
-    geom_vline(xintercept = match("step sibs", CONDENSED_ORDER) - 0.5, linetype = "dashed", color = "grey55") +
+    geom_vline(xintercept = CONDENSED_SPLIT, linetype = "dashed", color = "grey55") +
     geom_rect(data = pp, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = segment),
               key_glyph = draw_key_striped) +
     {if (nrow(stripes)) geom_segment(data = stripes, aes(x = x, xend = xend, y = y, yend = yend),
                                      color = "white", linewidth = 0.35)} +
+    geom_hline(yintercept = 0) +   # drawn over the bars
     geom_errorbar(data = po, aes(x = x, ymin = lo, ymax = hi), width = 0.12) +
     geom_point(data = po, aes(x = x, y = corr), size = 1.9) +
     geom_text(data = lab, aes(x = x, y = y, label = label), size = 2.6, vjust = 0, lineheight = 0.85) +
@@ -208,6 +208,45 @@ plot_condensed_components <- function(preds, title = NULL) {
           panel.grid.major.y = element_line(linetype = "dashed"), panel.grid.minor.y = element_line(linetype = "dashed"),
           legend.position = "inside", legend.position.inside = c(0.985, 0.98), legend.justification = c("right", "top"),
           legend.box.background = element_rect(fill = "white", color = "black"), legend.box.margin = margin(1, 1, 1, 1))
+}
+
+# Component correlation decay (no observations): for given parameters, the share of each component
+# that relatives of each type have in common, from results/decay/{name}.csv (scripts/07_decay.py),
+# scaled so a pair whose kernels are all 1 (MZ twins) has correlation 1. Categories within a type are
+# pooled with the observations' inverse-variance weights, as in the condensed fit plots.
+plot_component_decay <- function(dec, title = NULL, subtitle = NULL) {
+  parts <- c(A0 = "part_A0", A_AM = "part_A_AM", GxG = "comp_GxG", house = "comp_house", family = "comp_family")
+  parts <- parts[parts %in% names(dec)]
+  pp <- dec %>% filter(rel %in% CONDENSED_ORDER) %>% mutate(w = 1 / se^2) %>%
+    select(rel, w, all_of(unname(parts))) %>%
+    pivot_longer(all_of(unname(parts)), names_to = "col", values_to = "value") %>%
+    mutate(segment = factor(names(parts)[match(col, parts)], SEG_ORDER)) %>%
+    group_by(rel, segment) %>% summarize(value = sum(w * value) / sum(w), .groups = "drop") %>%
+    mutate(x = match(rel, CONDENSED_ORDER)) %>% arrange(x, segment) %>%
+    group_by(rel) %>% mutate(ymax = cumsum(value), ymin = ymax - value) %>% ungroup() %>%
+    mutate(xmin = x - 0.35, xmax = x + 0.35, signif = TRUE, weights = "all")
+  lab <- pp %>% group_by(rel, x) %>% summarize(y = max(ymax), .groups = "drop") %>%
+    mutate(label = paste0(str_wrap(CONDENSED_LABELS[rel], 10), "\n", sprintf("%.2f", y)))
+  stripes <- stripe_segments(pp %>% filter(segment == "A_AM"), spacing = 0.025, slope = 0.25)
+  ggplot() +
+    geom_vline(xintercept = CONDENSED_SPLIT, linetype = "dashed", color = "grey55") +
+    geom_rect(data = pp, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = segment),
+              key_glyph = draw_key_striped) +
+    {if (nrow(stripes)) geom_segment(data = stripes, aes(x = x, xend = xend, y = y, yend = yend),
+                                     color = "white", linewidth = 0.35)} +
+    geom_hline(yintercept = 0) +
+    geom_text(data = lab, aes(x = x, y = y + 0.015, label = label), size = 2.6, vjust = 0, lineheight = 0.85) +
+    scale_fill_manual(values = SEG_FILL, labels = SEG_LABELS, breaks = SEG_ORDER, name = "Shared via") +
+    scale_x_continuous(breaks = NULL, expand = expansion(add = 0.6)) +
+    scale_y_continuous(breaks = seq(0, 1, by = 0.1), expand = c(0, 0)) +
+    coord_cartesian(ylim = c(0, 1.14)) +
+    labs(x = "Relationship Type", y = "Correlation (scaled: all kernels 1 \u2192 1)", title = title, subtitle = subtitle,
+         caption = paste0("Contributions divided by the summed variance components",
+                          if ("part_A0" %in% names(dec)) "; A = V_A\u2070 \u00d7 (1/2)\u207f under random mating + the excess under AM." else ".")) +
+    theme_bw() +
+    theme(axis.ticks.x = element_blank(), panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
+          panel.grid.major.y = element_line(linetype = "dashed"), panel.grid.minor.y = element_blank(),
+          legend.position = "bottom")
 }
 
 # ---- M1. Eftedal's estimator -> ours ----------------------------------------------------------
@@ -322,7 +361,7 @@ if (has("models", "core_predictions.csv")) {
   cpp <- rd("models", "core_predictions.csv")
   if ("part_A0" %in% names(cpp)) {
     cf <- rd("models", "core_fits.csv")
-    for (wt in c("invvar", "hybrid_block")) {
+    for (wt in c("hybrid_block")) {   # Marginal Type only (user request)
       for (mod in c("A", "A+GxG", "A+F", "A+GxG+F")) {
         ttl <- paste0(show_model(mod), " (", WEIGHT_LABELS[[wt]], ")")
         sub <- fmt_par(cf %>% filter(model == !!mod, weights == !!wt), c("V_A", "V_A0", "V_GxG", "V_family", "r_f", "m", "r"))
@@ -332,6 +371,20 @@ if (has("models", "core_predictions.csv")) {
       }
     }
   }
+}
+
+# ---- M4. component correlation decay across relationship types (scripts/07_decay.py) -----------
+DECAY_TITLES <- c(genetics = "Shared genetic effects across relationship types",
+                  environment = "Shared familial environment across relationship types")
+for (f in Sys.glob(file.path(RESULTS, "decay", "*.csv"))) {
+  name <- tools::file_path_sans_ext(basename(f))
+  dec <- as_tibble(fread(f))
+  pars <- dec %>% slice(1) %>% select(any_of(c("V_A", "V_GxG", "V_house", "V_family", "pi", "r_f", "m", "r")))
+  pars <- if ("V_A" %in% names(pars)) pars %>% mutate(V_A0 = V_A * (1 - m), .after = V_A) else pars %>% select(-m, -r)
+  if (sum(startsWith(names(pars), "V_")) == 1) pars <- pars %>% select(-starts_with("V_"))   # scaled away
+  ttl <- if (name %in% names(DECAY_TITLES)) DECAY_TITLES[[name]] else name
+  save_fig(plot_component_decay(dec, title = ttl, subtitle = paste0(dec$model[1], ": ", fmt_par(pars, names(pars)))),
+           paste0("m4_decay_", name), width = 2600, height = 1500)
 }
 
 # ---- S1. cross-validation -------------------------------------------------------------------

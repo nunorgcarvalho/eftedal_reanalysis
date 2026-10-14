@@ -71,6 +71,7 @@ python scripts/03_models.py                # core (two-step GxG) + joint model s
 python scripts/04_bootstrap.py             # parametric bootstrap of the core models (~1 h)
 python scripts/05_robustness.py            # robustness rows; in-law contrast for every test
 python scripts/06_profile.py               # profile over V_A
+python scripts/07_decay.py                 # component decay across relative types (no fitting)
 Rscript R/make_figures.R                   # -> results/figures/
 ```
 

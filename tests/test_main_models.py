@@ -178,3 +178,16 @@ def test_additive_split_rm_and_am(df):
     np.testing.assert_allclose(p.loc[inlaw, "part_A0"], 0)    # in-laws share nothing by descent
     sib = p.index[p.rel == "sibs"][0]
     assert p.part_A0[sib] == pytest.approx(r.summary()["V_A0"] * 0.5)
+
+
+def test_component_decay_scaled_to_kernel_one(df):
+    from eftedal.fit import component_decay
+    g = component_decay(df, FitSpec(components=("A", "GxG"), **MAIN), dict(V_A=0.5, m=0.25, V_GxG=0.25))
+    assert g.r.iloc[0] == pytest.approx(0.5)                  # r = m / V_A at equilibrium
+    np.testing.assert_allclose(g.part_A0 + g.part_A_AM + g.comp_GxG, g.total)
+    mz, sib = (g.rel == "mz").idxmax(), (g.rel == "sibs").idxmax()
+    assert g.total[mz] == pytest.approx(1.0)
+    assert g.part_A0[mz] == pytest.approx(0.375 / 0.75)          # V_A0 / (V_A + V_GxG)
+    assert g.total[sib] == pytest.approx((0.5 * 1.25 / 2 + 0.25 / 4) / 0.75)
+    e = component_decay(df, FitSpec(components=("family",), **{**MAIN, "mr": "free"}), dict(V_family=1.0, r_f=0.5))
+    np.testing.assert_allclose(e.total, 0.5 ** df.family_degree.to_numpy())
