@@ -17,6 +17,7 @@
 \definecolor{navy}{HTML}{1F3A5F}
 \definecolor{teal}{HTML}{00A1B0}
 \definecolor{paper}{HTML}{F6F7F9}
+\definecolor{salmon}{HTML}{E8685F}
 \setbeamertemplate{navigation symbols}{}
 \setbeamercolor{normal text}{fg=ink}
 \setbeamercolor{frametitle}{fg=navy, bg=paper}
@@ -31,7 +32,8 @@
   \end{beamercolorbox}%
   \nointerlineskip\begin{beamercolorbox}[wd=\paperwidth, ht=1.2pt, dp=0pt]{titlerule}\end{beamercolorbox}}
 \setbeamertemplate{footline}{%
-  \hfill{\scriptsize\color{gray}\insertframenumber\,/\,\inserttotalframenumber}\hspace*{1.2em}\vspace*{0.8ex}}
+  \hspace*{1.2em}{\scriptsize\color{gray}\insertsectionhead}\hfill
+  {\scriptsize\color{gray}\insertframenumber\,/\,\inserttotalframenumber}\hspace*{1.2em}\vspace*{0.8ex}}
 \setbeamertemplate{itemize items}{\textbullet}
 
 % ---- notation ----
@@ -44,30 +46,58 @@
 \newcommand{\keyswatch}[1]{\textcolor{#1}{\rule[-0.05em]{0.75em}{0.75em}}}
 \newcommand{\keysym}[3]{\keyswatch{#1}\hspace{0.4em}{\color{#2}$#3$}}
 
-% one slide per model: #1 file tag, #2 model (title), #3 description
-\newcommand{\modelslide}[3]{%
+% one slide per model: #1 file tag, #2 model (title), #3 description, #4 \comments{items} or empty
+\newcommand{\comments}[1]{\smallskip{\color{navy}\bfseries Comments}\par
+  {\footnotesize\begin{itemize}\setlength{\itemsep}{0.15em}\setlength{\leftmargini}{1.1em} #1\end{itemize}}}
+\newcommand{\modelslide}[4]{%
 \begin{frame}{#2}{Marginal Type fit}
   \begin{columns}[T, onlytextwidth]
-    \begin{column}{0.6\textwidth}
+    \begin{column}{0.585\textwidth}
       \vspace{-0.4em}\includegraphics[height=0.86\textheight]{\supp/s_components_#1}
     \end{column}
-    \begin{column}{0.38\textwidth}\small
-      \vspace{0.6em}{\color{navy}\bfseries Model}\par\smallskip
-      #3\par\bigskip
+    \begin{column}{0.405\textwidth}\small
+      \begin{minipage}[t][0.84\textheight]{\linewidth}\raggedright
+      \vspace{0.3em}{\color{navy}\bfseries Model}\par\smallskip
+      #3\par\medskip
       {\color{navy}\bfseries Fit} {\footnotesize(Marginal Type)}\par\smallskip
-      {\renewcommand{\arraystretch}{1.15}%
+      {\renewcommand{\arraystretch}{1.0}%
       \begin{tabular}{@{}l r@{}}
         \input{\supp/stats_#1.tex}
       \end{tabular}\par}
+      #4
       \vfill
       {\scriptsize\color{gray!40!ink}
-      Bars: predicted correlation by component; black: observed (95\% CI).
-      Inset: estimate (circle), Marginal Pair CI (box), Marginal Type CI (line);
-      arrows: CI truncated at 0 or 1.\par}
+      Bars: predicted, by component; black: observed (95\% CI). Inset: estimate (circle),
+      Marginal Pair CI (box), Marginal Type CI (line; arrow: truncated at 0 or 1).\par}
+      \end{minipage}
     \end{column}
   \end{columns}
 \end{frame}}
 
+% section divider, titled as the poster's blocks
+\AtBeginSection[]{{%
+  \setbeamercolor{background canvas}{bg=navy}
+  \begin{frame}[plain]
+    \centering\vfill
+    {\color{white!70!navy}\small Section \thesection\par}\medskip
+    {\color{white}\LARGE\bfseries\insertsectionhead\par}
+    \vfill
+  \end{frame}}}
+
+% Eftedal et al.'s fitting decisions: decision | consequence | our fix
+\newenvironment{fittable}{%
+  \scriptsize\renewcommand{\arraystretch}{1.25}%
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.32\textwidth}
+                    >{\raggedright\arraybackslash}p{0.30\textwidth}
+                    >{\raggedright\arraybackslash}p{0.315\textwidth}@{}}
+  \toprule
+  \textcolor{navy}{\textbf{Eftedal et al.'s decision}} & \textcolor{salmon!80!black}{\textbf{Consequence}}
+  & \textcolor{teal!80!black}{\textbf{Our fix}} \\
+  \midrule}{%
+  \bottomrule\end{tabular}}
+\newcommand{\rowgap}{\addlinespace[0.35em]}
+
+\frenchspacing
 \begin{document}
 
 % ---------------------------------------------------------------- title
@@ -90,6 +120,21 @@
   \faGithub\ \href{https://github.com/nunorgcarvalho/eftedal_reanalysis}{github.com/nunorgcarvalho/eftedal\_reanalysis}
   \quad \faEnvelope\ nuno\_ramosgrangeiacarvalho@g.harvard.edu\par}
   \vspace{0.5em}
+\end{frame}
+
+% ---------------------------------------------------------------- AI disclosure (as in the README)
+\begin{frame}{AI Disclosure}
+  \vfill
+  \begin{center}\begin{minipage}{0.78\textwidth}\large\raggedright
+  I used Claude (Opus 5.5) extensively to help me with this project, and almost everything in this
+  repository was ultimately written by Claude. However, I was responsible for deciding which analyses
+  to run and was constantly in the loop regarding their implementation and provided direct feedback
+  about improving it.\par\medskip
+  With the exception of this disclosure, this README was written by Claude, as well as the figures,
+  tables, poster(s), slides, notebooks, and more. However, the text on the poster was written by me.\par
+  \bigskip\hfill{\normalsize\color{gray!40!ink}--- from the repository README}
+  \end{minipage}\end{center}
+  \vfill
 \end{frame}
 
 % ---------------------------------------------------------------- reading guide
@@ -144,25 +189,89 @@
   \end{columns}
 \end{frame}
 
-% ---------------------------------------------------------------- one slide per core model
+% ================================================================ section 1
+\section{Revising Eftedal et al.'s results}
+
+\begin{frame}{How Eftedal et al.\ fit their model}{(1/2)}
+  \begin{fittable}
+  Identified 82 relationship types, split by type of relative, sex of the pair, and the side of the
+  family through which the pair is related.
+  & Distant relatives have a greater number of ``distinct'' relationship types.
+  & Grouped the relationship types into 10 broad types of relatives. \\ \rowgap
+  Minimized the residual sum of squares (RSS; squared difference between predicted and observed
+  correlation, summed across relationship types).
+  & Distant relative types (with more ``distinct'' relationships) make up a greater share of the RSS.
+  & No change. \\ \rowgap
+  Optimized for log-transformed correlations, which makes optimization a simple linear regression
+  problem.
+  & Squared errors are greater for smaller raw correlations, so distant relatives make up an
+  \emph{even greater} share of the RSS.
+  & Optimized for observed correlations on the raw scale, using non-linear optimization. \\ \rowgap
+  Weighted each relationship type's residual by the inverse variance of its observed correlation.
+  & Effectively optimizes for the marginal pair of individuals in the full population, which is
+  overwhelmingly weighted towards distant relatives (much more numerous, with lower observed
+  correlations). Distant relatives make up an \emph{even greater} share of the RSS.
+  & Fit for the Marginal Type instead: each of the 10 relative types gets equal total weight; within a
+  type, relationship types are weighted by inverse variance. \\
+  \end{fittable}
+\end{frame}
+
+\begin{frame}{How Eftedal et al.\ fit their model}{(2/2)}
+  \begin{fittable}
+  Inverse-variance weights based on the raw correlation ($1/\mathrm{SE}^2$), not the log-correlation
+  ($\approx \rho^2/\mathrm{SE}^2$).
+  & Distant relatives (who have low correlations) make up an \emph{even greater} share of the RSS.
+  & Confirmed that the correct inverse-variance weights on the log scale give estimates similar to
+  optimizing on the raw scale. \\ \rowgap
+  Used the wrong expected correlation for step-siblings, $V_A\,m\,\big((1+m)/2\big)^2$. The
+  primary assortative mating model they assume throughout instead predicts
+  $V_A\,m\,\big((1+r)/2\big)^2$.
+  & Predicts step-siblings to be less similar than the model actually implies (since $r > m$).
+  & Used the correct formula. \\ \rowgap
+  Estimated $m$ and $r$ independently, although the primary assortative mating model implies
+  $m = V_A\,r$.
+  & Mismatch between the estimator and the estimand.
+  & Enforced the constraint implied by the model. \\ \rowgap
+  Confidence intervals from bootstrap re-sampling of the observed correlations (relationship types drawn
+  with probability $\propto 1/\mathrm{SE}^2$), using the same transformation and weights as the point
+  estimates.
+  & The same biases as the point estimates (fits overwhelmingly to distant relatives), and overly
+  confident intervals.
+  & Confidence intervals from a leave-one-type-out jackknife over the 10 relative types. \\
+  \end{fittable}
+\end{frame}
+
 \modelslide{A}{\mA}{%
-  Additive genetic effects under assortative mating only: the model of Eftedal et al., fitted with the
-  revised estimator.}
+  Additive genetic effects under assortative mating only.}{\comments{%
+  \item The model used in Eftedal et al., but fitted for the marginal relative type rather than the
+        marginal pair of individuals.
+  \item The additive component (in any model) has only two degrees of freedom, as
+        $V_A^0 = V_A(1-m)$ and $m = V_A\,r$.}}
+
+% ================================================================ section 2
+\section{Models with GxG and shared environment}
+
 \modelslide{A_to_GxG}{\mA\then\mG}{%
-  \mA\ fitted first; \mG\ then fitted to what remains, with \mA's parameters held fixed.}
+  \mA\ fitted first; \mG\ then fitted to what remains, with \mA's parameters held fixed.}{}
 \modelslide{AGxG}{\mA\ + \mG}{%
-  \mA\ and \mG\ fitted jointly.}
+  \mA\ and \mG\ fitted jointly.}{}
 \modelslide{A_to_F}{\mA\then\mC}{%
-  \mA\ fitted first; \mC\ then fitted to what remains, with \mA's parameters held fixed.}
+  \mA\ fitted first; \mC\ then fitted to what remains, with \mA's parameters held fixed.}{\comments{%
+  \item $c = 0$: the shared environment is shared by siblings only, with no shared environment beyond
+        siblings.}}
 \modelslide{AF}{\mA\ + \mC}{%
-  \mA\ and \mC\ fitted jointly.}
+  \mA\ and \mC\ fitted jointly.}{\comments{%
+  \item Finds no assortative mating ($m = r = 0$) on test performance, which is likely implausible.}}
 \modelslide{AGxG_to_F}{\mA\ + \mG\then\mC}{%
-  \mA\ and \mG\ fitted jointly first; \mC\ then fitted with their parameters held fixed.}
+  \mA\ and \mG\ fitted jointly first; \mC\ then fitted with their parameters held fixed.}{\comments{%
+  \item Like \mA\then\mC, finds a shared environment between siblings only ($c = 0$).}}
 \modelslide{AF_to_GxG}{\mA\ + \mC\then\mG}{%
-  \mA\ and \mC\ fitted jointly first; \mG\ then fitted with their parameters held fixed.}
+  \mA\ and \mC\ fitted jointly first; \mG\ then fitted with their parameters held fixed.}{\comments{%
+  \item Like \mA\ + \mC, finds no assortative mating ($m = r = 0$).}}
 \modelslide{A_to_GxGF}{\mA\then\mG\ + \mC}{%
-  \mA\ fitted first; \mG\ and \mC\ then fitted jointly, with \mA's parameters held fixed.}
+  \mA\ fitted first; \mG\ and \mC\ then fitted jointly, with \mA's parameters held fixed.}{\comments{%
+  \item Like \mA\then\mC, finds a shared environment between siblings only ($c = 0$).}}
 \modelslide{AGxGF}{\mA\ + \mG\ + \mC}{%
-  All three components fitted jointly. This is the example shown on the poster.}
+  All three components fitted jointly. This is the example shown on the poster.}{}
 
 \end{document}
