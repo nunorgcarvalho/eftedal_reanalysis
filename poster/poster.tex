@@ -110,11 +110,11 @@
 \setlist[itemize]{leftmargin=0.9em, itemsep=0.25em, topsep=0.1em}
 \begin{itemize}
   \item Relatives have similar test scores due to shared genetics and shared environments
-  \item \refcite{Eftedal et al.\ 2025, \textit{PNAS}}: fit the \textbf{Additive model} to school test scores of
+  \item \refcite{Eftedal et al.\ 2025, \textit{PNAS}} fit the \textbf{Additive model} to school test scores of
         $\sim$1M Norwegian children
   \begin{itemize}
     \item identified the relative type of each pair of relatives
-    \item fit the observed correlations as a function of the Additive model's parameters
+    \item fit the observed correlations by relative type as a function of the Additive model's parameters
   \end{itemize}
 \end{itemize}
 \end{minipage}\hfill
@@ -144,9 +144,9 @@
  & \textbf{Marginal Pair} & \textbf{Marginal Type} \\
 \midrule
 unit & each \textbf{pair} of relatives & each \textbf{relative type} \\
-weights & $1/SE^2$: common types (cousins) dominate & equal total weight per type \\
-95\% CI & parametric bootstrap: sampling noise only & leave one type out: depends on which relatives exist \\
-here & CI shown only as boxes & \textbf{CIs used throughout} \\
+weights & $1/SE^2$ & uniform across types \\
+95\% CI & parametric bootstrap & leave-one-type-out cross-validation\\
+use & within-model comparisons & \textbf{across-model comparisons} \\
 \bottomrule
 \end{tabular}\par}
 \end{minipage}\hfill
@@ -155,8 +155,8 @@ here & CI shown only as boxes & \textbf{CIs used throughout} \\
 \setlist[itemize]{leftmargin=0.9em, itemsep=0.2em, topsep=0.1em}
 \begin{itemize}
   \item Only optimized for Marginal Pair, not Marginal Type
-  \item Log-transformed correlations: more weight to distant relatives
-  \item Incorrect inverse-variance weights: more weight to distant relatives
+  \item Log-transformed correlations: weighs towards distant relatives
+  \item Incorrect inverse-variance weights: weighs towards distant relatives
   \item Incorrect expected correlation for step-siblings
   \item Phenotypic ($r$) and genetic ($m$) correlations between mates estimated independently,
         although the model implies $m = V_A\,r$
@@ -209,36 +209,40 @@ here & CI shown only as boxes & \textbf{CIs used throughout} \\
 \posterbox[adjusted title=Revising Eftedal et al.'s results]{name=rev, column=1, span=7, between=bg and bottom}{
 \subhead{Additive model: Eftedal et al.\ vs.\ revised}
 \includegraphics[width=\linewidth]{poster/p4_fit_and_params}\par
-{\smallsize Bars: model fits, pooled per relative type. Inset: estimates fitted to all relative types (dark) or
- biological relatives only (light); circle: estimate, box: Marginal Pair CI, line: Marginal Type CI.\par}
+{\smallsize Colored bars denote model's predicted correlation for each relative type.
+Actual observed correlations shwon in black.
+Eftedal et al.'s results optimized for the marginal pair, while the Revised estimator optimizes for the marginal type.
+
+Inset: parameter estimates compared between training cohorts, as done in Eftedal et al.: biological relatives only vs all relatives.
+Both types of CIs are shown.\par}
 }
 
 % columns 8-17: models with GxG and family environment
 \posterbox[adjusted title=Models with GxG and family environment]{name=gxg, column=8, span=10, between=bg and bottom}{
 \begin{minipage}[t]{0.33\linewidth}
 \subhead{\color{cGxGText}Gene--gene interactions (GxG)}
-Pairwise interactions are shared only when both loci are: sharing decays twice as fast as additive sharing
+Pairwise genetic interactions, not affected by AM.
 \[ \rho_k = \dots + V_{\mathrm{GxG}}\left(\frac{1}{4}\right)^{n_k} \]
-{\smallsize 0 for in-laws and adoptive relatives\par}
 
 \vspace{1.0em}
 \subhead{\color{cFamText}Family environment (F)}
-Environment shared across the extended family, decaying with family degree $f$
+Environment shared across the extended family, decaying at a rate of $r_f$ with respeect to family degree $f$:
 \[ \rho_k = \dots + V_{\mathrm{fam}}\, r_f^{\,f_k} \]
-{\smallsize also shared by in-laws and adoptive relatives; split into an extended part
- ($V_{\mathrm{fam}}\,r_f$, all relatives) and a sib-specific part ($V_{\mathrm{fam}}(1-r_f)$, striped)\par}
+Can be decomposed into within-sibling ($V_{\mathrm{fam}}(1-r_f)$) vs beyond-sibling ($V_{\mathrm{fam}}\,r_f$) shared environment.
 
 \vspace{1.0em}
 \subhead{Variance components}
 \includegraphics[width=\linewidth]{poster/p6_components_four_models}\par
-{\smallsize Marginal Type fits; whiskers: 95\% Marginal Type CIs; outline: sum of components.
- A $\rightarrow$ B: B fitted after A, with A held fixed.\par}
+{\smallsize A $\rightarrow$ B indicates two-step estimation, fixing A first.
+Marginal Type point estimates and 95\% CIs.
+Black indicates sum of variance components. }
 \end{minipage}\hfill
 \begin{minipage}[t]{0.645\linewidth}
 \subhead{Example: A+GxG+F}
 \includegraphics[width=\linewidth]{poster/p5_components_and_params}\par
-{\smallsize Bars: each relative type's predicted correlation, split by component (Marginal Type fit).
- Inset: parameter estimates; circle: estimate, box: Marginal Pair CI, line: Marginal Type CI.\par}
+{\smallsize Decomposed correlations by relative types.
+Marginal Type fit.
+ Inset: parameter estimates; both types of CIs are shown.\par}
 \end{minipage}
 }
 
