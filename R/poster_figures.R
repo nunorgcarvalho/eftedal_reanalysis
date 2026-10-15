@@ -25,7 +25,8 @@ save_poster <- function(gg, name, width, height) {   # width/height in inches
 # one colour per estimator (as in m1b); bio-only cohort drawn in a lighter shade of the same colour
 EST_LEVELS <- c("Eftedal et al.", "Revised (Marginal Type)")
 EST_SHOW <- c("Eftedal et al. (Marginal Pair)", "Revised (Marginal Type)")
-EST_COLS <- setNames(c("#F8766D", "#00BFC4"), EST_LEVELS)
+# not blue/orange/green, which mark the variance components elsewhere on the poster
+EST_COLS <- setNames(c("#C2185B", "#6A3D9A"), EST_LEVELS)
 lighten <- function(col, f = 0.5) { m <- col2rgb(col); rgb(t(m + (255 - m) * f), maxColorValue = 255) }
 OBS_LABEL <- "observed correlation (95% CI)"
 WHISKER <- 0.08     # half-width of the observed-correlation CI caps (x units)
@@ -126,7 +127,7 @@ if (has("robustness", "additive_predictions.csv") && has("models", "core_predict
     coord_cartesian(ylim = c(-0.02, 1)) +
     labs(x = NULL, y = "Correlation") +
     condensed_theme()
-  save_poster(g, "p4_fit_and_params", width = 13.5, height = 6.6)
+  save_poster(g, "p4_fit_and_params", width = 13.5, height = 11.5)
 }
 
 # ---- P5. GxG and family environment --------------------------------------------------------------
@@ -136,10 +137,10 @@ if (has("robustness", "additive_predictions.csv") && has("models", "core_predict
 P5_MODELS <- c("A", "A>GxG", "A>F", "A+GxG+F")
 # parameter colours: additive (blue), GxG (orange), family environment (green); secondary
 # parameters of a component (m, r; r_f) in a lighter shade of its colour
-PAR_LEVELS <- c(V_A = "V[A]", m = "m", r = "r", V_GxG = "V[GxG]", V_family = "V[fam]", r_f = "r[f]")
-PAR_COLS <- c(V_A = COMP_FILL[["A"]], m = lighten(COMP_FILL[["A"]], 0.35), r = lighten(COMP_FILL[["A"]], 0.35),
+PAR_LEVELS <- c(V_A = "V[A]", V_A0 = "V[A]^0", m = "m", r = "r", V_GxG = "V[GxG]", V_family = "V[fam]", r_f = "r[f]")
+PAR_COLS <- c(V_A = COMP_FILL[["A"]], V_A0 = COMP_FILL[["A"]], m = lighten(COMP_FILL[["A"]], 0.35), r = lighten(COMP_FILL[["A"]], 0.35),
               V_GxG = COMP_FILL[["GxG"]], V_family = COMP_FILL[["family"]], r_f = lighten(COMP_FILL[["family"]], 0.35))
-PAR_TEXT <- c(V_A = COMP_LINE[["A"]], m = COMP_LINE[["A"]], r = COMP_LINE[["A"]], V_GxG = COMP_LINE[["GxG"]],
+PAR_TEXT <- c(V_A = COMP_LINE[["A"]], V_A0 = COMP_LINE[["A"]], m = COMP_LINE[["A"]], r = COMP_LINE[["A"]], V_GxG = COMP_LINE[["GxG"]],
               V_family = COMP_LINE[["family"]], r_f = COMP_LINE[["family"]])
 if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv") &&
     has("bootstrap", "intervals.csv")) {
@@ -170,7 +171,7 @@ if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")
   bt <- bt %>% mutate(x = match(param, names(PAR_LEVELS)), col = PAR_COLS[param])
   arrow_end <- arrow(length = unit(0.08, "in"), type = "closed")
   inset <- ggplot() +
-    geom_vline(xintercept = c(3.5, 4.5), color = "grey80", linewidth = 0.4) +
+    geom_vline(xintercept = c(4.5, 5.5), color = "grey80", linewidth = 0.4) +
     geom_segment(data = est, aes(x = x, xend = x, y = lo, yend = hi, color = col), linewidth = 1.5) +
     geom_segment(data = est %>% filter(clip_hi), aes(x = x, xend = x, y = hi - 0.02, yend = hi, color = col),
                  linewidth = 1.5, arrow = arrow_end) +

@@ -50,7 +50,7 @@
 \begin{document}
 \begin{tcbposter}[
   coverage = {spread, interior style={fill=paper}},
-  poster = {columns=6, rows=36, spacing=1.2cm},
+  poster = {columns=20, rows=36, spacing=1.2cm},
   boxes = {enhanced, arc=6mm, boxrule=0pt, colback=white, colframe=navy,
            fonttitle=\boxtitlesize\bfseries, coltitle=white,
            left=12mm, right=12mm, top=10mm, bottom=10mm, toptitle=5mm, bottomtitle=5mm,
@@ -61,7 +61,7 @@
 \posterbox[blankest, interior engine=empty, colback=navy, colupper=white,
            underlay={\fill[navy] (frame.south west) rectangle (frame.north east);},
            halign=center, valign=center]
-  {name=header, column=1, span=6, row=1, rowspan=6}{%
+  {name=header, column=1, span=20, row=1, rowspan=6}{%
   \hspace*{1.3in}%
   \begin{minipage}[c]{0.13\linewidth}\raggedright
     \includegraphics[height=1.9in]{hms_dark}\\[0.4in]
@@ -99,8 +99,15 @@
 \newcommand{\subhead}[1]{{\color{navy}\bfseries\fontsize{40}{48}\selectfont #1\par}\smallskip}
 \newcommand{\refcite}[1]{{\color{navy}[#1]}}
 
-% ============================== ROW 1: background | relative types ==============================
-\posterbox[adjusted title=Background, fontupper=\fontsize{30}{37}\selectfont]{name=bg, column=1, row=7, rowspan=7}{
+% ============================== ROW 1: background (vertical banner) ==============================
+\newcommand{\bgsize}{\fontsize{26}{32}\selectfont}
+\posterbox[notitle, left=3.6cm, right=10mm, top=6mm, bottom=6mm, valign=center, fontupper=\bgsize,
+           before upper={\parskip=0.3em},
+           overlay={\begin{tcbclipframe}\fill[navy] (frame.south west) rectangle ([xshift=2.5cm]frame.north west);\end{tcbclipframe}
+                    \node[rotate=90, text=white, font=\boxtitlesize\bfseries] at ([xshift=1.25cm]frame.west) {Background};}]
+  {name=bg, column=1, span=20, row=7, rowspan=6}{%
+\begin{minipage}[c]{0.155\linewidth}\raggedright
+\setlist[itemize]{leftmargin=0.9em, itemsep=0.25em, topsep=0.1em}
 \begin{itemize}
   \item Relatives have similar test scores due to shared genetics and shared environments
   \item \refcite{Eftedal et al.\ 2025, \textit{PNAS}}: fit the \textbf{Additive model} to school test scores of
@@ -110,20 +117,14 @@
     \item fit the observed correlations as a function of the Additive model's parameters
   \end{itemize}
 \end{itemize}
-}
-
-% title as a vertical banner on the left
-\posterbox[notitle, left=3.7cm, valign=center,
-           overlay={\begin{tcbclipframe}\fill[navy] (frame.south west) rectangle ([xshift=2.5cm]frame.north west);\end{tcbclipframe}
-                    \node[rotate=90, text=white, font=\boxtitlesize\bfseries] at ([xshift=1.25cm]frame.west) {Relative types};}]
-  {name=rel, column=2, span=5, row=7, rowspan=7}{%
-\begin{minipage}[c]{0.27\linewidth}\centering\includegraphics[height=13.4cm]{pedigree_sibs}\end{minipage}\hfill
-\begin{minipage}[c]{0.33\linewidth}\centering\includegraphics[height=13.4cm]{pedigree_cousins}\end{minipage}\hfill
-\begin{minipage}[c]{0.36\linewidth}\centering
-{\fontsize{28}{33}\selectfont\renewcommand{\arraystretch}{1.32}\setlength{\tabcolsep}{0.5em}%
+\end{minipage}\hfill
+\begin{minipage}[c]{0.125\linewidth}\centering\includegraphics[width=\linewidth]{pedigree_sibs}\end{minipage}\hfill
+\begin{minipage}[c]{0.16\linewidth}\centering\includegraphics[width=\linewidth]{pedigree_cousins}\end{minipage}\hfill
+\begin{minipage}[c]{0.215\linewidth}\centering
+{\fontsize{23}{27}\selectfont\renewcommand{\arraystretch}{1.36}\setlength{\tabcolsep}{0.35em}%
 \begin{tabular}[t]{@{}l c c >{$\displaystyle}l<{$}@{}}
 \toprule
-\textbf{relatives} & $\boldsymbol{n}$ & $\boldsymbol{f}$ & \text{\textbf{correlation implied}} \\[-0.9em]
+\textbf{relatives} & $\boldsymbol{n}$ & $\boldsymbol{f}$ & \text{\textbf{correlation implied}} \\[-0.55em]
                    &                  &                  & \text{\textbf{by Additive model}} \\
 \midrule
 \relname{cFull}{full siblings}      & 1   & 0   & V_A\,\frac{1+m}{2} \\
@@ -134,12 +135,41 @@
 \relname{cCoc}{co-cousins}          & 2+2 & 2   & V_A\,m\,\left(\frac{1+m}{2}\right)^{4} \\
 \bottomrule
 \end{tabular}\par}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.165\linewidth}
+\subhead{Two types of fits}
+{\fontsize{22}{26}\selectfont\renewcommand{\arraystretch}{1.15}\setlength{\tabcolsep}{0.3em}%
+\begin{tabular}{@{}>{\bfseries\raggedright\arraybackslash}p{0.2\linewidth} >{\raggedright\arraybackslash}p{0.37\linewidth} >{\raggedright\arraybackslash}p{0.37\linewidth}@{}}
+\toprule
+ & \textbf{Marginal Pair} & \textbf{Marginal Type} \\
+\midrule
+unit & each \textbf{pair} of relatives & each \textbf{relative type} \\
+weights & $1/SE^2$: common types (cousins) dominate & equal total weight per type \\
+95\% CI & parametric bootstrap: sampling noise only & leave one type out: depends on which relatives exist \\
+here & CI shown only as boxes & \textbf{CIs used throughout} \\
+\bottomrule
+\end{tabular}\par}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.155\linewidth}\raggedright
+\subhead{Problems in Eftedal et al.'s estimator}
+\setlist[itemize]{leftmargin=0.9em, itemsep=0.2em, topsep=0.1em}
+\begin{itemize}
+  \item Only optimized for Marginal Pair, not Marginal Type
+  \item Log-transformed correlations: more weight to distant relatives
+  \item Incorrect inverse-variance weights: more weight to distant relatives
+  \item Incorrect expected correlation for step-siblings
+  \item Phenotypic ($r$) and genetic ($m$) correlations between mates estimated independently,
+        although the model implies $m = V_A\,r$
+  % optional additions (uncomment if wanted):
+  % \item Relatives through twins of unknown zygosity left out of the fit
+  % \item CIs from resampling relative categories in proportion to $1/SE^2$
+\end{itemize}
 \end{minipage}%
 }
 
 % ============================== ROWS 2-4 ==============================
-% column 6: key above takeaways
-\posterbox[adjusted title=Takeaways, fontupper=\fontsize{29}{36}\selectfont]{name=take, column=6, above=bottom}{
+% columns 18-20: key above takeaways
+\posterbox[adjusted title=Takeaways, fontupper=\fontsize{27}{33}\selectfont]{name=take, column=18, span=3, above=bottom}{
 \begin{itemize}
   \item Revising Eftedal et al.'s estimator for the Additive model yields \textbf{high $V_A$}
         estimates that explain different relative types better
@@ -151,15 +181,16 @@
 
 \newcommand{\keyswatch}[1]{\textcolor{#1}{\rule[-0.05em]{0.75em}{0.75em}}}
 \newcommand{\keysym}[3]{\keyswatch{#1}\hspace{0.4em}{\color{#2}$#3$}}
-\posterbox[adjusted title=Key]{name=key, column=6, between=rel and take}{
-\centering{\fontsize{32}{39}\selectfont\renewcommand{\arraystretch}{1.6}%
-\begin{tabular}{@{}l >{\raggedright\arraybackslash}p{0.62\linewidth}@{}}
+\posterbox[adjusted title=Key]{name=key, column=18, span=3, between=bg and take}{
+\centering{\fontsize{34}{41}\selectfont\renewcommand{\arraystretch}{1.55}%
+\begin{tabular}{@{}l >{\raggedright\arraybackslash}p{0.66\linewidth}@{}}
 \toprule
 \textbf{symbol} & \textbf{meaning} \\
 \midrule
 \multicolumn{2}{@{}l}{\textit{\color{cAddText}Additive model}} \\
 \keysym{cAdd}{cAddText}{n}   & genetic degree \\
 \keysym{cAdd}{cAddText}{V_A} & additive genetic variance \\
+\keysym{cAdd}{cAddText}{V_A^0} & additive variance under random mating, $V_A(1-m)$ \\
 \keysym{cAdd}{cAddText}{m}   & mates' genetic correlation \\
 \keysym{cAdd}{cAddText}{r}   & mates' phenotypic correlation \\
 \midrule
@@ -174,45 +205,16 @@
 \end{tabular}\par}
 }
 
-% columns 1-2: revising Eftedal et al.
-\posterbox[adjusted title=Revising Eftedal et al.'s results]{name=rev, column=1, span=2, between=bg and bottom}{
-\begin{minipage}[t]{0.485\linewidth}
-\subhead{Two types of fits}
-{\tablesize\renewcommand{\arraystretch}{1.35}
-\begin{tabular}{@{}>{\bfseries\raggedright\arraybackslash}p{0.17\linewidth} >{\raggedright\arraybackslash}p{0.39\linewidth} >{\raggedright\arraybackslash}p{0.39\linewidth}@{}}
-\toprule
- & \textbf{Marginal Pair} & \textbf{Marginal Type} \\
-\midrule
-unit & each \textbf{pair} of relatives & each \textbf{relative type} \\
-weights & $1/SE^2$: common types (cousins) dominate & equal total weight per type \\
-95\% CI & parametric bootstrap: sampling noise only & leave one type out: depends on which relatives exist \\
-\bottomrule
-\end{tabular}\par}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.485\linewidth}
-\subhead{Problems in Eftedal et al.'s estimator}
-\begin{itemize}
-  \item Only optimized for Marginal Pair, not Marginal Type
-  \item Log-transformed correlations: more weight to distant relatives
-  \item Incorrect inverse-variance weights: more weight to distant relatives
-  \item Incorrect expected correlation for step-siblings
-  \item Phenotypic ($r$) and genetic ($m$) correlations between mates estimated independently,
-        although the model implies $m = V_A\,r$
-  % optional additions (uncomment if wanted):
-  % \item Relatives through twins of unknown zygosity left out of the fit
-  % \item CIs from resampling relative categories in proportion to $1/SE^2$
-\end{itemize}
-\end{minipage}
-
-\vspace{0.8em}
+% columns 1-7: revising Eftedal et al. (figure)
+\posterbox[adjusted title=Revising Eftedal et al.'s results]{name=rev, column=1, span=7, between=bg and bottom}{
 \subhead{Additive model: Eftedal et al.\ vs.\ revised}
 \includegraphics[width=\linewidth]{poster/p4_fit_and_params}\par
 {\smallsize Bars: model fits, pooled per relative type. Inset: estimates fitted to all relative types (dark) or
  biological relatives only (light); circle: estimate, box: Marginal Pair CI, line: Marginal Type CI.\par}
 }
 
-% columns 3-5: models with GxG and family environment
-\posterbox[adjusted title=Models with GxG and family environment]{name=gxg, column=3, span=3, between=rel and bottom}{
+% columns 8-17: models with GxG and family environment
+\posterbox[adjusted title=Models with GxG and family environment]{name=gxg, column=8, span=10, between=bg and bottom}{
 \begin{minipage}[t]{0.33\linewidth}
 \subhead{\color{cGxGText}Gene--gene interactions (GxG)}
 Pairwise interactions are shared only when both loci are: sharing decays twice as fast as additive sharing
