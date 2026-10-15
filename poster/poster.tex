@@ -50,7 +50,7 @@
 \begin{document}
 \begin{tcbposter}[
   coverage = {spread, interior style={fill=paper}},
-  poster = {columns=15, rows=36, spacing=1.2cm},
+  poster = {columns=6, rows=36, spacing=1.2cm},
   boxes = {enhanced, arc=6mm, boxrule=0pt, colback=white, colframe=navy,
            fonttitle=\boxtitlesize\bfseries, coltitle=white,
            left=12mm, right=12mm, top=10mm, bottom=10mm, toptitle=5mm, bottomtitle=5mm,
@@ -61,7 +61,7 @@
 \posterbox[blankest, interior engine=empty, colback=navy, colupper=white,
            underlay={\fill[navy] (frame.south west) rectangle (frame.north east);},
            halign=center, valign=center]
-  {name=header, column=1, span=15, row=1, rowspan=6}{%
+  {name=header, column=1, span=6, row=1, rowspan=6}{%
   \hspace*{1.3in}%
   \begin{minipage}[c]{0.13\linewidth}\raggedright
     \includegraphics[height=1.9in]{hms_dark}\\[0.4in]
@@ -99,8 +99,8 @@
 \newcommand{\subhead}[1]{{\color{navy}\bfseries\fontsize{40}{48}\selectfont #1\par}\smallskip}
 \newcommand{\refcite}[1]{{\color{navy}[#1]}}
 
-% ============================== COLUMN 1 ==============================
-\posterbox[adjusted title=Background]{name=bg, column=1, span=3, below=header}{
+% ============================== ROW 1: background | relative types ==============================
+\posterbox[adjusted title=Background, fontupper=\fontsize{30}{37}\selectfont]{name=bg, column=1, row=7, rowspan=7}{
 \begin{itemize}
   \item Relatives have similar test scores due to shared genetics and shared environments
   \item \refcite{Eftedal et al.\ 2025, \textit{PNAS}}: fit the \textbf{Additive model} to school test scores of
@@ -112,11 +112,15 @@
 \end{itemize}
 }
 
-\posterbox[adjusted title=Relative types]{name=rel, column=1, span=3, between=bg and bottom}{
-\centering
-\includegraphics[scale=2.35]{pedigree_sibs}\par\vspace{0.5em}
-\includegraphics[scale=2.35]{pedigree_cousins}\par\vspace{0.7em}
-{\fontsize{22}{27}\selectfont\renewcommand{\arraystretch}{1.95}\setlength{\tabcolsep}{0.4em}%
+% title as a vertical banner on the left
+\posterbox[notitle, left=3.7cm, valign=center,
+           overlay={\begin{tcbclipframe}\fill[navy] (frame.south west) rectangle ([xshift=2.5cm]frame.north west);\end{tcbclipframe}
+                    \node[rotate=90, text=white, font=\boxtitlesize\bfseries] at ([xshift=1.25cm]frame.west) {Relative types};}]
+  {name=rel, column=2, span=5, row=7, rowspan=7}{%
+\begin{minipage}[c]{0.27\linewidth}\centering\includegraphics[height=13.4cm]{pedigree_sibs}\end{minipage}\hfill
+\begin{minipage}[c]{0.33\linewidth}\centering\includegraphics[height=13.4cm]{pedigree_cousins}\end{minipage}\hfill
+\begin{minipage}[c]{0.36\linewidth}\centering
+{\fontsize{28}{33}\selectfont\renewcommand{\arraystretch}{1.32}\setlength{\tabcolsep}{0.5em}%
 \begin{tabular}[t]{@{}l c c >{$\displaystyle}l<{$}@{}}
 \toprule
 \textbf{relatives} & $\boldsymbol{n}$ & $\boldsymbol{f}$ & \text{\textbf{correlation implied}} \\[-0.9em]
@@ -129,30 +133,50 @@
 \relname{cCous}{1st cousins}        & 3   & 1   & V_A\,\left(\frac{1+m}{2}\right)^{3} \\
 \relname{cCoc}{co-cousins}          & 2+2 & 2   & V_A\,m\,\left(\frac{1+m}{2}\right)^{4} \\
 \bottomrule
-\end{tabular}\hfill
-\renewcommand{\arraystretch}{1.5}%
-\begin{tabular}[t]{@{}c >{\raggedright\arraybackslash}p{7.2cm}@{}}
+\end{tabular}\par}
+\end{minipage}%
+}
+
+% ============================== ROWS 2-4 ==============================
+% column 6: key above takeaways
+\posterbox[adjusted title=Takeaways, fontupper=\fontsize{29}{36}\selectfont]{name=take, column=6, above=bottom}{
+\begin{itemize}
+  \item Revising Eftedal et al.'s estimator for the Additive model yields \textbf{high $V_A$}
+        estimates that explain different relative types better
+  \item Additive, GxG and family-environment components are \textbf{collinear}: weak evidence for
+        significant components beyond the Additive model
+  \item No single model fully explains correlations across all relative types
+\end{itemize}
+}
+
+\newcommand{\keyswatch}[1]{\textcolor{#1}{\rule[-0.05em]{0.75em}{0.75em}}}
+\newcommand{\keysym}[3]{\keyswatch{#1}\hspace{0.4em}{\color{#2}$#3$}}
+\posterbox[adjusted title=Key]{name=key, column=6, between=rel and take}{
+\centering{\fontsize{32}{39}\selectfont\renewcommand{\arraystretch}{1.6}%
+\begin{tabular}{@{}l >{\raggedright\arraybackslash}p{0.62\linewidth}@{}}
 \toprule
 \textbf{symbol} & \textbf{meaning} \\
 \midrule
-\multicolumn{2}{@{}l}{\textit{Additive model}} \\
-$V_A$ & additive genetic variance \\
-$m$   & mates' genetic correlation \\
-$r$   & mates' phenotypic correlation \\
-$n$   & genetic degree \\
+\multicolumn{2}{@{}l}{\textit{\color{cAddText}Additive model}} \\
+\keysym{cAdd}{cAddText}{n}   & genetic degree \\
+\keysym{cAdd}{cAddText}{V_A} & additive genetic variance \\
+\keysym{cAdd}{cAddText}{m}   & mates' genetic correlation \\
+\keysym{cAdd}{cAddText}{r}   & mates' phenotypic correlation \\
 \midrule
-\multicolumn{2}{@{}l}{\textit{GxG and family-environment models}} \\
-$V_{\mathrm{GxG}}$ & GxG variance \\
-$V_{\mathrm{fam}}$ & family-environment variance \\
-$r_f$ & decay per family degree \\
-$f$   & family degree \\
+\multicolumn{2}{@{}l}{\textit{\color{cGxGText}Gene--gene interactions}} \\
+\keysym{cGxG}{cGxGText}{V_{\mathrm{GxG}}} & GxG variance \\
+\midrule
+\multicolumn{2}{@{}l}{\textit{\color{cFamText}Family environment}} \\
+\keysym{cFam}{cFamText}{f}   & family degree \\
+\keysym{cFam}{cFamText}{r_f} & decay per family degree \\
+\keysym{cFam}{cFamText}{V_{\mathrm{fam}}} & family-environment variance \\
 \bottomrule
 \end{tabular}\par}
 }
 
-% ============================== COLUMNS 2-3 ==============================
-\posterbox[adjusted title=Revising Eftedal et al.'s results]{name=rev, column=4, span=6, between=header and bottom}{
-\begin{minipage}[t]{0.46\linewidth}
+% columns 1-2: revising Eftedal et al.
+\posterbox[adjusted title=Revising Eftedal et al.'s results]{name=rev, column=1, span=2, between=bg and bottom}{
+\begin{minipage}[t]{0.485\linewidth}
 \subhead{Two types of fits}
 {\tablesize\renewcommand{\arraystretch}{1.35}
 \begin{tabular}{@{}>{\bfseries\raggedright\arraybackslash}p{0.17\linewidth} >{\raggedright\arraybackslash}p{0.39\linewidth} >{\raggedright\arraybackslash}p{0.39\linewidth}@{}}
@@ -165,7 +189,7 @@ weights & $1/SE^2$: common types (cousins) dominate & equal total weight per typ
 \bottomrule
 \end{tabular}\par}
 \end{minipage}\hfill
-\begin{minipage}[t]{0.5\linewidth}
+\begin{minipage}[t]{0.485\linewidth}
 \subhead{Problems in Eftedal et al.'s estimator}
 \begin{itemize}
   \item Only optimized for Marginal Pair, not Marginal Type
@@ -180,43 +204,40 @@ weights & $1/SE^2$: common types (cousins) dominate & equal total weight per typ
 \end{itemize}
 \end{minipage}
 
-\vspace{1.2em}
+\vspace{0.8em}
 \subhead{Additive model: Eftedal et al.\ vs.\ revised}
 \includegraphics[width=\linewidth]{poster/p4_fit_and_params}\par
 {\smallsize Bars: model fits, pooled per relative type. Inset: estimates fitted to all relative types (dark) or
  biological relatives only (light); circle: estimate, box: Marginal Pair CI, line: Marginal Type CI.\par}
 }
 
-% ============================== COLUMN 4 ==============================
-\posterbox[adjusted title=Takeaways]{name=take, column=10, span=6, above=bottom}{
-\begin{itemize}
-  \item Revising Eftedal et al.'s estimator for the Additive model yields \textbf{high $V_A$}
-        estimates that explain different relative types better
-  \item Additive, GxG and family-environment components are \textbf{collinear}: weak evidence for
-        significant components beyond the Additive model
-  \item No single model fully explains correlations across all relative types
-\end{itemize}
-}
-
-\posterbox[adjusted title=Models with GxG and family environment]{name=gxg, column=10, span=6, between=header and take}{
-\begin{minipage}[t]{0.485\linewidth}
-\subhead{Gene--gene interactions (GxG)}
+% columns 3-5: models with GxG and family environment
+\posterbox[adjusted title=Models with GxG and family environment]{name=gxg, column=3, span=3, between=rel and bottom}{
+\begin{minipage}[t]{0.33\linewidth}
+\subhead{\color{cGxGText}Gene--gene interactions (GxG)}
 Pairwise interactions are shared only when both loci are: sharing decays twice as fast as additive sharing
 \[ \rho_k = \dots + V_{\mathrm{GxG}}\left(\frac{1}{4}\right)^{n_k} \]
-\vspace{-0.6em}{\smallsize 0 for in-laws and adoptive relatives\par}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.485\linewidth}
-\subhead{Family environment (F)}
+{\smallsize 0 for in-laws and adoptive relatives\par}
+
+\vspace{1.0em}
+\subhead{\color{cFamText}Family environment (F)}
 Environment shared across the extended family, decaying with family degree $f$
 \[ \rho_k = \dots + V_{\mathrm{fam}}\, r_f^{\,f_k} \]
-{\smallsize also shared by in-laws and adoptive relatives; split into an extended part ($V_{\mathrm{fam}}\,r_f$, all relatives) and a sib-specific part ($V_{\mathrm{fam}}(1-r_f)$, striped)\par}
-\end{minipage}
+{\smallsize also shared by in-laws and adoptive relatives; split into an extended part
+ ($V_{\mathrm{fam}}\,r_f$, all relatives) and a sib-specific part ($V_{\mathrm{fam}}(1-r_f)$, striped)\par}
 
-\vspace{0.8em}
-\centering\includegraphics[width=\linewidth]{poster/p5_components_and_models}\par
-{\smallsize\raggedright Main: fit of A+GxG+F (Marginal Type), each relative type's predicted correlation split by component.
- Inset: variance components of four models (Marginal Type); whiskers: 95\% Marginal Type CIs.
+\vspace{1.0em}
+\subhead{Variance components}
+\includegraphics[width=\linewidth]{poster/p6_components_four_models}\par
+{\smallsize Marginal Type fits; whiskers: 95\% Marginal Type CIs; outline: sum of components.
  A $\rightarrow$ B: B fitted after A, with A held fixed.\par}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.645\linewidth}
+\subhead{Example: A+GxG+F}
+\includegraphics[width=\linewidth]{poster/p5_components_and_params}\par
+{\smallsize Bars: each relative type's predicted correlation, split by component (Marginal Type fit).
+ Inset: parameter estimates; circle: estimate, box: Marginal Pair CI, line: Marginal Type CI.\par}
+\end{minipage}
 }
 
 \end{tcbposter}

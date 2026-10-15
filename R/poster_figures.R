@@ -126,12 +126,23 @@ if (has("robustness", "additive_predictions.csv") && has("models", "core_predict
     coord_cartesian(ylim = c(-0.02, 1)) +
     labs(x = NULL, y = "Correlation") +
     condensed_theme()
-  save_poster(g, "p4_fit_and_params", width = 13.5, height = 8.8)
+  save_poster(g, "p4_fit_and_params", width = 13.5, height = 6.6)
 }
 
 # ---- P5. GxG and family environment --------------------------------------------------------------
+#   P5  (section g) per-type component fit of A+GxG+F with its parameter estimates as an inset,
+#       coloured by component; one shared legend at the bottom
+#   P6  (section f) variance components of four models (A+GxG+F label in bold)
 P5_MODELS <- c("A", "A>GxG", "A>F", "A+GxG+F")
-if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")) {
+# parameter colours: additive (blue), GxG (orange), family environment (green); secondary
+# parameters of a component (m, r; r_f) in a lighter shade of its colour
+PAR_LEVELS <- c(V_A = "V[A]", m = "m", r = "r", V_GxG = "V[GxG]", V_family = "V[fam]", r_f = "r[f]")
+PAR_COLS <- c(V_A = COMP_FILL[["A"]], m = lighten(COMP_FILL[["A"]], 0.35), r = lighten(COMP_FILL[["A"]], 0.35),
+              V_GxG = COMP_FILL[["GxG"]], V_family = COMP_FILL[["family"]], r_f = lighten(COMP_FILL[["family"]], 0.35))
+PAR_TEXT <- c(V_A = COMP_LINE[["A"]], m = COMP_LINE[["A"]], r = COMP_LINE[["A"]], V_GxG = COMP_LINE[["GxG"]],
+              V_family = COMP_LINE[["family"]], r_f = COMP_LINE[["family"]])
+if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv") &&
+    has("bootstrap", "intervals.csv")) {
   ## main: per-type predicted components of A+GxG+F (Marginal Type)
   preds <- rd("models", "core_predictions.csv") %>% filter(model == "A+GxG+F", weights == "hybrid_block")
   obs <- obs_from(preds)
@@ -149,15 +160,34 @@ if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")
     mutate(xmin = x - 0.36, xmax = x + 0.36, signif = TRUE, weights = "all")
   stripes <- seg_stripes(pp, spacing = 0.02, slope = 0.25)   # A_AM rising, fam_sib falling
   lab <- type_labels(po, pp %>% group_by(rel) %>% summarize(top = max(ymax)))
-  ## inset: variance components of four models (Marginal Type)
-  inset <- stacked_components(rd("models", "core_jackknife.csv") %>%
-                                filter(weights == "hybrid_block", model %in% P5_MODELS), P5_MODELS, title = NULL) +
-    labs(subtitle = NULL, y = "Variance component") +
-    scale_x_continuous(breaks = seq_along(P5_MODELS), labels = gsub(">", " → ", P5_MODELS)) +
+  ## inset: A+GxG+F parameter estimates (circle; box = Marginal Pair CI; line = Marginal Type CI)
+  est <- rd("models", "core_jackknife.csv") %>%
+    filter(model == "A+GxG+F", weights == "hybrid_block", param %in% names(PAR_LEVELS)) %>%
+    mutate(clip_lo = lo < 0, clip_hi = hi > 1, lo = pmax(lo, 0), hi = pmin(hi, 1))
+  bt <- rd("bootstrap", "intervals.csv") %>%
+    filter(model == "A+GxG+F", weights == "hybrid_block", param %in% names(PAR_LEVELS))
+  est <- est %>% mutate(x = match(param, names(PAR_LEVELS)), col = PAR_COLS[param], tcol = PAR_TEXT[param])
+  bt <- bt %>% mutate(x = match(param, names(PAR_LEVELS)), col = PAR_COLS[param])
+  arrow_end <- arrow(length = unit(0.08, "in"), type = "closed")
+  inset <- ggplot() +
+    geom_vline(xintercept = c(3.5, 4.5), color = "grey80", linewidth = 0.4) +
+    geom_segment(data = est, aes(x = x, xend = x, y = lo, yend = hi, color = col), linewidth = 1.5) +
+    geom_segment(data = est %>% filter(clip_hi), aes(x = x, xend = x, y = hi - 0.02, yend = hi, color = col),
+                 linewidth = 1.5, arrow = arrow_end) +
+    geom_rect(data = bt, aes(xmin = x - 0.06, xmax = x + 0.06, ymin = lo, ymax = hi, fill = col),
+              color = "grey15", linewidth = 0.3) +
+    geom_point(data = est, aes(x = x, y = estimate, fill = tcol), shape = 21, size = 3.6, stroke = 0.6, color = "grey15") +
+    geom_text(data = est, aes(x = x + 0.12, y = estimate, label = sprintf("%.2f", estimate), color = tcol),
+              hjust = 0, size = BASE * 0.24, fontface = "bold") +
+    scale_color_identity() + scale_fill_identity() +
+    scale_x_continuous(breaks = seq_along(PAR_LEVELS), labels = parse(text = PAR_LEVELS),
+                       expand = expansion(add = 0.45)) +
+    scale_y_continuous(breaks = seq(0, 1, 0.2), expand = c(0, 0)) +
+    coord_cartesian(ylim = c(0, 1), clip = "off") +
+    labs(x = NULL, y = "Estimate") +
     theme_bw(base_size = BASE) +
-    theme(legend.position = "none", panel.grid.major.x = element_blank(), panel.grid.minor = element_blank(),
-          strip.background = element_blank(), strip.text = element_blank(),
-          axis.text.x = element_text(size = BASE * 0.95, color = "black"),
+    theme(panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(),
+          axis.text.x = element_text(size = BASE * 1.15, color = "black"),
           plot.background = element_rect(fill = "white", color = "grey40", linewidth = 0.6),
           plot.margin = margin(8, 10, 6, 6))
   g <- ggplot() +
@@ -170,9 +200,6 @@ if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")
     geom_errorbar(data = po, aes(x = x, ymin = lo, ymax = hi), width = 2 * WHISKER, linewidth = 0.7) +
     geom_point(data = po, aes(x = x, y = corr, shape = OBS_LABEL), size = 2.6, key_glyph = "pointrange") +
     geom_text(data = lab, aes(x = x, y = y, label = label), size = BASE * 0.24, vjust = 0, lineheight = 0.85) +
-    # '(Sum)' key, for the black outlines in the inset
-    geom_rect(data = tibble(a = 1), aes(xmin = 1, xmax = 1, ymin = 2, ymax = 2, linetype = "(Sum)"),
-              fill = NA, color = "black") +
     annotation_custom(ggplotGrob(inset), xmin = match("half sibs", CONDENSED_ORDER) - 0.45,
                       xmax = length(CONDENSED_ORDER) + 0.55, ymin = 0.40, ymax = 0.995) +
     scale_fill_manual(values = SEG_FILL, labels = c(A0 = "A (random mating)", A_AM = "A (excess under AM)", GxG = "GxG",
@@ -180,13 +207,24 @@ if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")
                       breaks = SEG_ORDER[SEG_ORDER != "house"], name = NULL,
                       guide = guide_legend(order = 1, nrow = 2)) +
     scale_shape_manual(values = c(16), name = NULL, guide = guide_legend(order = 2, override.aes = list(size = 0.55))) +
-    scale_linetype_manual(values = c("(Sum)" = "solid"), name = NULL,
-                          guide = guide_legend(order = 3, override.aes = list(fill = NA, color = "black"))) +
     scale_x_continuous(breaks = NULL, expand = expansion(add = 0.6)) +
     scale_y_continuous(breaks = seq(0, 1, by = 0.1), expand = c(0, 0)) +
     coord_cartesian(ylim = c(-0.02, 1)) +
     labs(x = NULL, y = "Correlation") +
-    condensed_theme()
-  save_poster(g, "p5_components_and_models", width = 13.5, height = 9.05)
+    condensed_theme() + theme(legend.box = "vertical", legend.spacing.y = unit(0.2, "lines"))
+  save_poster(g, "p5_components_and_params", width = 11.5, height = 9.5)
+
+  ## P6: variance components of four models (Marginal Type), A+GxG+F in bold
+  g6 <- stacked_components(rd("models", "core_jackknife.csv") %>%
+                             filter(weights == "hybrid_block", model %in% P5_MODELS), P5_MODELS, title = NULL) +
+    labs(subtitle = NULL, y = "Variance component") +
+    scale_x_continuous(breaks = seq_along(P5_MODELS), labels = gsub(">", " → ", P5_MODELS)) +
+    theme_bw(base_size = BASE) +
+    theme(legend.position = "none", panel.grid.major.x = element_blank(), panel.grid.minor = element_blank(),
+          strip.background = element_blank(), strip.text = element_blank(),
+          axis.text.x = element_text(size = BASE * 0.95, color = "black",
+                                     face = ifelse(P5_MODELS == "A+GxG+F", "bold", "plain")),
+          plot.margin = margin(8, 10, 6, 6))
+  save_poster(g6, "p6_components_four_models", width = 6.2, height = 5.4)
 }
 cat("poster figures written to", FIGURES, "\n")
