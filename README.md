@@ -7,6 +7,16 @@ from genetic relatedness under assortative mating, with optional nonadditive (Gx
 shared-environment components, and ask how sensitive the conclusions are to modelling
 and fitting choices.
 
+## AI Disclosure
+I used Claude (Opus 5.5) extensively to help me with this project, and almost
+everything in this repository was ultimately written by Claude.
+However, I was responsible for deciding which analyses to run and was constantly
+in the loop regarding their implementation and provided direct feedback about
+improving it.
+With the exception of this disclosure, this README was written by Claude, as well
+as the figures, tables, poster(s), slides, notebooks, and more.
+However, the text on the poster was written by me.
+
 ## Layout
 
 | path | what |
