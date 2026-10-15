@@ -31,15 +31,22 @@ lighten <- function(col, f = 0.5) { m <- col2rgb(col); rgb(t(m + (255 - m) * f),
 OBS_LABEL <- "observed correlation (95% CI)"
 WHISKER <- 0.08     # half-width of the observed-correlation CI caps (x units)
 
+# [0, 1] y axes: major ticks/grid every 0.1, minor every 0.05
+y01 <- function(...) scale_y_continuous(breaks = seq(0, 1, 0.1), minor_breaks = seq(0, 1, 0.05),
+                                        expand = c(0, 0), guide = guide_axis(minor.ticks = TRUE), ...)
+minor_y <- theme(panel.grid.minor.x = element_blank(),
+                 panel.grid.minor.y = element_line(color = "grey93", linewidth = 0.3),
+                 axis.minor.ticks.length.y = rel(0.5))
+
 # relative-type labels drawn inside the plot, just above each observed point / bar
 type_labels <- function(po, top) {
   po %>% left_join(top, by = "rel") %>%
     mutate(y = pmax(hi, top) + 0.012, label = str_wrap(CONDENSED_LABELS[rel], 9))
 }
 condensed_theme <- function() {
-  theme_bw(base_size = BASE) +
+  theme_bw(base_size = BASE) + minor_y +
     theme(axis.ticks.x = element_blank(), axis.text.x = element_blank(),
-          panel.grid.major.x = element_blank(), panel.grid.minor = element_blank(),
+          panel.grid.major.x = element_blank(),
           legend.position = "bottom", legend.box = "horizontal", legend.text = element_text(size = BASE * 0.85),
           legend.key.width = unit(1.6, "lines"), legend.margin = margin(0, 6, 0, 6),
           legend.spacing.x = unit(1.2, "lines"))
@@ -97,11 +104,11 @@ if (has("robustness", "additive_predictions.csv") && has("models", "core_predict
     scale_color_identity() + scale_fill_identity() +
     facet_wrap(~param, nrow = 1, labeller = label_parsed) +
     scale_x_continuous(breaks = NULL, expand = expansion(add = 0.5)) +
-    scale_y_continuous(breaks = seq(0, 1, 0.2), expand = c(0, 0)) +
+    y01() +
     coord_cartesian(ylim = c(0, 1), clip = "off") +
     labs(x = NULL, y = "Estimate") +
     theme_bw(base_size = BASE) +
-    theme(panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(),
+    minor_y + theme(panel.grid.major.x = element_blank(),
           strip.text = element_text(size = BASE * 1.1), panel.spacing.x = unit(0.7, "lines"),
           plot.background = element_rect(fill = "white", color = "grey40", linewidth = 0.6),
           plot.margin = margin(6, 8, 8, 6))
@@ -127,11 +134,11 @@ if (has("robustness", "additive_predictions.csv") && has("models", "core_predict
                                                                                     stroke = c(0.6, 1.8), alpha = 1))) +
     scale_fill_identity() +
     scale_x_continuous(breaks = NULL, expand = expansion(add = 0.6)) +
-    scale_y_continuous(breaks = seq(0, 1, by = 0.1), expand = c(0, 0)) +
+    y01() +
     coord_cartesian(ylim = c(-0.02, 1)) +
     labs(x = NULL, y = "Correlation") +
     condensed_theme()
-  save_poster(g, "p4_fit_and_params", width = 11.6, height = 9.3)
+  save_poster(g, "p4_fit_and_params", width = 11.6, height = 8.85)
 }
 
 # ---- P5. GxG and family environment --------------------------------------------------------------
@@ -188,11 +195,11 @@ if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")
     scale_color_identity() + scale_fill_identity() +
     scale_x_continuous(breaks = seq_along(PAR_LEVELS), labels = parse(text = PAR_LEVELS),
                        expand = expansion(add = 0.45)) +
-    scale_y_continuous(breaks = seq(0, 1, 0.2), expand = c(0, 0)) +
+    y01() +
     coord_cartesian(ylim = c(0, 1), clip = "off") +
     labs(x = NULL, y = "Estimate") +
     theme_bw(base_size = BASE) +
-    theme(panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(),
+    minor_y + theme(panel.grid.major.x = element_blank(),
           axis.text.x = element_text(size = BASE * 1.15, color = "black"),
           plot.background = element_rect(fill = "white", color = "grey40", linewidth = 0.6),
           plot.margin = margin(8, 10, 6, 6))
@@ -214,7 +221,7 @@ if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")
                       guide = guide_legend(order = 1, nrow = 2)) +
     scale_shape_manual(values = c(16), name = NULL, guide = guide_legend(order = 2, override.aes = list(size = 0.55))) +
     scale_x_continuous(breaks = NULL, expand = expansion(add = 0.6)) +
-    scale_y_continuous(breaks = seq(0, 1, by = 0.1), expand = c(0, 0)) +
+    y01() +
     coord_cartesian(ylim = c(-0.02, 1)) +
     labs(x = NULL, y = "Correlation") +
     condensed_theme() + theme(legend.box = "vertical", legend.spacing.y = unit(0.2, "lines"))
@@ -226,7 +233,8 @@ if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")
     labs(subtitle = NULL, y = "Variance component") +
     scale_x_continuous(breaks = seq_along(P5_MODELS), labels = show_c(P5_MODELS)) +
     theme_bw(base_size = BASE) +
-    theme(legend.position = "none", panel.grid.major.x = element_blank(), panel.grid.minor = element_blank(),
+    y01(limits = c(0, 1)) + minor_y +
+    theme(legend.position = "none", panel.grid.major.x = element_blank(),
           strip.background = element_blank(), strip.text = element_blank(),
           axis.text.x = element_text(size = BASE * 0.95, color = "black",
                                      face = ifelse(P5_MODELS == "A+GxG+F", "bold", "plain")),

@@ -86,7 +86,7 @@
     \begin{minipage}[c]{0.28\linewidth}\centering
       % TODO: point to the public repository / ePoster once available
       \colorbox{white}{\color{black}\qrcode[height=2.4in]{https://github.com/nunorgcarvalho/eftedal_reanalysis}}\\[0.2em]
-      {\fontsize{25}{30}\selectfont GitHub Repository}
+      {\fontsize{25}{30}\selectfont Supplementary Material}
     \end{minipage}
   \end{minipage}\hspace*{0.3in}%
 }
@@ -108,14 +108,12 @@
   {name=bg, column=1, span=20, row=7, rowspan=6}{%
 \begin{minipage}[c]{0.17\linewidth}\raggedright
 \setlist[itemize]{leftmargin=0.9em, itemsep=0.25em, topsep=0.1em}
-\begin{itemize}
-  \item Relatives have similar test scores due to shared genetics and shared environments
-  \item \refcite{Eftedal et al.\ 2025, \textit{PNAS}} fit the \textbf{Additive model} to school test scores of
+Relatives have similar test scores due to shared genetics and shared environments\par\vspace{0.6em}
+\refcite{Eftedal et al.\ 2025, \textit{PNAS}} fit the \textbf{Additive model} to school test scores of
         $\sim$1M Norwegian children
-  \begin{itemize}
-    \item identified the relative type of each pair of relatives
-    \item fit the observed correlations by relative type as a function of the Additive model's parameters
-  \end{itemize}
+\begin{itemize}
+  \item identified the relative type of each pair of relatives
+  \item fit the observed correlations by relative type as a function of the Additive model's parameters
 \end{itemize}
 \end{minipage}\hfill
 \begin{minipage}[c]{0.125\linewidth}\centering\includegraphics[width=\linewidth]{pedigree_sibs}\end{minipage}\hfill
@@ -173,7 +171,7 @@ use & within-model comparisons & \textbf{across-model comparisons} \\
 \begin{itemize}
   \item Revising Eftedal et al.'s estimator for the Additive model yields \textbf{high $V_A$}
         estimates that explain different relative types better
-  \item Additive, GxG and family-environment components are \textbf{collinear}: weak evidence for
+  \item Additive, GxG and shared-environment components are \textbf{collinear}: weak evidence for
         significant components beyond the Additive model
   \item No single model fully explains correlations across all relative types
 \end{itemize}
@@ -197,10 +195,10 @@ use & within-model comparisons & \textbf{across-model comparisons} \\
 \multicolumn{2}{@{}l}{\textit{\color{cGxGText}Gene--gene interactions}} \\
 \keysym{cGxG}{cGxGText}{V_{\mathrm{GxG}}} & GxG variance \\
 \midrule
-\multicolumn{2}{@{}l}{\textit{\color{cFamText}Family environment}} \\
+\multicolumn{2}{@{}l}{\textit{\color{cFamText}Shared environment}} \\
 \keysym{cFam}{cFamText}{f}   & family degree \\
 \keysym{cFam}{cFamText}{c} & decay per family degree \\
-\keysym{cFam}{cFamText}{V_C} & family-environment variance \\
+\keysym{cFam}{cFamText}{V_C} & shared-environment variance \\
 \bottomrule
 \end{tabular}\par}
 }
@@ -208,6 +206,7 @@ use & within-model comparisons & \textbf{across-model comparisons} \\
 % columns 1-7: revising Eftedal et al. (figure)
 \posterbox[adjusted title=Revising Eftedal et al.'s results]{name=rev, column=1, span=7, between=bg and bottom}{
 \subhead{Additive model: Eftedal et al.\ vs.\ revised}
+The Revised model fixes errors in Eftedal et al.'s model and is optimized for the marginal relative type.\par\smallskip
 \includegraphics[width=\linewidth]{poster/p4_fit_and_params}\par
 {\smallsize Colored bars denote model's predicted correlation for each relative type.
 Actual observed correlations shown in black.
@@ -217,18 +216,18 @@ Inset: parameter estimates compared between training cohorts, as done in Eftedal
 Both types of CIs are shown.\par}
 }
 
-% columns 8-17: models with GxG and family environment
-\posterbox[adjusted title=Models with GxG and family environment]{name=gxg, column=8, span=10, between=bg and bottom}{
+% columns 8-17: models with GxG and shared environment
+\posterbox[adjusted title=Models with GxG and shared environment]{name=gxg, column=8, span=10, between=bg and bottom}{
 \begin{minipage}[t]{0.33\linewidth}
 \subhead{\color{cGxGText}Gene--gene interactions (GxG)}
 Pairwise genetic interactions, not affected by AM.
 {\fontsize{44}{52}\selectfont\[ \rho_k = \dots + V_{\mathrm{GxG}}\left(\frac{1}{4}\right)^{n_k} \]}
 
 \vspace{1.0em}
-\subhead{\color{cFamText}Family environment (C)}
+\subhead{\color{cFamText}Shared environment (C)}
 Environment shared across the extended family, decaying at a rate of $c$ with respect to family degree $f$:
-{\fontsize{44}{52}\selectfont\[ \rho_k = \dots + V_C\, c^{\,f_k} \]}
-Can be decomposed into within-sibling ($V_C(1-c)$) vs beyond-sibling ($V_C\,c$) shared environment.
+{\fontsize{44}{52}\selectfont\[ \rho_k = \dots + V_C\, c^{\,f_k} \]}%
+\noindent Can be decomposed into within-sibling ($V_C(1-c)$) vs beyond-sibling ($V_C\,c$) shared environment.
 
 \vspace{1.0em}
 \subhead{Variance components}
