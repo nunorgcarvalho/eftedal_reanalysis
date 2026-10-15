@@ -239,6 +239,6 @@ if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")
           axis.text.x = element_text(size = BASE * 0.95, color = "black",
                                      face = ifelse(P5_MODELS == "A+GxG+F", "bold", "plain")),
           plot.margin = margin(8, 10, 6, 6))
-  save_poster(g6, "p6_components_four_models", width = 5.4, height = 5.25)
+  save_poster(g6, "p6_components_four_models", width = 5.4, height = 4.75)
 }
 cat("poster figures written to", FIGURES, "\n")

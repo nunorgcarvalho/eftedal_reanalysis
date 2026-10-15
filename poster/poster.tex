@@ -153,8 +153,8 @@ use & within-model comparisons & \textbf{across-model comparisons} \\
 \setlist[itemize]{leftmargin=0.9em, itemsep=0.2em, topsep=0.1em}
 \begin{itemize}
   \item Only optimized for Marginal Pair, not Marginal Type
-  \item Log-transformed correlations: weighs towards distant relatives
-  \item Incorrect inverse-variance weights: weighs towards distant relatives
+  \item Log-transformed correlations: over-weights distant relatives
+  \item Incorrect inverse-variance weights: over-weight distant relatives
   \item Incorrect expected correlation for step-siblings
   \item Phenotypic ($r$) and genetic ($m$) correlations between mates estimated independently,
         although the model implies $m = V_A\,r$
@@ -206,13 +206,13 @@ use & within-model comparisons & \textbf{across-model comparisons} \\
 % columns 1-7: revising Eftedal et al. (figure)
 \posterbox[adjusted title=Revising Eftedal et al.'s results]{name=rev, column=1, span=7, between=bg and bottom}{
 \subhead{Additive model: Eftedal et al.\ vs.\ revised}
-The Revised model fixes errors in Eftedal et al.'s model and is optimized for the marginal relative type.\par\smallskip
+The Revised estimator fixes errors in Eftedal et al.'s estimator and is optimized for the Marginal Type.\par\smallskip
 \includegraphics[width=\linewidth]{poster/p4_fit_and_params}\par
-{\smallsize Colored bars denote model's predicted correlation for each relative type.
+{\smallsize Colored bars denote each model's predicted correlation for each relative type.
 Actual observed correlations shown in black.
-Eftedal et al.'s results optimized for the marginal pair, while the Revised estimator optimizes for the marginal type.
+Eftedal et al.'s estimator optimizes for the Marginal Pair, while the Revised estimator optimizes for the Marginal Type.
 
-Inset: parameter estimates compared between training cohorts, as done in Eftedal et al.: biological relatives only vs all relatives.
+Inset: parameter estimates compared between training cohorts, as done in Eftedal et al.: biological relatives only vs.\ all relative types.
 Both types of CIs are shown.\par}
 }
 
@@ -220,14 +220,14 @@ Both types of CIs are shown.\par}
 \posterbox[adjusted title=Models with GxG and shared environment]{name=gxg, column=8, span=10, between=bg and bottom}{
 \begin{minipage}[t]{0.33\linewidth}
 \subhead{\color{cGxGText}Gene--gene interactions (GxG)}
-Pairwise genetic interactions, not affected by AM.
+Pairwise genetic interactions, not affected by assortative mating (AM).
 {\fontsize{44}{52}\selectfont\[ \rho_k = \dots + V_{\mathrm{GxG}}\left(\frac{1}{4}\right)^{n_k} \]}
 
 \vspace{1.0em}
 \subhead{\color{cFamText}Shared environment (C)}
 Environment shared across the extended family, decaying at a rate of $c$ with respect to family degree $f$:
 {\fontsize{44}{52}\selectfont\[ \rho_k = \dots + V_C\, c^{\,f_k} \]}%
-\noindent Can be decomposed into within-sibling ($V_C(1-c)$) vs beyond-sibling ($V_C\,c$) shared environment.
+\noindent Can be decomposed into within-sibling ($V_C(1-c)$) vs.\ beyond-sibling ($V_C\,c$) shared environment.
 
 \vspace{1.0em}
 \subhead{Variance components}
@@ -236,12 +236,12 @@ Environment shared across the extended family, decaying at a rate of $c$ with re
 Marginal Type point estimates and 95\% CIs.
 Color is faded if component variance is not significantly greater than 0.
 Black indicates sum of variance components.
-A+GxG+C is bolded and used as an example in adjacent figure.}
+A+GxG+C is bolded and used as the example in the adjacent figure.\par}
 \end{minipage}\hfill
 \begin{minipage}[t]{0.645\linewidth}
 \subhead{Example: A+GxG+C}
 \includegraphics[width=\linewidth]{poster/p5_components_and_params}\par
-{\smallsize Decomposed correlations by relative types.
+{\smallsize Predicted correlation of each relative type, decomposed by component.
 Marginal Type fit.
  Inset: parameter estimates; both types of CIs are shown.\par}
 \end{minipage}
