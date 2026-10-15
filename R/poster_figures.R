@@ -136,7 +136,8 @@ if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")
   preds <- rd("models", "core_predictions.csv") %>% filter(model == "A+GxG+F", weights == "hybrid_block")
   obs <- obs_from(preds)
   po <- pool_by_type(obs) %>% mutate(lo = corr - z95 * se, hi = corr + z95 * se)
-  parts <- c(A0 = "part_A0", A_AM = "part_A_AM", GxG = "comp_GxG", family = "comp_family")
+  parts <- c(A0 = "part_A0", A_AM = "part_A_AM", GxG = "comp_GxG",
+             fam_ext = "part_fam_ext", fam_sib = "part_fam_sib")   # familial env.: extended + sib-specific
   w <- obs %>% transmute(row, w = 1 / se^2)
   pp <- preds %>% filter(rel %in% CONDENSED_ORDER) %>% inner_join(w, by = "row") %>%
     select(rel, w, all_of(unname(parts))) %>%
@@ -146,7 +147,7 @@ if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")
     mutate(x = match(rel, CONDENSED_ORDER)) %>% arrange(x, segment) %>%
     group_by(rel) %>% mutate(ymax = cumsum(value), ymin = ymax - value) %>% ungroup() %>%
     mutate(xmin = x - 0.36, xmax = x + 0.36, signif = TRUE, weights = "all")
-  stripes <- stripe_segments(pp %>% filter(segment == "A_AM"), spacing = 0.02, slope = 0.25)
+  stripes <- seg_stripes(pp, spacing = 0.02, slope = 0.25)   # A_AM rising, fam_sib falling
   lab <- type_labels(po, pp %>% group_by(rel) %>% summarize(top = max(ymax)))
   ## inset: variance components of four models (Marginal Type)
   inset <- stacked_components(rd("models", "core_jackknife.csv") %>%
@@ -170,15 +171,16 @@ if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")
     geom_point(data = po, aes(x = x, y = corr, shape = OBS_LABEL), size = 2.6, key_glyph = "pointrange") +
     geom_text(data = lab, aes(x = x, y = y, label = label), size = BASE * 0.24, vjust = 0, lineheight = 0.85) +
     # '(Sum)' key, for the black outlines in the inset
-    geom_rect(data = tibble(a = 1), aes(xmin = 1, xmax = 1, ymin = 2, ymax = 2, linetype = "(Sum) in inset"),
+    geom_rect(data = tibble(a = 1), aes(xmin = 1, xmax = 1, ymin = 2, ymax = 2, linetype = "(Sum)"),
               fill = NA, color = "black") +
     annotation_custom(ggplotGrob(inset), xmin = match("half sibs", CONDENSED_ORDER) - 0.45,
                       xmax = length(CONDENSED_ORDER) + 0.55, ymin = 0.40, ymax = 0.995) +
-    scale_fill_manual(values = SEG_FILL, labels = SEG_LABELS[SEG_ORDER != "house"],
+    scale_fill_manual(values = SEG_FILL, labels = c(A0 = "A (random mating)", A_AM = "A (excess under AM)", GxG = "GxG",
+                                                    fam_ext = "family env. (extended)", fam_sib = "family env. (sib-specific)"),
                       breaks = SEG_ORDER[SEG_ORDER != "house"], name = NULL,
                       guide = guide_legend(order = 1, nrow = 2)) +
     scale_shape_manual(values = c(16), name = NULL, guide = guide_legend(order = 2, override.aes = list(size = 0.55))) +
-    scale_linetype_manual(values = c("(Sum) in inset" = "solid"), name = NULL,
+    scale_linetype_manual(values = c("(Sum)" = "solid"), name = NULL,
                           guide = guide_legend(order = 3, override.aes = list(fill = NA, color = "black"))) +
     scale_x_continuous(breaks = NULL, expand = expansion(add = 0.6)) +
     scale_y_continuous(breaks = seq(0, 1, by = 0.1), expand = c(0, 0)) +
