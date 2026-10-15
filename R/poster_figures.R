@@ -162,9 +162,12 @@ PAR_GROUP <- c(V_A = 1, V_A0 = 1, m = 1, r = 1, V_GxG = 2, V_family = 3, r_f = 3
 # per-type component fit of one model with its parameter estimates as an inset (circle; box =
 # Marginal Pair CI; line = Marginal Type CI). Only the model's own parameters and components are
 # shown. Used for P5 (A+GxG+F) and for the supplemental slides (every core model).
-components_and_params <- function(model_name, weights_name = "hybrid_block") {
+# preds / est / bt default to the core model's predictions, Marginal Type jackknife and Marginal
+# Pair bootstrap intervals; pass them to draw another fit (e.g. Eftedal et al.'s).
+components_and_params <- function(model_name, weights_name = "hybrid_block", preds = NULL, est = NULL, bt = NULL) {
   ## main: per-type predicted components
-  preds <- rd("models", "core_predictions.csv") %>% filter(model == model_name, weights == weights_name)
+  if (is.null(preds))
+    preds <- rd("models", "core_predictions.csv") %>% filter(model == model_name, weights == weights_name)
   obs <- obs_from(preds)
   po <- pool_by_type(obs) %>% mutate(lo = corr - z95 * se, hi = corr + z95 * se)
   parts <- c(A0 = "part_A0", A_AM = "part_A_AM", GxG = "comp_GxG",
@@ -182,12 +185,14 @@ components_and_params <- function(model_name, weights_name = "hybrid_block") {
   stripes <- seg_stripes(pp, spacing = 0.02, slope = 0.25)   # A_AM rising, fam_sib falling
   lab <- type_labels(po, pp %>% group_by(rel) %>% summarize(top = max(ymax)))
   ## inset: the model's parameter estimates, grouped by component
-  est <- rd("models", "core_jackknife.csv") %>%
-    filter(model == model_name, weights == weights_name, param %in% names(PAR_LEVELS), !is.na(estimate))
+  if (is.null(est))
+    est <- rd("models", "core_jackknife.csv") %>% filter(model == model_name, weights == weights_name)
+  est <- est %>% filter(param %in% names(PAR_LEVELS), !is.na(estimate))
   pars <- names(PAR_LEVELS)[names(PAR_LEVELS) %in% est$param]
   est <- est %>% mutate(clip_lo = lo < 0, clip_hi = hi > 1, lo = pmax(lo, 0), hi = pmin(hi, 1))
-  bt <- rd("bootstrap", "intervals.csv") %>%
-    filter(model == model_name, weights == weights_name, param %in% pars)
+  if (is.null(bt))
+    bt <- rd("bootstrap", "intervals.csv") %>% filter(model == model_name, weights == weights_name)
+  bt <- bt %>% filter(param %in% pars)
   est <- est %>% mutate(x = match(param, pars), col = PAR_COLS[param], tcol = PAR_TEXT[param])
   bt <- bt %>% mutate(x = match(param, pars), col = PAR_COLS[param])
   seps <- which(diff(PAR_GROUP[pars]) != 0) + 0.5      # thin lines between component groups
@@ -276,5 +281,15 @@ if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")
                        "CV rank", as.integer(s$cv_rank), length(CORE_MODELS)),
                file.path(FIGURES, "supplement", paste0("stats_", model_tag(m), ".tex")))
   }
+}
+# Eftedal et al.'s additive fit (their estimator; biological relatives + in-laws), same plot
+if (has("poster", "eftedal_predictions.csv") && has("poster", "additive_by_cohort.csv")) {
+  ac <- rd("poster", "additive_by_cohort.csv") %>% filter(label == "Eftedal et al.", cohort_name == "bio + in-laws")
+  save_poster(components_and_params("Eftedal et al.", preds = rd("poster", "eftedal_predictions.csv"),
+                                    est = ac %>% filter(method == "block jackknife"),
+                                    bt = ac %>% filter(method == "parametric bootstrap")),
+              file.path("supplement", "s_components_eftedal"), width = 8.8, height = 8.0)
+  writeLines(sprintf("%s & %.1f \\\\", "$\\chi^2/\\mathrm{df}$", ac$chi2_per_df[1]),
+             file.path(FIGURES, "supplement", "stats_eftedal.tex"))
 }
 cat("poster figures written to", FIGURES, "\n")

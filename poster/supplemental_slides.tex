@@ -46,25 +46,26 @@
 \newcommand{\keyswatch}[1]{\textcolor{#1}{\rule[-0.05em]{0.75em}{0.75em}}}
 \newcommand{\keysym}[3]{\keyswatch{#1}\hspace{0.4em}{\color{#2}$#3$}}
 
-% one slide per model: #1 file tag, #2 model (title), #3 description, #4 \comments{items} or empty
+% one slide per model: [#1 fit type, default Marginal Type], #2 file tag, #3 model (title),
+% #4 description, #5 \comments{items} or empty
 \newcommand{\comments}[1]{\smallskip{\color{navy}\bfseries Comments}\par
   {\footnotesize\begin{itemize}\setlength{\itemsep}{0.15em}\setlength{\leftmargini}{1.1em} #1\end{itemize}}}
-\newcommand{\modelslide}[4]{%
-\begin{frame}{#2}{Marginal Type fit}
+\newcommand{\modelslide}[5][Marginal Type]{%
+\begin{frame}{#3}{#1 fit}
   \begin{columns}[T, onlytextwidth]
     \begin{column}{0.585\textwidth}
-      \vspace{-0.4em}\includegraphics[height=0.86\textheight]{\supp/s_components_#1}
+      \vspace{-0.4em}\includegraphics[height=0.86\textheight]{\supp/s_components_#2}
     \end{column}
     \begin{column}{0.405\textwidth}\small
       \begin{minipage}[t][0.84\textheight]{\linewidth}\raggedright
       \vspace{0.3em}{\color{navy}\bfseries Model}\par\smallskip
-      #3\par\medskip
-      {\color{navy}\bfseries Fit} {\footnotesize(Marginal Type)}\par\smallskip
+      #4\par\medskip
+      {\color{navy}\bfseries Fit} {\footnotesize(#1)}\par\smallskip
       {\renewcommand{\arraystretch}{1.0}%
       \begin{tabular}{@{}l r@{}}
-        \input{\supp/stats_#1.tex}
+        \input{\supp/stats_#2.tex}
       \end{tabular}\par}
-      #4
+      #5
       \vfill
       {\scriptsize\color{gray!40!ink}
       Bars: predicted, by component; black: observed (95\% CI). Inset: estimate (circle),
@@ -131,7 +132,7 @@
   to run and was constantly in the loop regarding their implementation and provided direct feedback
   about improving it.\par\medskip
   With the exception of this disclosure, this README was written by Claude, as well as the figures,
-  tables, poster(s), slides, notebooks, and more. However, the text on the poster was written by me.\par
+  tables, poster(s), slides, notebooks, and more. However, the text on the poster and many of the slides here was written by me.\par
   \bigskip\hfill{\normalsize\color{gray!40!ink}--- from the repository README}
   \end{minipage}\end{center}
   \vfill
@@ -202,7 +203,7 @@
   correlation, summed across relationship types).
   & Distant relative types (with more ``distinct'' relationships) make up a greater share of the RSS.
   & No change. \\ \rowgap
-  Optimized for log-transformed correlations, which makes optimization a simple linear regression
+  Optimized for log-transformed correlations, which makes optimization a simpler linear regression
   problem.
   & Squared errors are greater for smaller raw correlations, so distant relatives make up an
   \emph{even greater} share of the RSS.
@@ -228,7 +229,7 @@
   $V_A\,m\,\big((1+r)/2\big)^2$.
   & Predicts step-siblings to be less similar than the model actually implies (since $r > m$).
   & Used the correct formula. \\ \rowgap
-  Estimated $m$ and $r$ independently, although the primary assortative mating model implies
+  Estimated $m$ and $r$ independently, despite the primary assortative mating model implying
   $m = V_A\,r$.
   & Mismatch between the estimator and the estimand.
   & Enforced the constraint implied by the model. \\ \rowgap
@@ -241,11 +242,17 @@
   \end{fittable}
 \end{frame}
 
+\modelslide[Marginal Pair]{eftedal}{Eftedal et al.\ (\mA)}{%
+  The additive model with Eftedal et al.'s estimator and settings, fitted to biological relatives and
+  in-laws.}{\comments{%
+  \item Under-predicts twins and siblings while fitting distant relatives closely.
+  \item $\chi^2/\mathrm{df}$ over the relative types they fitted (no adoptive types).}}
+
 \modelslide{A}{\mA}{%
   Additive genetic effects under assortative mating only.}{\comments{%
   \item The model used in Eftedal et al., but fitted for the marginal relative type rather than the
         marginal pair of individuals.
-  \item The additive component (in any model) has only two degrees of freedom, as
+  \item The additive component (in the current and all subsequent models) has only two degrees of freedom, as
         $V_A^0 = V_A(1-m)$ and $m = V_A\,r$.}}
 
 % ================================================================ section 2
@@ -257,7 +264,7 @@
   \mA\ and \mG\ fitted jointly.}{}
 \modelslide{A_to_F}{\mA\then\mC}{%
   \mA\ fitted first; \mC\ then fitted to what remains, with \mA's parameters held fixed.}{\comments{%
-  \item $c = 0$: the shared environment is shared by siblings only, with no shared environment beyond
+  \item Since $c = 0$, the shared environment is shared by siblings only, with no shared environment beyond
         siblings.}}
 \modelslide{AF}{\mA\ + \mC}{%
   \mA\ and \mC\ fitted jointly.}{\comments{%

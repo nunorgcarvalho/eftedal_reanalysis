@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Build poster.pdf and supplemental_slides.pdf. Figures: run `Rscript R/make_figures.R` and
+# Build poster.pdf and supplemental_slides.pdf. Figures: run `Rscript R/make_figures.R`,
+# `python scripts/poster_additive.py`, `python scripts/poster_eftedal_predictions.py` and
 # `Rscript R/poster_figures.R` first.
 set -euo pipefail
 cd "$(dirname "$0")"
