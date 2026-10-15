@@ -6,8 +6,10 @@
 # about doubled on the poster.
 #   P4  additive model: condensed fit (Eftedal et al. vs revised, Marginal Type) with the
 #       V_A / m / r estimates by cohort as an inset; one shared legend at the bottom
-#   P5  GxG and family environment: per-type component fit of A+GxG+F with the variance
-#       components of four models as an inset; one shared legend at the bottom
+#   P5  GxG and family environment: per-type component fit of A+GxG+F with its parameter
+#       estimates as an inset; one shared legend at the bottom
+#   P6  variance components of four models
+#   supplement/s_components_<model>: the P5 plot for every core model (supplemental slides)
 args <- commandArgs(trailingOnly = FALSE)
 this <- sub("^--file=", "", args[grep("^--file=", args)])
 REPO <- normalizePath(file.path(dirname(this), ".."))
@@ -17,7 +19,7 @@ FIGURES <- file.path(RESULTS, "figures", "poster")
 
 BASE <- 15          # base font size (pt) at drawing size
 save_poster <- function(gg, name, width, height) {   # width/height in inches
-  dir.create(FIGURES, showWarnings = FALSE, recursive = TRUE)
+  dir.create(dirname(file.path(FIGURES, name)), showWarnings = FALSE, recursive = TRUE)
   ggsave(file.path(FIGURES, paste0(name, ".pdf")), gg, width = width, height = height, device = cairo_pdf)
   ggsave(file.path(FIGURES, paste0(name, ".png")), gg, width = width, height = height, dpi = 150)
 }
@@ -154,46 +156,57 @@ PAR_COLS <- c(V_A = COMP_FILL[["A"]], V_A0 = COMP_FILL[["A"]], m = lighten(COMP_
               V_GxG = COMP_FILL[["GxG"]], V_family = COMP_FILL[["family"]], r_f = lighten(COMP_FILL[["family"]], 0.35))
 PAR_TEXT <- c(V_A = COMP_LINE[["A"]], V_A0 = COMP_LINE[["A"]], m = COMP_LINE[["A"]], r = COMP_LINE[["A"]], V_GxG = COMP_LINE[["GxG"]],
               V_family = COMP_LINE[["family"]], r_f = COMP_LINE[["family"]])
-if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv") &&
-    has("bootstrap", "intervals.csv")) {
-  ## main: per-type predicted components of A+GxG+F (Marginal Type)
-  preds <- rd("models", "core_predictions.csv") %>% filter(model == "A+GxG+F", weights == "hybrid_block")
+SEG_SHOW <- c(A0 = "A (random mating)", A_AM = "A (excess under AM)", GxG = "GxG",
+              fam_ext = "C (beyond-sibling)", fam_sib = "C (within-sibling)")
+PAR_GROUP <- c(V_A = 1, V_A0 = 1, m = 1, r = 1, V_GxG = 2, V_family = 3, r_f = 3)
+# per-type component fit of one model with its parameter estimates as an inset (circle; box =
+# Marginal Pair CI; line = Marginal Type CI). Only the model's own parameters and components are
+# shown. Used for P5 (A+GxG+F) and for the supplemental slides (every core model).
+components_and_params <- function(model_name, weights_name = "hybrid_block") {
+  ## main: per-type predicted components
+  preds <- rd("models", "core_predictions.csv") %>% filter(model == model_name, weights == weights_name)
   obs <- obs_from(preds)
   po <- pool_by_type(obs) %>% mutate(lo = corr - z95 * se, hi = corr + z95 * se)
   parts <- c(A0 = "part_A0", A_AM = "part_A_AM", GxG = "comp_GxG",
              fam_ext = "part_fam_ext", fam_sib = "part_fam_sib")   # familial env.: extended + sib-specific
+  parts <- parts[sapply(parts, function(p) p %in% names(preds) && any(!is.na(preds[[p]])))]   # the model's own
   w <- obs %>% transmute(row, w = 1 / se^2)
   pp <- preds %>% filter(rel %in% CONDENSED_ORDER) %>% inner_join(w, by = "row") %>%
     select(rel, w, all_of(unname(parts))) %>%
     pivot_longer(all_of(unname(parts)), names_to = "col", values_to = "value") %>%
-    mutate(segment = factor(names(parts)[match(col, parts)], SEG_ORDER)) %>%
+    mutate(value = replace_na(value, 0), segment = factor(names(parts)[match(col, parts)], SEG_ORDER)) %>%
     group_by(rel, segment) %>% summarize(value = sum(w * value) / sum(w), .groups = "drop") %>%
     mutate(x = match(rel, CONDENSED_ORDER)) %>% arrange(x, segment) %>%
     group_by(rel) %>% mutate(ymax = cumsum(value), ymin = ymax - value) %>% ungroup() %>%
     mutate(xmin = x - 0.36, xmax = x + 0.36, signif = TRUE, weights = "all")
   stripes <- seg_stripes(pp, spacing = 0.02, slope = 0.25)   # A_AM rising, fam_sib falling
   lab <- type_labels(po, pp %>% group_by(rel) %>% summarize(top = max(ymax)))
-  ## inset: A+GxG+F parameter estimates (circle; box = Marginal Pair CI; line = Marginal Type CI)
+  ## inset: the model's parameter estimates, grouped by component
   est <- rd("models", "core_jackknife.csv") %>%
-    filter(model == "A+GxG+F", weights == "hybrid_block", param %in% names(PAR_LEVELS)) %>%
-    mutate(clip_lo = lo < 0, clip_hi = hi > 1, lo = pmax(lo, 0), hi = pmin(hi, 1))
+    filter(model == model_name, weights == weights_name, param %in% names(PAR_LEVELS), !is.na(estimate))
+  pars <- names(PAR_LEVELS)[names(PAR_LEVELS) %in% est$param]
+  est <- est %>% mutate(clip_lo = lo < 0, clip_hi = hi > 1, lo = pmax(lo, 0), hi = pmin(hi, 1))
   bt <- rd("bootstrap", "intervals.csv") %>%
-    filter(model == "A+GxG+F", weights == "hybrid_block", param %in% names(PAR_LEVELS))
-  est <- est %>% mutate(x = match(param, names(PAR_LEVELS)), col = PAR_COLS[param], tcol = PAR_TEXT[param])
-  bt <- bt %>% mutate(x = match(param, names(PAR_LEVELS)), col = PAR_COLS[param])
+    filter(model == model_name, weights == weights_name, param %in% pars)
+  est <- est %>% mutate(x = match(param, pars), col = PAR_COLS[param], tcol = PAR_TEXT[param])
+  bt <- bt %>% mutate(x = match(param, pars), col = PAR_COLS[param])
+  seps <- which(diff(PAR_GROUP[pars]) != 0) + 0.5      # thin lines between component groups
   arrow_end <- arrow(length = unit(0.08, "in"), type = "closed")
   inset <- ggplot() +
-    geom_vline(xintercept = c(4.5, 5.5), color = "grey80", linewidth = 0.4) +
+    geom_vline(xintercept = seps, color = "grey80", linewidth = 0.4) +
     geom_segment(data = est, aes(x = x, xend = x, y = lo, yend = hi, color = col), linewidth = 1.5) +
+    geom_segment(data = est %>% filter(clip_lo), aes(x = x, xend = x, y = lo + 0.02, yend = lo, color = col),
+                 linewidth = 1.5, arrow = arrow_end) +
     geom_segment(data = est %>% filter(clip_hi), aes(x = x, xend = x, y = hi - 0.02, yend = hi, color = col),
                  linewidth = 1.5, arrow = arrow_end) +
     geom_rect(data = bt, aes(xmin = x - 0.06, xmax = x + 0.06, ymin = lo, ymax = hi, fill = col),
               color = "grey15", linewidth = 0.3) +
     geom_point(data = est, aes(x = x, y = estimate, fill = tcol), shape = 21, size = 3.6, stroke = 0.6, color = "grey15") +
-    geom_text(data = est, aes(x = x + 0.12, y = estimate, label = sprintf("%.2f", estimate), color = tcol),
+    # labels of estimates at/near 0 lifted off the axis
+    geom_text(data = est, aes(x = x + 0.12, y = pmax(estimate, 0.035), label = sprintf("%.2f", estimate), color = tcol),
               hjust = 0, size = BASE * 0.24, fontface = "bold") +
     scale_color_identity() + scale_fill_identity() +
-    scale_x_continuous(breaks = seq_along(PAR_LEVELS), labels = parse(text = PAR_LEVELS),
+    scale_x_continuous(breaks = seq_along(pars), labels = parse(text = PAR_LEVELS[pars]),
                        expand = expansion(add = 0.45)) +
     y01() +
     coord_cartesian(ylim = c(0, 1), clip = "off") +
@@ -203,7 +216,7 @@ if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")
           axis.text.x = element_text(size = BASE * 1.15, color = "black"),
           plot.background = element_rect(fill = "white", color = "grey40", linewidth = 0.6),
           plot.margin = margin(8, 10, 6, 6))
-  g <- ggplot() +
+  ggplot() +
     bio_split(y = 0.30, size = BASE * 0.2) +
     geom_rect(data = pp, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = segment),
               key_glyph = draw_key_striped) +
@@ -215,9 +228,7 @@ if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")
     geom_text(data = lab, aes(x = x, y = y, label = label), size = BASE * 0.205, vjust = 0, lineheight = 0.85) +
     annotation_custom(ggplotGrob(inset), xmin = match("half sibs", CONDENSED_ORDER) - 0.45,
                       xmax = length(CONDENSED_ORDER) + 0.55, ymin = 0.40, ymax = 0.995) +
-    scale_fill_manual(values = SEG_FILL, labels = c(A0 = "A (random mating)", A_AM = "A (excess under AM)", GxG = "GxG",
-                                                    fam_ext = "C (beyond-sibling)", fam_sib = "C (within-sibling)"),
-                      breaks = SEG_ORDER[SEG_ORDER != "house"], name = NULL,
+    scale_fill_manual(values = SEG_FILL, labels = SEG_SHOW[names(parts)], breaks = names(parts), name = NULL,
                       guide = guide_legend(order = 1, nrow = 2)) +
     scale_shape_manual(values = c(16), name = NULL, guide = guide_legend(order = 2, override.aes = list(size = 0.55))) +
     scale_x_continuous(breaks = NULL, expand = expansion(add = 0.6)) +
@@ -225,6 +236,10 @@ if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")
     coord_cartesian(ylim = c(-0.02, 1)) +
     labs(x = NULL, y = "Correlation") +
     condensed_theme() + theme(legend.box = "vertical", legend.spacing.y = unit(0.2, "lines"))
+}
+if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv") &&
+    has("bootstrap", "intervals.csv")) {
+  g <- components_and_params("A+GxG+F")
   save_poster(g, "p5_components_and_params", width = 10.0, height = 9.1)
 
   ## P6: variance components of four models (Marginal Type), A+GxG+F in bold
@@ -240,5 +255,26 @@ if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")
                                      face = ifelse(P5_MODELS == "A+GxG+F", "bold", "plain")),
           plot.margin = margin(8, 10, 6, 6))
   save_poster(g6, "p6_components_four_models", width = 5.4, height = 4.75)
+}
+
+# ---- supplemental slides: the P5 plot for every core model (Marginal Type) ------------------------
+CORE_MODELS <- c("A", "A>GxG", "A+GxG", "A>F", "A+F", "A+GxG>F", "A+F>GxG", "A>GxG+F", "A+GxG+F")
+model_tag <- function(m) gsub("\\+", "", gsub(">", "_to_", m))   # file tag: '>' -> '_to_', '+' dropped
+if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv") &&
+    has("bootstrap", "intervals.csv")) {
+  for (m in CORE_MODELS)
+    save_poster(components_and_params(m), file.path("supplement", paste0("s_components_", model_tag(m))),
+                width = 8.8, height = 8.0)   # smaller than P5, so text is larger on a slide
+  # fit statistics (Marginal Type) as LaTeX snippets, \input by poster/supplemental_slides.tex
+  fs <- rd("models", "core_fits.csv") %>% filter(weights == "hybrid_block") %>%
+    left_join(rd("models", "core_cv_summary.csv") %>% select(model, weights, cv_rmse), by = c("model", "weights")) %>%
+    mutate(cv_rank = rank(cv_rmse))
+  for (m in CORE_MODELS) {
+    s <- fs %>% filter(model == .env$m)   # fits also have a column m
+    writeLines(sprintf("%s & %.1f \\\\\n%s & %.3f \\\\\n%s & %d of %d \\\\",
+                       "$\\chi^2/\\mathrm{df}$", s$chi2_per_df, "CV RMSE", s$cv_rmse,
+                       "CV rank", as.integer(s$cv_rank), length(CORE_MODELS)),
+               file.path(FIGURES, "supplement", paste0("stats_", model_tag(m), ".tex")))
+  }
 }
 cat("poster figures written to", FIGURES, "\n")

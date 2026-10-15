@@ -28,10 +28,15 @@ poster/logos/
 poster/*.aux
 poster/*.log
 poster/*.out
+poster/*.nav
+poster/*.snm
+poster/*.toc
+poster/*.vrb
 poster/*.fls
 poster/*.fdb_latexmk
 poster/*.synctex.gz
 poster/*.pdf
+!poster/supplemental_slides.pdf
 poster/components/*.pdf
 poster/components/*.aux
 poster/components/*.log

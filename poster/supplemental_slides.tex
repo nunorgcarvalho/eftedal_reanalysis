@@ -1,0 +1,168 @@
+% Supplemental slides for the ASHG 2026 poster (linked from the poster's QR code via the repo).
+% Build: poster/build.sh (or pdflatex supplemental_slides.tex twice, from poster/).
+% Figures and the per-model fit statistics come from `Rscript R/poster_figures.R`
+% (results/figures/poster/supplement/).
+\documentclass[aspectratio=169, 10pt]{beamer}
+\usepackage[T1]{fontenc}
+\usepackage[default]{sourcesans}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs, array}
+\usepackage{fontawesome5}
+\usefonttheme{professionalfonts}
+\input{components/style/palette.tex}
+\graphicspath{{../results/figures/}{logos/}}
+\newcommand{\supp}{../results/figures/poster/supplement}
+
+% ---- look: plain, navy title bar, as on the poster ----
+\definecolor{navy}{HTML}{1F3A5F}
+\definecolor{teal}{HTML}{00A1B0}
+\definecolor{paper}{HTML}{F6F7F9}
+\setbeamertemplate{navigation symbols}{}
+\setbeamercolor{normal text}{fg=ink}
+\setbeamercolor{frametitle}{fg=navy, bg=paper}
+\setbeamercolor{structure}{fg=navy}
+\setbeamercolor{titlerule}{bg=navy}
+\setbeamercolor{itemize item}{fg=teal}
+\setbeamerfont{frametitle}{size=\Large, series=\bfseries}
+\setbeamertemplate{frametitle}{%
+  \nointerlineskip\begin{beamercolorbox}[wd=\paperwidth, ht=2.6ex, dp=1.2ex, leftskip=1.2em]{frametitle}%
+    \usebeamerfont{frametitle}\insertframetitle
+    \hspace{0.8em}{\normalsize\mdseries\color{gray!70!ink}\insertframesubtitle}
+  \end{beamercolorbox}%
+  \nointerlineskip\begin{beamercolorbox}[wd=\paperwidth, ht=1.2pt, dp=0pt]{titlerule}\end{beamercolorbox}}
+\setbeamertemplate{footline}{%
+  \hfill{\scriptsize\color{gray}\insertframenumber\,/\,\inserttotalframenumber}\hspace*{1.2em}\vspace*{0.8ex}}
+\setbeamertemplate{itemize items}{\textbullet}
+
+% ---- notation ----
+\newcommand{\VA}{{\color{cAddText}V_A}}
+\newcommand{\GxG}{{\color{cGxGText}\mathrm{GxG}}}
+\newcommand{\mA}{\textcolor{cAddText}{\textbf{A}}}
+\newcommand{\mG}{\textcolor{cGxGText}{\textbf{GxG}}}
+\newcommand{\mC}{\textcolor{cFamText}{\textbf{C}}}
+\newcommand{\then}{\;$\rightarrow$\;}
+\newcommand{\keyswatch}[1]{\textcolor{#1}{\rule[-0.05em]{0.75em}{0.75em}}}
+\newcommand{\keysym}[3]{\keyswatch{#1}\hspace{0.4em}{\color{#2}$#3$}}
+
+% one slide per model: #1 file tag, #2 model (title), #3 description
+\newcommand{\modelslide}[3]{%
+\begin{frame}{#2}{Marginal Type fit}
+  \begin{columns}[T, onlytextwidth]
+    \begin{column}{0.6\textwidth}
+      \vspace{-0.4em}\includegraphics[height=0.86\textheight]{\supp/s_components_#1}
+    \end{column}
+    \begin{column}{0.38\textwidth}\small
+      \vspace{0.6em}{\color{navy}\bfseries Model}\par\smallskip
+      #3\par\bigskip
+      {\color{navy}\bfseries Fit} {\footnotesize(Marginal Type)}\par\smallskip
+      {\renewcommand{\arraystretch}{1.15}%
+      \begin{tabular}{@{}l r@{}}
+        \input{\supp/stats_#1.tex}
+      \end{tabular}\par}
+      \vfill
+      {\scriptsize\color{gray!40!ink}
+      Bars: predicted correlation by component; black: observed (95\% CI).
+      Inset: estimate (circle), Marginal Pair CI (box), Marginal Type CI (line);
+      arrows: CI truncated at 0 or 1.\par}
+    \end{column}
+  \end{columns}
+\end{frame}}
+
+\begin{document}
+
+% ---------------------------------------------------------------- title
+\begin{frame}[plain]
+  \centering\vspace{1.5em}
+  {\color{navy}\Large\bfseries Relatives\textquoteright{} similarity in test score performance is explained by\\[0.15em]
+   a wide range of genetic and environmental parameters\par}
+  \vspace{1em}
+  {\large Supplemental slides\par}
+  \vspace{1.2em}
+  Nuno R.\,G. Carvalho\textsuperscript{1,2} \quad and \quad Alexander ``Sasha'' Gusev\textsuperscript{1,2}\par
+  \vspace{0.3em}
+  {\small \textsuperscript{1}Harvard Medical School \quad \textsuperscript{2}Dana-Farber Cancer Institute\par}
+  \vspace{1.2em}
+  {\small ASHG 2026 Annual Meeting, Montr\'eal\par}
+  \vfill
+  {\footnotesize\color{gray!40!ink}
+  Reanalysis of Eftedal NH, Eilertsen EM, Sunde HF, Kleppest\o{} TH, Ystrom E, Czajkowski NO (2025).
+  \textit{PNAS} 122(25):e2419627122.\par\smallskip
+  \faGithub\ \href{https://github.com/nunorgcarvalho/eftedal_reanalysis}{github.com/nunorgcarvalho/eftedal\_reanalysis}
+  \quad \faEnvelope\ nuno\_ramosgrangeiacarvalho@g.harvard.edu\par}
+  \vspace{0.5em}
+\end{frame}
+
+% ---------------------------------------------------------------- reading guide
+\begin{frame}{The core models}{how to read the model slides}
+  \vspace{-0.6em}
+  \begin{columns}[T, onlytextwidth]
+    \begin{column}{0.555\textwidth}\footnotesize
+      {\color{navy}\bfseries Components}\par\smallskip
+      \begin{itemize}\setlength{\itemsep}{0.2em}
+        \item \mA: additive genetic effects under assortative mating (AM); the model of Eftedal et al.
+        \item \mG: pairwise gene--gene interactions, decaying as $(1/4)^n$ with genetic degree $n$
+              (not affected by AM).
+        \item \mC: shared environment, $V_C\,c^{f}$ with family degree $f$; split into a
+              within-sibling part $V_C(1-c)$ and a beyond-sibling part $V_C\,c$.
+      \end{itemize}
+      \smallskip
+      {\color{navy}\bfseries Naming}\par\smallskip
+      \begin{itemize}\setlength{\itemsep}{0.2em}
+        \item \textbf{+}\;: components fitted jointly.
+        \item $\rightarrow$\;: fitted in steps. The components before the arrow are fitted first and
+              their parameters are then held fixed while those after the arrow are fitted.
+      \end{itemize}
+      \smallskip
+      {\color{navy}\bfseries Model slides}\par\smallskip
+      Revised estimator, optimized for the Marginal Type, as on the poster. Marginal Pair CIs:
+      parametric bootstrap; Marginal Type CIs: leave-one-type-out jackknife. CV: leave-one-type-out
+      cross-validation (RMSE; rank among the nine models, 1 = best).
+    \end{column}
+    \begin{column}{0.415\textwidth}\footnotesize
+      \centering{\renewcommand{\arraystretch}{1.3}%
+      \begin{tabular}{@{}l >{\raggedright\arraybackslash}p{0.66\linewidth}@{}}
+        \toprule
+        \textbf{symbol} & \textbf{meaning} \\
+        \midrule
+        \multicolumn{2}{@{}l}{\textit{\color{cAddText}Additive model}} \\
+        \keysym{cAdd}{cAddText}{n}   & genetic degree \\
+        \keysym{cAdd}{cAddText}{V_A} & additive genetic variance \\
+        \keysym{cAdd}{cAddText}{V_A^0} & additive variance under random mating, $V_A(1-m)$ \\
+        \keysym{cAdd}{cAddText}{m}   & mates' genetic correlation \\
+        \keysym{cAdd}{cAddText}{r}   & mates' phenotypic correlation \\
+        \midrule
+        \multicolumn{2}{@{}l}{\textit{\color{cGxGText}Gene--gene interactions}} \\
+        \keysym{cGxG}{cGxGText}{V_{\mathrm{GxG}}} & GxG variance \\
+        \midrule
+        \multicolumn{2}{@{}l}{\textit{\color{cFamText}Shared environment}} \\
+        \keysym{cFam}{cFamText}{V_C} & shared-environment variance \\
+        \keysym{cFam}{cFamText}{f}   & family degree \\
+        \keysym{cFam}{cFamText}{c}   & decay per family degree \\
+        \bottomrule
+      \end{tabular}\par}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---------------------------------------------------------------- one slide per core model
+\modelslide{A}{\mA}{%
+  Additive genetic effects under assortative mating only: the model of Eftedal et al., fitted with the
+  revised estimator.}
+\modelslide{A_to_GxG}{\mA\then\mG}{%
+  \mA\ fitted first; \mG\ then fitted to what remains, with \mA's parameters held fixed.}
+\modelslide{AGxG}{\mA\ + \mG}{%
+  \mA\ and \mG\ fitted jointly.}
+\modelslide{A_to_F}{\mA\then\mC}{%
+  \mA\ fitted first; \mC\ then fitted to what remains, with \mA's parameters held fixed.}
+\modelslide{AF}{\mA\ + \mC}{%
+  \mA\ and \mC\ fitted jointly.}
+\modelslide{AGxG_to_F}{\mA\ + \mG\then\mC}{%
+  \mA\ and \mG\ fitted jointly first; \mC\ then fitted with their parameters held fixed.}
+\modelslide{AF_to_GxG}{\mA\ + \mC\then\mG}{%
+  \mA\ and \mC\ fitted jointly first; \mG\ then fitted with their parameters held fixed.}
+\modelslide{A_to_GxGF}{\mA\then\mG\ + \mC}{%
+  \mA\ fitted first; \mG\ and \mC\ then fitted jointly, with \mA's parameters held fixed.}
+\modelslide{AGxGF}{\mA\ + \mG\ + \mC}{%
+  All three components fitted jointly. This is the example shown on the poster.}
+
+\end{document}
