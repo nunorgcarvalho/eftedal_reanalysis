@@ -66,19 +66,18 @@ if (has("robustness", "additive_predictions.csv") && has("models", "core_predict
   ## inset: V_A / m / r by estimator x cohort
   PARAM_LEVELS <- c(V_A = "V[A]", m = "m", r = "r")
   COHORTS <- c("bio + in-laws" = "all relative types", "bio only" = "biological relatives only")
-  DX <- 0.13
+  DX <- 0.16
   d <- rd("poster", "additive_by_cohort.csv") %>% filter(param %in% names(PARAM_LEVELS), label %in% EST_LEVELS) %>%
     mutate(est = factor(label, EST_LEVELS), param = factor(PARAM_LEVELS[param], PARAM_LEVELS),
            cohort = factor(COHORTS[cohort_name], COHORTS),
-           x = as.numeric(est) + ifelse(cohort == COHORTS[1], -DX, DX),
-           col = ifelse(cohort == COHORTS[2], sapply(EST_COLS[as.character(est)], lighten),
-                        EST_COLS[as.character(est)]))
+           x = 1.5 * as.numeric(est) + ifelse(cohort == COHORTS[1], -DX, DX),   # estimators 1.5 apart
+           col = EST_COLS[as.character(est)],                            # cohort shown by marker shape
+           box_fill = ifelse(cohort == COHORTS[2], "white", col))
   mt <- d %>% filter(method == "block jackknife") %>%
     mutate(clip_lo = lo < 0, clip_hi = hi > 1, lo = pmax(lo, 0), hi = pmin(hi, 1))
   mp <- d %>% filter(method == "parametric bootstrap") %>%
-    mutate(tcol = ifelse(cohort == COHORTS[2], sapply(EST_COLS[as.character(est)], lighten, f = 0.25),
-                         EST_COLS[as.character(est)]),
-           tx = ifelse(cohort == COHORTS[1], x - 0.07, x + 0.07), hj = ifelse(cohort == COHORTS[1], 1, 0))
+    mutate(tcol = col,
+           tx = ifelse(cohort == COHORTS[1], x - 0.1, x + 0.1), hj = ifelse(cohort == COHORTS[1], 1, 0))
   arrow_end <- arrow(length = unit(0.08, "in"), type = "closed")
   inset <- ggplot() +
     geom_segment(data = mt, aes(x = x, xend = x, y = lo, yend = hi, color = col), linewidth = 1.3) +
@@ -86,9 +85,13 @@ if (has("robustness", "additive_predictions.csv") && has("models", "core_predict
                  linewidth = 1.3, arrow = arrow_end) +
     geom_segment(data = mt %>% filter(clip_hi), aes(x = x, xend = x, y = hi - 0.02, yend = hi, color = col),
                  linewidth = 1.3, arrow = arrow_end) +
-    geom_rect(data = mp, aes(xmin = x - 0.04, xmax = x + 0.04, ymin = lo, ymax = hi, fill = col),
-              color = "grey15", linewidth = 0.3) +
-    geom_point(data = mp, aes(x = x, y = estimate, fill = col), shape = 21, size = 3.4, stroke = 0.6, color = "grey15") +
+    geom_rect(data = mp, aes(xmin = x - 0.04, xmax = x + 0.04, ymin = lo, ymax = hi, fill = box_fill, color = col),
+              linewidth = 0.5) +
+    # all relative types: filled circle; biological relatives only: X
+    geom_point(data = mp %>% filter(cohort == COHORTS[1]), aes(x = x, y = estimate, fill = col),
+               shape = 21, size = 3.6, stroke = 0.6, color = "grey15") +
+    geom_point(data = mp %>% filter(cohort == COHORTS[2]), aes(x = x, y = estimate, color = col),
+               shape = 4, size = 3.8, stroke = 1.8) +
     geom_text(data = mp, aes(x = tx, y = estimate, label = sprintf("%.2f", estimate), color = tcol, hjust = hj),
               size = BASE * 0.22, fontface = "bold") +
     scale_color_identity() + scale_fill_identity() +
@@ -103,7 +106,7 @@ if (has("robustness", "additive_predictions.csv") && has("models", "core_predict
           plot.background = element_rect(fill = "white", color = "grey40", linewidth = 0.6),
           plot.margin = margin(6, 8, 8, 6))
   ## legend keys: estimator lines (colour), observed points (shape), cohort shades (size)
-  ckey <- tibble(cohort = factor(COHORTS, COHORTS), col = c("grey35", "grey75"))
+  ckey <- tibble(cohort = factor(COHORTS, COHORTS), col = c("grey35", "grey35"))
   g <- ggplot() +
     geom_hline(yintercept = 0) +
     bio_split(y = 0.30, size = BASE * 0.2) +
@@ -114,20 +117,21 @@ if (has("robustness", "additive_predictions.csv") && has("models", "core_predict
     geom_point(data = po, aes(x = x, y = corr, shape = OBS_LABEL), size = 2.6, key_glyph = "pointrange") +
     geom_text(data = lab, aes(x = x, y = y, label = label), size = BASE * 0.24, vjust = 0, lineheight = 0.85) +
     geom_point(data = ckey, aes(x = 1, y = 0.5, size = cohort, fill = col), shape = 21, alpha = 0) +
-    annotation_custom(ggplotGrob(inset), xmin = match("1st cousins", CONDENSED_ORDER) - 0.2,
+    annotation_custom(ggplotGrob(inset), xmin = match("half sibs", CONDENSED_ORDER) - 0.42,
                       xmax = length(CONDENSED_ORDER) + 0.55, ymin = 0.40, ymax = 0.995) +
     scale_color_manual(values = setNames(unname(EST_COLS), EST_SHOW), name = NULL,
                        guide = guide_legend(order = 1, ncol = 1, override.aes = list(linewidth = 2.2, alpha = 1))) +
     scale_shape_manual(values = c(16), name = NULL, guide = guide_legend(order = 2, override.aes = list(size = 0.55))) +
     scale_size_manual(values = c(4.5, 4.5), name = NULL,
-                      guide = guide_legend(order = 3, ncol = 1, override.aes = list(fill = c("grey35", "grey75"), alpha = 1))) +
+                      guide = guide_legend(order = 3, ncol = 1, override.aes = list(shape = c(21, 4), fill = c("grey35", NA),
+                                                                                    stroke = c(0.6, 1.8), alpha = 1))) +
     scale_fill_identity() +
     scale_x_continuous(breaks = NULL, expand = expansion(add = 0.6)) +
     scale_y_continuous(breaks = seq(0, 1, by = 0.1), expand = c(0, 0)) +
     coord_cartesian(ylim = c(-0.02, 1)) +
     labs(x = NULL, y = "Correlation") +
     condensed_theme()
-  save_poster(g, "p4_fit_and_params", width = 13.5, height = 11.5)
+  save_poster(g, "p4_fit_and_params", width = 11.6, height = 9.3)
 }
 
 # ---- P5. GxG and family environment --------------------------------------------------------------
@@ -137,7 +141,8 @@ if (has("robustness", "additive_predictions.csv") && has("models", "core_predict
 P5_MODELS <- c("A", "A>GxG", "A>F", "A+GxG+F")
 # parameter colours: additive (blue), GxG (orange), family environment (green); secondary
 # parameters of a component (m, r; r_f) in a lighter shade of its colour
-PAR_LEVELS <- c(V_A = "V[A]", V_A0 = "V[A]^0", m = "m", r = "r", V_GxG = "V[GxG]", V_family = "V[fam]", r_f = "r[f]")
+PAR_LEVELS <- c(V_A = "V[A]", V_A0 = "V[A]^0", m = "m", r = "r", V_GxG = "V[GxG]", V_family = "V[C]", r_f = "c")
+show_c <- function(x) gsub("\\bF\\b", "C", gsub(">", " \u2192 ", x), perl = TRUE)   # model labels: F -> C
 PAR_COLS <- c(V_A = COMP_FILL[["A"]], V_A0 = COMP_FILL[["A"]], m = lighten(COMP_FILL[["A"]], 0.35), r = lighten(COMP_FILL[["A"]], 0.35),
               V_GxG = COMP_FILL[["GxG"]], V_family = COMP_FILL[["family"]], r_f = lighten(COMP_FILL[["family"]], 0.35))
 PAR_TEXT <- c(V_A = COMP_LINE[["A"]], V_A0 = COMP_LINE[["A"]], m = COMP_LINE[["A"]], r = COMP_LINE[["A"]], V_GxG = COMP_LINE[["GxG"]],
@@ -200,11 +205,11 @@ if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")
     geom_hline(yintercept = 0) +
     geom_errorbar(data = po, aes(x = x, ymin = lo, ymax = hi), width = 2 * WHISKER, linewidth = 0.7) +
     geom_point(data = po, aes(x = x, y = corr, shape = OBS_LABEL), size = 2.6, key_glyph = "pointrange") +
-    geom_text(data = lab, aes(x = x, y = y, label = label), size = BASE * 0.24, vjust = 0, lineheight = 0.85) +
+    geom_text(data = lab, aes(x = x, y = y, label = label), size = BASE * 0.205, vjust = 0, lineheight = 0.85) +
     annotation_custom(ggplotGrob(inset), xmin = match("half sibs", CONDENSED_ORDER) - 0.45,
                       xmax = length(CONDENSED_ORDER) + 0.55, ymin = 0.40, ymax = 0.995) +
     scale_fill_manual(values = SEG_FILL, labels = c(A0 = "A (random mating)", A_AM = "A (excess under AM)", GxG = "GxG",
-                                                    fam_ext = "family env. (extended)", fam_sib = "family env. (sib-specific)"),
+                                                    fam_ext = "C (beyond-sibling)", fam_sib = "C (within-sibling)"),
                       breaks = SEG_ORDER[SEG_ORDER != "house"], name = NULL,
                       guide = guide_legend(order = 1, nrow = 2)) +
     scale_shape_manual(values = c(16), name = NULL, guide = guide_legend(order = 2, override.aes = list(size = 0.55))) +
@@ -213,19 +218,19 @@ if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")
     coord_cartesian(ylim = c(-0.02, 1)) +
     labs(x = NULL, y = "Correlation") +
     condensed_theme() + theme(legend.box = "vertical", legend.spacing.y = unit(0.2, "lines"))
-  save_poster(g, "p5_components_and_params", width = 11.5, height = 9.5)
+  save_poster(g, "p5_components_and_params", width = 10.0, height = 9.1)
 
   ## P6: variance components of four models (Marginal Type), A+GxG+F in bold
   g6 <- stacked_components(rd("models", "core_jackknife.csv") %>%
                              filter(weights == "hybrid_block", model %in% P5_MODELS), P5_MODELS, title = NULL) +
     labs(subtitle = NULL, y = "Variance component") +
-    scale_x_continuous(breaks = seq_along(P5_MODELS), labels = gsub(">", " → ", P5_MODELS)) +
+    scale_x_continuous(breaks = seq_along(P5_MODELS), labels = show_c(P5_MODELS)) +
     theme_bw(base_size = BASE) +
     theme(legend.position = "none", panel.grid.major.x = element_blank(), panel.grid.minor = element_blank(),
           strip.background = element_blank(), strip.text = element_blank(),
           axis.text.x = element_text(size = BASE * 0.95, color = "black",
                                      face = ifelse(P5_MODELS == "A+GxG+F", "bold", "plain")),
           plot.margin = margin(8, 10, 6, 6))
-  save_poster(g6, "p6_components_four_models", width = 6.2, height = 5.4)
+  save_poster(g6, "p6_components_four_models", width = 5.4, height = 5.25)
 }
 cat("poster figures written to", FIGURES, "\n")

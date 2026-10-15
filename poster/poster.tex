@@ -100,13 +100,13 @@
 \newcommand{\refcite}[1]{{\color{navy}[#1]}}
 
 % ============================== ROW 1: background (vertical banner) ==============================
-\newcommand{\bgsize}{\fontsize{26}{32}\selectfont}
+\newcommand{\bgsize}{\fontsize{31}{37}\selectfont}
 \posterbox[notitle, left=3.6cm, right=10mm, top=6mm, bottom=6mm, valign=center, fontupper=\bgsize,
            before upper={\parskip=0.3em},
            overlay={\begin{tcbclipframe}\fill[navy] (frame.south west) rectangle ([xshift=2.5cm]frame.north west);\end{tcbclipframe}
                     \node[rotate=90, text=white, font=\boxtitlesize\bfseries] at ([xshift=1.25cm]frame.west) {Background};}]
   {name=bg, column=1, span=20, row=7, rowspan=6}{%
-\begin{minipage}[c]{0.155\linewidth}\raggedright
+\begin{minipage}[c]{0.17\linewidth}\raggedright
 \setlist[itemize]{leftmargin=0.9em, itemsep=0.25em, topsep=0.1em}
 \begin{itemize}
   \item Relatives have similar test scores due to shared genetics and shared environments
@@ -120,25 +120,25 @@
 \end{minipage}\hfill
 \begin{minipage}[c]{0.125\linewidth}\centering\includegraphics[width=\linewidth]{pedigree_sibs}\end{minipage}\hfill
 \begin{minipage}[c]{0.16\linewidth}\centering\includegraphics[width=\linewidth]{pedigree_cousins}\end{minipage}\hfill
-\begin{minipage}[c]{0.215\linewidth}\centering
-{\fontsize{23}{27}\selectfont\renewcommand{\arraystretch}{1.36}\setlength{\tabcolsep}{0.35em}%
-\begin{tabular}[t]{@{}l c c >{$\displaystyle}l<{$}@{}}
+\begin{minipage}[c]{0.155\linewidth}\centering
+{\fontsize{30}{35}\selectfont\renewcommand{\arraystretch}{1.42}\setlength{\tabcolsep}{0.4em}%
+\begin{tabular}[t]{@{}l c c >{$}l<{$}@{}}
 \toprule
 \textbf{relatives} & $\boldsymbol{n}$ & $\boldsymbol{f}$ & \text{\textbf{correlation implied}} \\[-0.55em]
                    &                  &                  & \text{\textbf{by Additive model}} \\
 \midrule
-\relname{cFull}{full siblings}      & 1   & 0   & V_A\,\frac{1+m}{2} \\
-\relname{cHalf}{half-siblings}      & 2   & 0.5 & V_A\,\frac{1+2m+rm}{4} \\
-\relname{cStep}{step-siblings}      & 1+1 & 1   & V_A\,m\,\left(\frac{1+r}{2}\right)^{2} \\
+\relname{cFull}{full siblings}      & 1   & 0   & V_A\,(1+m)/2 \\
+\relname{cHalf}{half-siblings}      & 2   & 0.5 & V_A\,(1+2m+rm)/4 \\
+\relname{cStep}{step-siblings}      & 1+1 & 1   & V_A\,m\,\big((1+r)/2\big)^{2} \\
 \relname{cAdopt}{adoptive siblings} & --  & 0   & 0 \\
-\relname{cCous}{1st cousins}        & 3   & 1   & V_A\,\left(\frac{1+m}{2}\right)^{3} \\
-\relname{cCoc}{co-cousins}          & 2+2 & 2   & V_A\,m\,\left(\frac{1+m}{2}\right)^{4} \\
+\relname{cCous}{1st cousins}        & 3   & 1   & V_A\,\big((1+m)/2\big)^{3} \\
+\relname{cCoc}{co-cousins}          & 2+2 & 2   & V_A\,m\,\big((1+m)/2\big)^{4} \\
 \bottomrule
 \end{tabular}\par}
 \end{minipage}\hfill
-\begin{minipage}[c]{0.165\linewidth}
+\begin{minipage}[c]{0.2\linewidth}
 \subhead{Two types of fits}
-{\fontsize{22}{26}\selectfont\renewcommand{\arraystretch}{1.15}\setlength{\tabcolsep}{0.3em}%
+{\fontsize{30}{35}\selectfont\renewcommand{\arraystretch}{1.2}\setlength{\tabcolsep}{0.3em}%
 \begin{tabular}{@{}>{\bfseries\raggedright\arraybackslash}p{0.2\linewidth} >{\raggedright\arraybackslash}p{0.37\linewidth} >{\raggedright\arraybackslash}p{0.37\linewidth}@{}}
 \toprule
  & \textbf{Marginal Pair} & \textbf{Marginal Type} \\
@@ -150,7 +150,7 @@ use & within-model comparisons & \textbf{across-model comparisons} \\
 \bottomrule
 \end{tabular}\par}
 \end{minipage}\hfill
-\begin{minipage}[c]{0.155\linewidth}\raggedright
+\begin{minipage}[c]{0.175\linewidth}\raggedright
 \subhead{Problems in Eftedal et al.'s estimator}
 \setlist[itemize]{leftmargin=0.9em, itemsep=0.2em, topsep=0.1em}
 \begin{itemize}
@@ -169,7 +169,7 @@ use & within-model comparisons & \textbf{across-model comparisons} \\
 
 % ============================== ROWS 2-4 ==============================
 % columns 18-20: key above takeaways
-\posterbox[adjusted title=Takeaways, fontupper=\fontsize{27}{33}\selectfont]{name=take, column=18, span=3, above=bottom}{
+\posterbox[adjusted title=Takeaways, fontupper=\fontsize{31}{38}\selectfont]{name=take, column=18, span=3, above=bottom}{
 \begin{itemize}
   \item Revising Eftedal et al.'s estimator for the Additive model yields \textbf{high $V_A$}
         estimates that explain different relative types better
@@ -182,7 +182,7 @@ use & within-model comparisons & \textbf{across-model comparisons} \\
 \newcommand{\keyswatch}[1]{\textcolor{#1}{\rule[-0.05em]{0.75em}{0.75em}}}
 \newcommand{\keysym}[3]{\keyswatch{#1}\hspace{0.4em}{\color{#2}$#3$}}
 \posterbox[adjusted title=Key]{name=key, column=18, span=3, between=bg and take}{
-\centering{\fontsize{34}{41}\selectfont\renewcommand{\arraystretch}{1.55}%
+\centering{\fontsize{36}{42}\selectfont\renewcommand{\arraystretch}{1.7}%
 \begin{tabular}{@{}l >{\raggedright\arraybackslash}p{0.66\linewidth}@{}}
 \toprule
 \textbf{symbol} & \textbf{meaning} \\
@@ -199,8 +199,8 @@ use & within-model comparisons & \textbf{across-model comparisons} \\
 \midrule
 \multicolumn{2}{@{}l}{\textit{\color{cFamText}Family environment}} \\
 \keysym{cFam}{cFamText}{f}   & family degree \\
-\keysym{cFam}{cFamText}{r_f} & decay per family degree \\
-\keysym{cFam}{cFamText}{V_{\mathrm{fam}}} & family-environment variance \\
+\keysym{cFam}{cFamText}{c} & decay per family degree \\
+\keysym{cFam}{cFamText}{V_C} & family-environment variance \\
 \bottomrule
 \end{tabular}\par}
 }
@@ -210,7 +210,7 @@ use & within-model comparisons & \textbf{across-model comparisons} \\
 \subhead{Additive model: Eftedal et al.\ vs.\ revised}
 \includegraphics[width=\linewidth]{poster/p4_fit_and_params}\par
 {\smallsize Colored bars denote model's predicted correlation for each relative type.
-Actual observed correlations shwon in black.
+Actual observed correlations shown in black.
 Eftedal et al.'s results optimized for the marginal pair, while the Revised estimator optimizes for the marginal type.
 
 Inset: parameter estimates compared between training cohorts, as done in Eftedal et al.: biological relatives only vs all relatives.
@@ -222,13 +222,13 @@ Both types of CIs are shown.\par}
 \begin{minipage}[t]{0.33\linewidth}
 \subhead{\color{cGxGText}Gene--gene interactions (GxG)}
 Pairwise genetic interactions, not affected by AM.
-\[ \rho_k = \dots + V_{\mathrm{GxG}}\left(\frac{1}{4}\right)^{n_k} \]
+{\fontsize{44}{52}\selectfont\[ \rho_k = \dots + V_{\mathrm{GxG}}\left(\frac{1}{4}\right)^{n_k} \]}
 
 \vspace{1.0em}
-\subhead{\color{cFamText}Family environment (F)}
-Environment shared across the extended family, decaying at a rate of $r_f$ with respeect to family degree $f$:
-\[ \rho_k = \dots + V_{\mathrm{fam}}\, r_f^{\,f_k} \]
-Can be decomposed into within-sibling ($V_{\mathrm{fam}}(1-r_f)$) vs beyond-sibling ($V_{\mathrm{fam}}\,r_f$) shared environment.
+\subhead{\color{cFamText}Family environment (C)}
+Environment shared across the extended family, decaying at a rate of $c$ with respect to family degree $f$:
+{\fontsize{44}{52}\selectfont\[ \rho_k = \dots + V_C\, c^{\,f_k} \]}
+Can be decomposed into within-sibling ($V_C(1-c)$) vs beyond-sibling ($V_C\,c$) shared environment.
 
 \vspace{1.0em}
 \subhead{Variance components}
@@ -238,7 +238,7 @@ Marginal Type point estimates and 95\% CIs.
 Black indicates sum of variance components. }
 \end{minipage}\hfill
 \begin{minipage}[t]{0.645\linewidth}
-\subhead{Example: A+GxG+F}
+\subhead{Example: A+GxG+C}
 \includegraphics[width=\linewidth]{poster/p5_components_and_params}\par
 {\smallsize Decomposed correlations by relative types.
 Marginal Type fit.
