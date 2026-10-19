@@ -134,6 +134,7 @@ components, and <i>how sure</i> we are.
 <tr><td>Robustness rows; in-law contrast for all 13 tests</td><td><code>scripts/05_robustness.py</code></td><td><code>results/robustness/</code></td></tr>
 <tr><td>Profile over \(V_A\)</td><td><code>scripts/06_profile.py</code></td><td><code>results/profile/</code></td></tr>
 <tr><td>Component decay across relationship types (given parameters, no fitting)</td><td><code>scripts/07_decay.py</code></td><td><code>results/decay/</code></td></tr>
+<tr><td>Parameter sampling correlations: jackknife correlation of the leave-one-type-out refits, CI from leave-two-out refits (supplement)</td><td><code>scripts/08_param_corr.py</code></td><td><code>results/models/core_param_corr.csv</code></td></tr>
 <tr><td>Figures</td><td><code>R/make_figures.R</code> (helpers in <code>R/plot_functions.R</code>)</td><td><code>results/figures/</code></td></tr>
 </table>
 <p class="muted">Python does all estimation; R only reads the CSVs and draws. <code>scripts/exploratory/</code> and
@@ -422,6 +423,7 @@ python scripts/04_bootstrap.py           # slowest: ~1 h on one core
 python scripts/05_robustness.py
 python scripts/06_profile.py             # profile over V_A
 python scripts/07_decay.py               # component decay across relative types (no fitting)
+python scripts/08_param_corr.py          # parameter sampling correlations (needs 03)
 module load gcc/14.2.0 R/4.4.2 && Rscript R/make_figures.R</code></pre>
 <ul>
 <li><b>One fit:</b> <code>from eftedal import data as D; from eftedal.fit import fit; from eftedal.presets import main_spec</code>

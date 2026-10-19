@@ -82,6 +82,7 @@ python scripts/04_bootstrap.py             # parametric bootstrap of the core mo
 python scripts/05_robustness.py            # robustness rows; in-law contrast for every test
 python scripts/06_profile.py               # profile over V_A
 python scripts/07_decay.py                 # component decay across relative types (no fitting)
+python scripts/08_param_corr.py            # parameter sampling correlations (needs 03)
 Rscript R/make_figures.R                   # -> results/figures/
 ```
 

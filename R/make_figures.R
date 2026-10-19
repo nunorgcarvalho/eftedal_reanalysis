@@ -580,4 +580,109 @@ if (has("robustness", "phenotypes.csv")) {
     theme_bw() + theme(legend.position = "bottom", legend.direction = "vertical")
   save_fig(g, "s5c_inlaw_all_phenotypes", width = 2200, height = 2000)
 }
+# ---- S7. parameter sampling correlations from the leave-one-type-out refits (scripts/08) ------------
+# One pairs plot per core model x weighting. Lower triangle: the 10 single-block refit estimates
+# (colour = block left out; blue ramp = biological, orange ramp = non-biological, darker = closer) and
+# the full-data estimate (black cross); axes zoomed on the refits. Upper triangle: the jackknife
+# correlation r with its approximate 95% interval. Diagonal: the estimate and its Marginal Type CI.
+FOLD_FILL <- c(twins = "#0d366b", sibs = "#184f95", `half sibs` = "#256abf", `1st cousins` = "#3987e5",
+               `half cousins` = "#6da7ec", `2nd cousins` = "#86b6ef",
+               `step sibs` = "#9a3a12", cocousins = "#c94f1f", `adoptive sibs` = "#eb6834",
+               `adoptive cousins` = "#f29466")
+FOLD_SHAPE <- setNames(c(rep(21, 6), rep(24, 4)), names(FOLD_FILL))
+FOLD_LABELS <- c(twins = "twins", sibs = "full-sibs", `half sibs` = "half-sibs", `1st cousins` = "1st cousins",
+                 `half cousins` = "half cousins", `2nd cousins` = "2nd cousins", `step sibs` = "step-sibs",
+                 cocousins = "co-cousins", `adoptive sibs` = "adoptive sibs", `adoptive cousins` = "adoptive cousins")
+PAIR_PARAMS <- c("V_A", "m", "V_GxG", "V_family", "r_f")
+PAIR_LABELS <- c(V_A = "V_A", m = "m", V_GxG = "V_GxG", V_family = "V_fam", r_f = "r_f")
+
+pairs_grid_px <- function(k) max(420 * k + 300, 1900)   # side of the k x k grid, in pixels at 300 dpi
+
+plot_param_pairs <- function(cvp, est, jk, pc, title) {
+  ps <- PAIR_PARAMS[PAIR_PARAMS %in% names(est)]
+  ps <- ps[!is.na(unlist(est[1, ps]))]
+  k <- length(ps)
+  e <- setNames(as.numeric(est[1, ps]), ps)
+  lo <- setNames(jk$lo, jk$param); hi <- setNames(jk$hi, jk$param)
+  # axis range: the refits and the full-data estimate, padded
+  lims <- lapply(ps, function(p) {
+    r <- range(c(cvp[[p]], e[[p]]), na.rm = TRUE)
+    if (diff(r) < 1e-6) r <- r + c(-0.02, 0.02)
+    r + c(-1, 1) * 0.12 * diff(r)
+  }) %>% setNames(ps)
+  th <- theme_bw(base_size = 9) +
+    theme(panel.grid.minor = element_blank(), plot.margin = margin(4, 8, 2, 2),
+          axis.title = element_blank(), legend.position = "none")
+  panels <- list()
+  for (i in seq_len(k)) for (j in seq_len(k)) {
+    pi_ <- ps[i]; pj <- ps[j]
+    if (i == j) {
+      lab <- sprintf("%s\n%.3f\n[%.3f, %.3f]", PAIR_LABELS[[pi_]], e[[pi_]], lo[[pi_]], hi[[pi_]])
+      g <- ggplot() + annotate("text", x = 0.5, y = 0.5, label = lab, size = 3.4, lineheight = 1.1) +
+        xlim(0, 1) + ylim(0, 1) + theme_void() +
+        theme(panel.background = element_rect(fill = "grey95", color = NA), plot.margin = margin(2, 2, 2, 2))
+    } else if (i < j) {
+      r <- pc %>% filter((p1 == pi_ & p2 == pj) | (p1 == pj & p2 == pi_))
+      lab <- if (nrow(r) == 0 || is.na(r$r)) "r undefined\n(a parameter does not move)" else
+        if (is.na(r$lo)) sprintf("r = %.2f\n(no interval: a parameter is\nfixed in some leave-two-out refits)", r$r) else sprintf("r = %.2f\n[%.2f, %.2f]", r$r, r$lo, r$hi)
+      rv <- if (nrow(r) == 0 || is.na(r$r)) 0 else r$r
+      g <- ggplot() + annotate("rect", xmin = 0, xmax = 1, ymin = 0, ymax = 1,
+                               fill = scales::gradient_n_pal(c("#2a78d6", "#f0efec", "#e34948"), c(-1, 0, 1))(rv), alpha = 0.55) +
+        annotate("text", x = 0.5, y = 0.5, label = lab, size = 3.3, lineheight = 1.1) +
+        scale_x_continuous(limits = c(0, 1), expand = c(0, 0)) + scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +
+        theme_void() + theme(plot.margin = margin(2, 2, 2, 2))
+    } else {
+      g <- ggplot() +
+        geom_point(data = cvp, aes(x = .data[[pj]], y = .data[[pi_]], fill = fold, shape = fold),
+                   size = 2.4, stroke = 0.4, color = "white") +
+        annotate("point", x = e[[pj]], y = e[[pi_]], shape = 3, size = 3.2, stroke = 1.1) +
+        scale_fill_manual(values = FOLD_FILL) + scale_shape_manual(values = FOLD_SHAPE) +
+        scale_x_continuous(breaks = scales::breaks_pretty(n = 3)) +
+        scale_y_continuous(breaks = scales::breaks_pretty(n = 3)) +
+        coord_cartesian(xlim = lims[[pj]], ylim = lims[[pi_]], expand = FALSE) + th +
+        theme(axis.text.x = if (i == k) element_text(size = 7) else element_blank(),
+              axis.text.y = if (j == 1) element_text(size = 7) else element_blank(),
+              axis.ticks.x = if (i == k) element_line() else element_blank(),
+              axis.ticks.y = if (j == 1) element_line() else element_blank())
+    }
+    panels[[length(panels) + 1]] <- g
+  }
+  grid <- cowplot::plot_grid(plotlist = panels, nrow = k, align = "hv", axis = "tblr")
+  key <- ggplot(tibble(fold = factor(names(FOLD_FILL), names(FOLD_FILL)), x = seq_along(FOLD_FILL))) +
+    geom_point(aes(x = x, y = x, fill = fold, shape = fold), size = 3, color = "white", stroke = 0.4) +
+    scale_fill_manual(values = FOLD_FILL, labels = FOLD_LABELS, name = "Refit leaving out") +
+    scale_shape_manual(values = FOLD_SHAPE, labels = FOLD_LABELS, name = "Refit leaving out") +
+    theme_bw(base_size = 9) + theme(legend.position = "bottom") +
+    guides(fill = guide_legend(nrow = 3, title.position = "top"))
+  leg <- cowplot::get_plot_component(key, "guide-box-bottom", return_all = TRUE)
+  head <- cowplot::ggdraw() + cowplot::draw_label(title, x = 0.01, hjust = 0, size = 12)
+  foot <- cowplot::ggdraw() + cowplot::draw_label(paste0(
+    "Lower: leave-one-type-out refit estimates (axes zoomed on them); black cross = full-data estimate.\n",
+    "Upper: jackknife correlation of the two estimates (correlation of the refits), with an approximate 95% interval\n",
+    "(jackknife over blocks on Fisher's z, from refits leaving out two blocks).\n",
+    "Diagonal: estimate and 95% Marginal Type CI."),
+    x = 0.01, hjust = 0, size = 7.5, lineheight = 1.1)
+  gpx <- pairs_grid_px(k)
+  cowplot::plot_grid(head, grid, leg, foot, ncol = 1, rel_heights = c(130, gpx, 330, 280)) +
+    theme(plot.background = element_rect(fill = "white", color = NA), plot.margin = margin(4, 10, 4, 14))
+}
+
+if (has("models", "core_param_corr.csv")) {
+  cvp_all <- rd("models", "core_cv_params.csv") %>% filter(fold %in% names(FOLD_FILL)) %>%
+    mutate(fold = factor(fold, names(FOLD_FILL)))
+  fits_all <- rd("models", "core_fits.csv"); jk_all <- rd("models", "core_jackknife.csv")
+  pc_all <- rd("models", "core_param_corr.csv")
+  for (wt in c("hybrid_block", "invvar")) for (mod in CORE_ORDER) {
+    est <- fits_all %>% filter(model == !!mod, weights == !!wt)
+    k <- sum(!is.na(unlist(est[1, intersect(PAIR_PARAMS, names(est))])))
+    g <- plot_param_pairs(cvp_all %>% filter(model == !!mod, weights == !!wt), est,
+                          jk_all %>% filter(model == !!mod, weights == !!wt),
+                          pc_all %>% filter(model == !!mod, weights == !!wt),
+                          paste0(show_model(mod), ": parameter sampling correlations (", WEIGHT_LABELS[[wt]], ")"))
+    gpx <- pairs_grid_px(k)
+    save_fig(g, sprintf("s7_paramcorr_%s_%s", gsub("\\+", "", gsub(">", "_to_", mod)), wt),
+             width = gpx, height = gpx + 130 + 330 + 280)
+  }
+}
+
 cat("figures written to", FIGURES, "\n")
