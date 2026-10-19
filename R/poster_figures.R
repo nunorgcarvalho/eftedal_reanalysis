@@ -335,25 +335,16 @@ if (has("models", "core_cv_summary.csv") && has("models", "core_cv_scores.csv"))
   ylev <- rev(show_c(CORE_MODELS))
   cvs <- rd("models", "core_cv_summary.csv") %>% filter(weights == "hybrid_block") %>%
     mutate(y = factor(show_c(model), ylev), best = cv_rmse == min(cv_rmse))
-  # signed RMSE: the type's RMSE (as in the CV score) with the sign of its systematic error, the
-  # precision-weighted mean of predicted - observed (weighted as the score: within each relationship
-  # type, then averaged over the block's types). Where that offset is under a quarter of the squared
-  # error (bias^2 / MSE < 0.25), the misses go both ways and the tile is shown as mixed (grey, "±").
-  MIXED <- 0.25
+  # right panel: mean held-out error of each relative type, predicted - observed, weighted as the CV
+  # score (precision-weighted within each relationship type, then averaged over the block's types)
   sc <- rd("models", "core_cv_heldout.csv") %>% filter(weights == "hybrid_block", fold %in% names(FOLD_SHOW)) %>%
     mutate(w = 1 / se^2, e = pred - corr) %>%
-    group_by(model, fold, rel) %>% summarize(bias = sum(w * e) / sum(w), mse = sum(w * e^2) / sum(w), .groups = "drop") %>%
-    group_by(model, fold) %>% summarize(bias = mean(bias), mse = mean(mse), .groups = "drop") %>%
-    mutate(rmse = sqrt(mse), mixed = bias^2 / mse < MIXED, signed = ifelse(mixed, NA, sign(bias) * rmse),
-           label = ifelse(mixed, sprintf("\u00b1%.3f", rmse), sprintf("%+.3f", sign(bias) * rmse)),
-           label = sub("^-", "\u2212", label),
+    group_by(model, fold, rel) %>% summarize(err = sum(w * e) / sum(w), .groups = "drop") %>%
+    group_by(model, fold) %>% summarize(err = mean(err), .groups = "drop") %>%
+    mutate(label = ifelse(round(err, 3) == 0, "0.000", sub("^-", "\u2212", sprintf("%+.3f", err))),
            y = factor(show_c(model), ylev), x = factor(FOLD_SHOW[fold], FOLD_SHOW))
-  # check: unsigned RMSE matches the CV scores
-  chk <- rd("models", "core_cv_scores.csv") %>% filter(weights == "hybrid_block", fold %in% names(FOLD_SHOW)) %>%
-    inner_join(sc, by = c("model", "fold"))
-  stopifnot(max(abs(chk$rmse.x - chk$rmse.y)) < 1e-9)
-  LIM <- ceiling(max(sc$rmse) * 100) / 100
-  sc <- sc %>% mutate(dark = !mixed & abs(signed) > 0.55 * LIM)   # white text on the darker tiles
+  LIM <- ceiling(max(abs(sc$err)) * 100) / 100
+  sc <- sc %>% mutate(dark = abs(err) > 0.55 * LIM)   # white text on the darker tiles
   ytheme <- theme(axis.text.y = element_text(color = "black", size = BASE * 0.95,
                                              face = ifelse(levels(cvs$y) == show_c("A+GxG+F"), "bold", "plain")))
   g1 <- ggplot(cvs, aes(x = cv_rmse, y = y)) +
@@ -369,18 +360,18 @@ if (has("models", "core_cv_summary.csv") && has("models", "core_cv_scores.csv"))
     theme(panel.grid.major.y = element_blank(), panel.grid.minor = element_blank(),
           plot.margin = margin(5.5, 22, 5.5, 5.5),
           plot.title = element_text(size = BASE, face = "bold", hjust = 0.5))
-  g2 <- ggplot(sc, aes(x = x, y = y, fill = signed)) +
+  g2 <- ggplot(sc, aes(x = x, y = y, fill = err)) +
     geom_tile(color = "white", linewidth = 0.6) +
     geom_text(aes(label = label, color = dark), size = BASE * 0.25) +
     scale_color_manual(values = c(`TRUE` = "white", `FALSE` = "grey10"), guide = "none") +
-    # diverging: red = over-predicts, blue = under-predicts; grey (NA) = mixed
+    # diverging: red = over-predicts, blue = under-predicts
     scale_fill_gradientn(colours = c("#2166AC", "#67A9CF", "#F7F7F7", "#EF8A62", "#B2182B"),
-                         limits = c(-LIM, LIM), na.value = "grey82", name = NULL,
+                         limits = c(-LIM, LIM), name = NULL,
                          breaks = c(-0.1, 0, 0.1),
                          labels = c("\u22120.10\nunder-predicts", "0", "+0.10\nover-predicts"),
                          guide = guide_colorbar(barwidth = unit(20, "lines"), barheight = unit(0.8, "lines"))) +
     scale_x_discrete(expand = expansion(add = 0)) + scale_y_discrete(expand = expansion(add = 0)) +
-    labs(x = "Held-out relative type", y = NULL, title = "Signed RMSE by held-out relative type") +
+    labs(x = "Held-out relative type", y = NULL, title = "Mean error by held-out relative type (predicted \u2212 observed)") +
     theme_bw(base_size = BASE) +
     theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(), panel.grid = element_blank(),
           legend.position = "bottom", legend.text = element_text(size = BASE * 0.8, lineheight = 0.9),
