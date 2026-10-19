@@ -335,10 +335,25 @@ if (has("models", "core_cv_summary.csv") && has("models", "core_cv_scores.csv"))
   ylev <- rev(show_c(CORE_MODELS))
   cvs <- rd("models", "core_cv_summary.csv") %>% filter(weights == "hybrid_block") %>%
     mutate(y = factor(show_c(model), ylev), best = cv_rmse == min(cv_rmse))
-  sc <- rd("models", "core_cv_scores.csv") %>% filter(weights == "hybrid_block", fold %in% names(FOLD_SHOW)) %>%
-    mutate(y = factor(show_c(model), ylev), x = factor(FOLD_SHOW[fold], FOLD_SHOW))
-  rng <- range(sc$rmse)
-  sc <- sc %>% mutate(dark = (rmse - rng[1]) / diff(rng) > 0.55)   # white text on the darker tiles
+  # signed RMSE: the type's RMSE (as in the CV score) with the sign of its systematic error, the
+  # precision-weighted mean of predicted - observed (weighted as the score: within each relationship
+  # type, then averaged over the block's types). Where that offset is under a quarter of the squared
+  # error (bias^2 / MSE < 0.25), the misses go both ways and the tile is shown as mixed (grey, "±").
+  MIXED <- 0.25
+  sc <- rd("models", "core_cv_heldout.csv") %>% filter(weights == "hybrid_block", fold %in% names(FOLD_SHOW)) %>%
+    mutate(w = 1 / se^2, e = pred - corr) %>%
+    group_by(model, fold, rel) %>% summarize(bias = sum(w * e) / sum(w), mse = sum(w * e^2) / sum(w), .groups = "drop") %>%
+    group_by(model, fold) %>% summarize(bias = mean(bias), mse = mean(mse), .groups = "drop") %>%
+    mutate(rmse = sqrt(mse), mixed = bias^2 / mse < MIXED, signed = ifelse(mixed, NA, sign(bias) * rmse),
+           label = ifelse(mixed, sprintf("\u00b1%.3f", rmse), sprintf("%+.3f", sign(bias) * rmse)),
+           label = sub("^-", "\u2212", label),
+           y = factor(show_c(model), ylev), x = factor(FOLD_SHOW[fold], FOLD_SHOW))
+  # check: unsigned RMSE matches the CV scores
+  chk <- rd("models", "core_cv_scores.csv") %>% filter(weights == "hybrid_block", fold %in% names(FOLD_SHOW)) %>%
+    inner_join(sc, by = c("model", "fold"))
+  stopifnot(max(abs(chk$rmse.x - chk$rmse.y)) < 1e-9)
+  LIM <- ceiling(max(sc$rmse) * 100) / 100
+  sc <- sc %>% mutate(dark = !mixed & abs(signed) > 0.55 * LIM)   # white text on the darker tiles
   ytheme <- theme(axis.text.y = element_text(color = "black", size = BASE * 0.95,
                                              face = ifelse(levels(cvs$y) == show_c("A+GxG+F"), "bold", "plain")))
   g1 <- ggplot(cvs, aes(x = cv_rmse, y = y)) +
@@ -354,21 +369,26 @@ if (has("models", "core_cv_summary.csv") && has("models", "core_cv_scores.csv"))
     theme(panel.grid.major.y = element_blank(), panel.grid.minor = element_blank(),
           plot.margin = margin(5.5, 22, 5.5, 5.5),
           plot.title = element_text(size = BASE, face = "bold", hjust = 0.5))
-  g2 <- ggplot(sc, aes(x = x, y = y, fill = rmse)) +
+  g2 <- ggplot(sc, aes(x = x, y = y, fill = signed)) +
     geom_tile(color = "white", linewidth = 0.6) +
-    geom_text(aes(label = sprintf("%.3f", rmse), color = dark), size = BASE * 0.25) +
+    geom_text(aes(label = label, color = dark), size = BASE * 0.25) +
     scale_color_manual(values = c(`TRUE` = "white", `FALSE` = "grey10"), guide = "none") +
-    # magma without its near-black end, so the darkest tiles stay readable
-    scale_fill_viridis_c(option = "magma", direction = -1, begin = 0.25, end = 1, name = "RMSE",
-                         guide = guide_colorbar(barheight = unit(12, "lines"))) +
+    # diverging: red = over-predicts, blue = under-predicts; grey (NA) = mixed
+    scale_fill_gradientn(colours = c("#2166AC", "#67A9CF", "#F7F7F7", "#EF8A62", "#B2182B"),
+                         limits = c(-LIM, LIM), na.value = "grey82", name = NULL,
+                         breaks = c(-0.1, 0, 0.1),
+                         labels = c("\u22120.10\nunder-predicts", "0", "+0.10\nover-predicts"),
+                         guide = guide_colorbar(barwidth = unit(20, "lines"), barheight = unit(0.8, "lines"))) +
     scale_x_discrete(expand = expansion(add = 0)) + scale_y_discrete(expand = expansion(add = 0)) +
-    labs(x = "Held-out relative type", y = NULL, title = "By held-out relative type") +
+    labs(x = "Held-out relative type", y = NULL, title = "Signed RMSE by held-out relative type") +
     theme_bw(base_size = BASE) +
     theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(), panel.grid = element_blank(),
+          legend.position = "bottom", legend.text = element_text(size = BASE * 0.8, lineheight = 0.9),
+          legend.margin = margin(0, 0, 0, 0),
           axis.text.x = element_text(angle = 40, hjust = 1, color = "black"),
           plot.title = element_text(size = BASE, face = "bold", hjust = 0.5))
   g <- cowplot::plot_grid(g1, g2, nrow = 1, rel_widths = c(0.4, 1), align = "h", axis = "tb")
-  save_poster(g, file.path("supplement", "s_cv"), width = 11.5, height = 5.8)
+  save_poster(g, file.path("supplement", "s_cv"), width = 11.0, height = 6.3)
 }
 
 # Eftedal et al.'s additive fit (their estimator; biological relatives + in-laws), same plot

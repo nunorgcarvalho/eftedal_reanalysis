@@ -294,12 +294,13 @@
 
 \begin{frame}{Leave-one-type-out cross-validation}{core models, Marginal Type fit}
   \centering\vspace{-0.3em}
-  \includegraphics[width=0.94\textwidth]{\supp/s_cv}\par\smallskip
+  \includegraphics[width=0.79\textwidth]{\supp/s_cv}\par\smallskip
   \begin{minipage}{0.94\textwidth}\scriptsize\color{gray!40!ink}
-  Each of the 10 relative types is held out in turn and predicted from a fit to the other nine.
-  Right: root of the precision-weighted mean squared error of the held-out correlations, for each held-out
-  type. Left: CV RMSE, the root of that squared error averaged over the 10 types (lower is better; best in
-  pink). Two-step models redo both steps in every fit.
+  Each relative type is held out in turn and predicted from a fit to the other nine. Left: CV RMSE over
+  all 10 types (precision-weighted; lower is better; best in pink). Right: each held-out type's RMSE,
+  signed by the direction of its systematic error (red: predicted above observed; blue: below).
+  Grey ($\pm$): the type's misses go both ways (the systematic offset is under a quarter of its squared
+  error), e.g.\ MZ under-predicted but DZ over-predicted.
   \end{minipage}
 \end{frame}
 
