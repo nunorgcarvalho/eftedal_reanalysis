@@ -242,6 +242,17 @@
   \end{fittable}
 \end{frame}
 
+\begin{frame}{From Eftedal et al.'s estimator to the revised one}{additive model}
+  \centering\vspace{-0.3em}
+  \includegraphics[width=0.88\textwidth]{\supp/s_corrections}\par\smallskip
+  \begin{minipage}{0.94\textwidth}\scriptsize\color{gray!40!ink}
+  Row 2: log scale with the correct inverse-variance weights ($\approx \rho^2/\mathrm{SE}^2$). Row 3: raw
+  scale, where $1/\mathrm{SE}^2$ is correct. Rows 4--5: all fixes (raw scale, $m = V_A\,r$, corrected
+  step-sibling formula, all 82 relationship types). Circle: estimate; box: Marginal Pair CI; line: Marginal
+  Type CI (arrow: truncated at 0 or 1). $\chi^2/\mathrm{df}$ over each fit's own relationship types.
+  \end{minipage}
+\end{frame}
+
 \modelslide[Marginal Pair]{eftedal}{Eftedal et al.\ (\mA)}{%
   The additive model with Eftedal et al.'s estimator and settings, fitted to biological relatives and
   in-laws.}{\comments{%
@@ -280,5 +291,16 @@
   \item Like \mA\then\mC, finds a shared environment between siblings only ($c = 0$).}}
 \modelslide{AGxGF}{\mA\ + \mG\ + \mC}{%
   All three components fitted jointly. This is the example shown on the poster.}{}
+
+\begin{frame}{Leave-one-type-out cross-validation}{core models, Marginal Type fit}
+  \centering\vspace{-0.3em}
+  \includegraphics[width=0.94\textwidth]{\supp/s_cv}\par\smallskip
+  \begin{minipage}{0.94\textwidth}\scriptsize\color{gray!40!ink}
+  Each of the 10 relative types is held out in turn and predicted from a fit to the other nine.
+  Right: root of the precision-weighted mean squared error of the held-out correlations, for each held-out
+  type. Left: CV RMSE, the root of that squared error averaged over the 10 types (lower is better; best in
+  pink). Two-step models redo both steps in every fit.
+  \end{minipage}
+\end{frame}
 
 \end{document}

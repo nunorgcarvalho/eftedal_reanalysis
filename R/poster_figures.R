@@ -282,6 +282,95 @@ if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")
                file.path(FIGURES, "supplement", paste0("stats_", model_tag(m), ".tex")))
   }
 }
+# ---- supplemental slides: Eftedal et al.'s estimator -> revised, step by step (additive model) ------
+# rows: the estimators of scripts/02_corrections.py; panels: V_A, V_A0, m, r. Same marks as the
+# insets: circle = estimate, box = Marginal Pair CI (parametric bootstrap), line = Marginal Type CI
+# (leave-one-type-out jackknife; arrow = truncated at 0 or 1). chi2/df under each row label.
+if (has("corrections", "steps.csv")) {
+  st <- rd("corrections", "steps.csv") %>% filter(!aside, param %in% c("V_A", "V_A0", "m", "r"))
+  steps <- st %>% distinct(label, order, chi2_per_df) %>% arrange(order) %>%
+    mutate(show = c("Eftedal et al.", "Eftedal et al., corrected\ninverse-variance weights",
+                    "Eftedal et al., raw scale", "Revised (Marginal Pair)", "Revised (Marginal Type)")[order + 1],
+           show = sprintf("%s\nχ²/df = %.0f", show, chi2_per_df))
+  d <- st %>% left_join(steps %>% select(label, show), by = "label") %>%
+    mutate(y = factor(show, rev(steps$show)), panel = factor(PAR_LEVELS[param], PAR_LEVELS[c("V_A", "V_A0", "m", "r")]),
+           col = PAR_COLS[param], tcol = PAR_TEXT[param])
+  jk <- d %>% filter(method == "block jackknife") %>%
+    mutate(clip_lo = lo < 0, clip_hi = hi > 1, lo = pmax(lo, 0), hi = pmin(hi, 1))
+  bt <- d %>% filter(method == "parametric bootstrap")
+  arrow_end <- arrow(length = unit(0.08, "in"), type = "closed")
+  g <- ggplot(jk, aes(y = y)) +
+    geom_segment(aes(x = lo, xend = hi, yend = y, color = col), linewidth = 1.5) +
+    geom_segment(data = jk %>% filter(clip_lo), aes(x = lo + 0.03, xend = lo, yend = y, color = col),
+                 linewidth = 1.5, arrow = arrow_end) +
+    geom_segment(data = jk %>% filter(clip_hi), aes(x = hi - 0.03, xend = hi, yend = y, color = col),
+                 linewidth = 1.5, arrow = arrow_end) +
+    geom_rect(data = bt, aes(xmin = lo, xmax = hi, ymin = as.numeric(y) - 0.12, ymax = as.numeric(y) + 0.12, fill = col),
+              color = "grey15", linewidth = 0.3) +
+    geom_point(aes(x = estimate, fill = tcol), shape = 21, size = 3.6, stroke = 0.6, color = "grey15") +
+    geom_text(aes(x = estimate, label = sprintf("%.2f", estimate), color = tcol), vjust = -1.05,
+              size = BASE * 0.22, fontface = "bold") +
+    scale_color_identity() + scale_fill_identity() +
+    facet_wrap(~panel, nrow = 1, labeller = label_parsed) +
+    scale_x_continuous(limits = c(0, 1), breaks = c(0, 0.5, 1), labels = c("0", "0.5", "1"),
+                       minor_breaks = c(0.25, 0.75), expand = expansion(add = 0.04)) +
+    scale_y_discrete(expand = expansion(add = 0.6)) +
+    coord_cartesian(clip = "off") +
+    labs(x = "Estimate", y = NULL) +
+    theme_bw(base_size = BASE) +
+    theme(panel.grid.major.y = element_blank(), panel.grid.minor.y = element_blank(),
+          strip.text = element_text(size = BASE * 1.15), strip.background = element_rect(fill = "grey95"),
+          axis.text.y = element_text(color = "black", lineheight = 0.95), panel.spacing.x = unit(1, "lines"))
+  save_poster(g, file.path("supplement", "s_corrections"), width = 9.6, height = 5.0)
+}
+
+# ---- supplemental slides: leave-one-type-out cross-validation of the core models (Marginal Type) ---
+# left: each model's CV RMSE (square root of the CV score: the precision-weighted squared miss of
+# the held-out correlations, averaged within and then over the 10 relative types); right: the RMSE
+# for each held-out relative type. Same model order as the slides.
+FOLD_SHOW <- c(twins = "twins", sibs = "full-sibs", `half sibs` = "half-sibs", `1st cousins` = "1st cousins",
+               `half cousins` = "half cousins", `2nd cousins` = "2nd cousins", `step sibs` = "step-sibs",
+               cocousins = "co-cousins", `adoptive sibs` = "adoptive sibs", `adoptive cousins` = "adoptive cousins")
+if (has("models", "core_cv_summary.csv") && has("models", "core_cv_scores.csv")) {
+  ylev <- rev(show_c(CORE_MODELS))
+  cvs <- rd("models", "core_cv_summary.csv") %>% filter(weights == "hybrid_block") %>%
+    mutate(y = factor(show_c(model), ylev), best = cv_rmse == min(cv_rmse))
+  sc <- rd("models", "core_cv_scores.csv") %>% filter(weights == "hybrid_block", fold %in% names(FOLD_SHOW)) %>%
+    mutate(y = factor(show_c(model), ylev), x = factor(FOLD_SHOW[fold], FOLD_SHOW))
+  rng <- range(sc$rmse)
+  sc <- sc %>% mutate(dark = (rmse - rng[1]) / diff(rng) > 0.55)   # white text on the darker tiles
+  ytheme <- theme(axis.text.y = element_text(color = "black", size = BASE * 0.95,
+                                             face = ifelse(levels(cvs$y) == show_c("A+GxG+F"), "bold", "plain")))
+  g1 <- ggplot(cvs, aes(x = cv_rmse, y = y)) +
+    geom_segment(aes(x = 0, xend = cv_rmse, yend = y), color = "grey75", linewidth = 0.8) +
+    geom_point(aes(color = best), size = 3.6) +
+    geom_text(aes(label = sprintf("%.3f", cv_rmse), color = best), hjust = -0.35, size = BASE * 0.24, fontface = "bold") +
+    scale_color_manual(values = c(`TRUE` = "#C2185B", `FALSE` = "#1F3A5F"), guide = "none") +
+    scale_x_continuous(limits = c(0, 0.115), breaks = c(0, 0.025, 0.05, 0.075, 0.1),
+                       labels = c("0", "", "0.05", "", "0.10"), expand = expansion(add = c(0, 0.002))) +
+    coord_cartesian(clip = "off") +
+    labs(x = "CV RMSE (all types)", y = NULL, title = "Overall") +
+    theme_bw(base_size = BASE) + ytheme +
+    theme(panel.grid.major.y = element_blank(), panel.grid.minor = element_blank(),
+          plot.margin = margin(5.5, 22, 5.5, 5.5),
+          plot.title = element_text(size = BASE, face = "bold", hjust = 0.5))
+  g2 <- ggplot(sc, aes(x = x, y = y, fill = rmse)) +
+    geom_tile(color = "white", linewidth = 0.6) +
+    geom_text(aes(label = sprintf("%.3f", rmse), color = dark), size = BASE * 0.25) +
+    scale_color_manual(values = c(`TRUE` = "white", `FALSE` = "grey10"), guide = "none") +
+    # magma without its near-black end, so the darkest tiles stay readable
+    scale_fill_viridis_c(option = "magma", direction = -1, begin = 0.25, end = 1, name = "RMSE",
+                         guide = guide_colorbar(barheight = unit(12, "lines"))) +
+    scale_x_discrete(expand = expansion(add = 0)) + scale_y_discrete(expand = expansion(add = 0)) +
+    labs(x = "Held-out relative type", y = NULL, title = "By held-out relative type") +
+    theme_bw(base_size = BASE) +
+    theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(), panel.grid = element_blank(),
+          axis.text.x = element_text(angle = 40, hjust = 1, color = "black"),
+          plot.title = element_text(size = BASE, face = "bold", hjust = 0.5))
+  g <- cowplot::plot_grid(g1, g2, nrow = 1, rel_widths = c(0.4, 1), align = "h", axis = "tb")
+  save_poster(g, file.path("supplement", "s_cv"), width = 11.5, height = 5.8)
+}
+
 # Eftedal et al.'s additive fit (their estimator; biological relatives + in-laws), same plot
 if (has("poster", "eftedal_predictions.csv") && has("poster", "additive_by_cohort.csv")) {
   ac <- rd("poster", "additive_by_cohort.csv") %>% filter(label == "Eftedal et al.", cohort_name == "bio + in-laws")
