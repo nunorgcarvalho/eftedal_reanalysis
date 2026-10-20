@@ -78,7 +78,7 @@
 % second slide per core model: parameter sampling correlations across the leave-one-type-out refits.
 % [#1 \comments{items}], #2 file tag, #3 model (title)
 \newcommand{\pairslide}[3][]{%
-\begin{frame}{#3}{parameter correlations, Marginal Type fit}
+\begin{frame}{#3}{parameter correlations, Marginal Type fit}\label{pair-#2}
   \begin{columns}[T, onlytextwidth]
     \begin{column}{0.69\textwidth}
       \vspace{-0.4em}\includegraphics[width=\linewidth]{\supp/s_paircorr_#2}
@@ -163,6 +163,33 @@
   \bigskip\hfill{\normalsize\color{gray!40!ink}--- from the repository README}
   \end{minipage}\end{center}
   \vfill
+\end{frame}
+
+% ---------------------------------------------------------------- clarifications / changes since the printed poster
+\begin{frame}{Clarifications and changes to the poster}{since it was printed}
+  \small\vspace{-0.2em}
+  {\color{navy}\bfseries From analyses added in these slides}
+  \begin{itemize}\setlength{\itemsep}{0.4em}
+    \item \textbf{Cross-validation ranks \mA\ + \mG\ + \mC\ first} among the core models (slides
+          \pageref{cv}--\pageref{cv-by-type}): predicting each relative type from a fit to the other nine,
+          its CV RMSE is 0.035 vs 0.070 for the Additive model (0.030 vs 0.055 without the adoptive types).
+          The margin is about 1.7 standard errors of the paired difference (better in 6 of the 10 held-out
+          types): consistent with the poster's ``weak evidence for significant components beyond the
+          Additive model''.
+    \item \textbf{The collinearity of the components, quantified:} across the leave-one-type-out refits of
+          \mA\ + \mG\ + \mC, $V_A$ moves against $V_{\mathrm{GxG}}$ ($r = -0.69$) and $V_C$ ($r = -0.74$)
+          (slide \pageref{pair-AGxGF}); in the Additive model, against $m$ ($r = -0.85$; slide \pageref{pair-A}).
+  \end{itemize}
+  \medskip
+  {\color{navy}\bfseries Clarifications of the poster's wording}
+  \begin{itemize}\setlength{\itemsep}{0.4em}
+    \item \textbf{Marginal Type weights (``uniform across types''):} each of the 10 relative types gets the
+          same total weight, with inverse-variance ($1/\mathrm{SE}^2$) weights within a type.
+    \item \textbf{``All relative types'' in the Additive-model inset:} for Eftedal et al., their set of
+          biological relatives and in-laws (no adoptive types, or types related through twins of unknown
+          zygosity); for the revised estimator, all but the adoptive types. These cannot change an
+          Additive-model fit, which predicts 0 for adoptees, so the estimate is identical ($V_A = 0.784$).
+  \end{itemize}
 \end{frame}
 
 % ---------------------------------------------------------------- reading guide
@@ -344,7 +371,7 @@
 
 \pairslide{AGxGF}{\mA\ + \mG\ + \mC}
 
-\begin{frame}{Leave-one-type-out cross-validation}{core models, Marginal Type fit}
+\begin{frame}{Leave-one-type-out cross-validation}{core models, Marginal Type fit}\label{cv}
   \centering\vspace{-0.3em}
   \includegraphics[width=0.79\textwidth]{\supp/s_cv}\par\smallskip
   \begin{minipage}{0.94\textwidth}\scriptsize\color{gray!40!ink}
@@ -355,7 +382,7 @@
   \end{minipage}
 \end{frame}
 
-\begin{frame}{Where the cross-validation error comes from}{core models, Marginal Type fit}
+\begin{frame}{Where the cross-validation error comes from}{core models, Marginal Type fit}\label{cv-by-type}
   \centering\vspace{-0.3em}
   \includegraphics[width=0.9\textwidth]{\supp/s_cv_by_type}\par\smallskip
   \begin{minipage}{0.94\textwidth}\scriptsize\color{gray!40!ink}
