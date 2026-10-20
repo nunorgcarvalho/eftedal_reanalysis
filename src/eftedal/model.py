@@ -162,6 +162,9 @@ class FitSpec:
                      squares): the base absorbs any signal it shares with the added terms.
     sequential_carry : parameters carried from stage 1 (default V_A); ("all",) = every parameter
                      estimated in stage 1
+    modifiers  : Phase-2 sex-composition / family-side multipliers (`MODIFIERS`); () = Phase 1
+    x_share    : fixed share s_X of V_A on the X chromosome; the additive kernel becomes
+                 K + s_X D(m), D = K^X - K^auto from theory/x_kernel (0 = autosomes only)
     """
 
     components: tuple[str, ...] = ("A",)
@@ -183,6 +186,7 @@ class FitSpec:
     sequential_base: tuple[str, ...] | None = None
     sequential_carry: tuple[str, ...] = ("V_A",)
     modifiers: tuple[str, ...] = ()
+    x_share: float = 0.0
     label: str = field(default="", compare=False)
 
     def __post_init__(self):
@@ -221,6 +225,7 @@ class FitSpec:
         d["sequential_base"] = "+".join(self.sequential_base) if self.sequential_base else ""
         d["sequential_carry"] = "+".join(self.sequential_carry) if self.sequential_base else ""
         d["modifiers"] = "+".join(self.modifiers)
+        d["x_share"] = self.x_share
         d["label"] = self.label
         return d
 
@@ -266,6 +271,7 @@ class Model:
         self.kd = C.KernelData(self.data)
         self.house_full, self.house_part = C.household_share(self.data)
         self.mat = C.maternal_indicator(self.data)
+        self.x_grid = C.x_kernel_grid(self.data) if spec.x_share else None
         self.os = (self.data["sex"].to_numpy() == "os")
         side = self.data["side"].to_numpy()
         self.side_mat, self.side_pat = side == "maternal", side == "paternal"
@@ -385,6 +391,8 @@ class Model:
             K, K2 = C.genetic_kernels(self.kd, p["m"], p["r"], stepsib=spec.stepsib,
                                       uz=spec.uz, mz_frac=spec.mz_frac,
                                       adoptive=spec.adoptive, gxg=spec.gxg_kernel)
+            if self.x_grid is not None:
+                K = K + spec.x_share * C.x_kernel_adjustment(self.x_grid, p["m"])
             g1, g2 = self.genetic_multipliers(p)
             if "A" in spec.components:
                 pred += p["V_A"] * K * g1
@@ -427,6 +435,8 @@ class Model:
             K, K2 = C.genetic_kernels(self.kd, p["m"], p["r"], stepsib=spec.stepsib,
                                       uz=spec.uz, mz_frac=spec.mz_frac,
                                       adoptive=spec.adoptive, gxg=spec.gxg_kernel)
+            if self.x_grid is not None:
+                K = K + spec.x_share * C.x_kernel_adjustment(self.x_grid, p["m"])
             g1, g2 = self.genetic_multipliers(p)
             if "A" in spec.components:
                 out["A"] = p["V_A"] * K * g1

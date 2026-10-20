@@ -240,3 +240,32 @@ def test_phase2_multipliers_act_where_they_should(df):
     np.testing.assert_allclose(m.predict(dict(base, rho_g=0.9, rho_e=0.5, k_side=0.2)), c.sum(axis=1))
     with pytest.raises(ValueError):
         FitSpec(components=("A",), modifiers=("side",), **{k: v for k, v in MAIN.items()})
+
+
+def test_x_kernel(df):
+    """The X grid (theory/x_kernel) covers every category, matches our autosomal kernel, and
+    reproduces the random-mating X kernels of the report."""
+    import pandas as pd
+    from eftedal import components as C
+    grid = C.x_kernel_grid(df)
+    g = pd.read_csv(C.X_GRID_FILE)
+    m = Model(df, main_spec("A", "invvar"))
+    for mm in (0.0, 0.2, 0.4):
+        K, _ = C.genetic_kernels(m.kd, mm, mm, stepsib="corrected", uz="mixture", mz_frac=0.5)
+        theirs = g[g.m == mm].set_index(["rel", "side", "sex"]).Kauto
+        keys = list(df[["rel", "side", "sex"]].itertuples(index=False, name=None))
+        # kernels that also depend on r (Nagylaki half-sib types, step sibs, co-cousins) are compared
+        # at m = 0 only: the grid ties r to its own h^2; D varies only weakly with it
+        r_dep = ["half sibs", "1st cousins t/uz", "2nd cousins t/uz", "half cousins", "step sibs", "cocousins"]
+        keep = np.ones(len(df), bool) if mm == 0 else ~df.rel.isin(r_dep).to_numpy()
+        np.testing.assert_allclose(K[keep], theirs.loc[keys].to_numpy()[keep], atol=2e-3)
+    D0 = C.x_kernel_adjustment(grid, 0.0)
+    pick = lambda rel, side, sex: D0[((df.rel == rel) & (df.side == side) & (df.sex == sex)).to_numpy()][0]
+    assert pick("sibs", "other", "os") == pytest.approx(1 / 3 - 1 / 2, abs=1e-5)       # K^X_FDC - a
+    assert pick("half sibs", "paternal", "ssm") == pytest.approx(0 - 1 / 4, abs=1e-5)
+    assert pick("1st cousins", "maternal", "ssm") == pytest.approx(0.5 - 1 / 8, abs=1e-5)
+    # x_share = 0 is Phase 1; x_share > 0 moves only the additive part
+    p = dict(V_A=0.5, r=0.4, m=0.2)
+    a = Model(df, main_spec("A", "invvar")).predict(p)
+    b = Model(df, main_spec("A", "invvar", x_share=0.02)).predict(p)
+    np.testing.assert_allclose(b - a, 0.5 * 0.02 * C.x_kernel_adjustment(grid, 0.2), atol=1e-12)

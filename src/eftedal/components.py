@@ -11,6 +11,8 @@ where K is the additive-genetic kernel under assortative mating at equilibrium
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
@@ -174,3 +176,29 @@ GENETIC_COMPONENTS = ("A", "GxG")
 # 'maternal': multiplicative, rho_k * (1 + delta * maternal_k); not a variance component
 ALL_COMPONENTS = GENETIC_COMPONENTS + INDICATOR_COMPONENTS + ("house", "family", "maternal")
 MODIFIER_COMPONENTS = ("maternal",)
+
+
+# ---- X-linked additive kernel (theory/x_kernel; Phase 2) ------------------------------------------
+X_GRID_FILE = Path(__file__).resolve().parents[2] / "theory" / "x_kernel" / "x_kernel_grid.csv"
+
+
+def x_kernel_grid(data: pd.DataFrame, path: Path = X_GRID_FILE) -> tuple[np.ndarray, np.ndarray]:
+    """(m grid, D matrix rows x m) for the categories in `data`: D = K^X - K^auto, the exact
+    X-linked minus autosomal additive kernel under AM at genotypic mate correlation m
+    (full dosage compensation; theory/x_kernel/x_kernel.md)."""
+    g = pd.read_csv(path)
+    wide = g.pivot_table(index=["rel", "side", "sex"], columns="m", values="D").sort_index(axis=1)
+    keys = pd.MultiIndex.from_frame(data[["rel", "side", "sex"]])
+    missing = ~keys.isin(wide.index)
+    if missing.any():
+        raise ValueError(f"X kernel grid lacks categories {set(keys[missing])}")
+    return wide.columns.to_numpy(dtype=float), wide.loc[keys].to_numpy(dtype=float)
+
+
+def x_kernel_adjustment(grid: tuple[np.ndarray, np.ndarray], m: float) -> np.ndarray:
+    """D_k(m) for every row, linearly interpolated in m (clamped to the grid's range)."""
+    ms, D = grid
+    m = float(np.clip(m, ms[0], ms[-1]))
+    j = int(np.clip(np.searchsorted(ms, m) - 1, 0, len(ms) - 2))
+    t = (m - ms[j]) / (ms[j + 1] - ms[j])
+    return (1 - t) * D[:, j] + t * D[:, j + 1]
