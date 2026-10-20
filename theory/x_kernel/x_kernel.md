@@ -6,7 +6,7 @@
 - **Cousins:** X could account for about a quarter of the small maternal > paternal excess at central values, and most of it only at the upper end ($s_X = 0.05$, $V_A = 0.7$). It cannot explain the cousins' same-sex excess, and it predicts the wrong sign for half cousins.
 - **For the Phase-2 model:** add $s_X D_k(m)$, interpolated from `x_kernel_grid.csv`, to the autosomal kernel.
 
-Files (all in this folder):
+Full writeup with derivations, checks and figures: `x_kernel.pdf` (source `x_kernel.tex`). Files (all in this folder):
 
 | file | content |
 |---|---|
@@ -15,6 +15,7 @@ Files (all in this folder):
 | `x_kernel_grid.csv` | exact $K^{auto}$, $K^X$ and $D = K^X - K^{auto}$ for $m = 0, 0.05, \dots, 0.6$ and $0.43$ (for the model) |
 | `signatures.csv` | predicted vs observed contrasts |
 | `pedigrees.py`, `x_kernel.py`, `compute.py`, `grid.py`, `signatures.py` | code (`PYTHONPATH=<worktree>/src python compute.py && python grid.py && python signatures.py`) |
+| `make_tables.py`, `checks.py`, `figure.R`, `tex/`, `fig/` | tables, checks and figures for `x_kernel.pdf` |
 
 ## 1. What `side` means
 **Rule** (Eftedal et al. 2025, Fig. 1 legend): a pair is maternal or paternal when the connecting pair one generation above them is two women or two men. It is `other` when that pair is a woman and a man, or when the pair is connected through both parents (full sibs).
