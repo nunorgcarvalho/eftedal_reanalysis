@@ -422,7 +422,7 @@ if (has("models", "core_param_corr.csv") && has("models", "core_cv_params.csv"))
 
 # ---- supplemental slides: where each core model's CV error comes from (Marginal Type row of m3e) ----
 # left: the CV score (mean over the 10 held-out relative types of the within-type weighted MSE) stacked
-# by held-out type, the adoptive types at the bottom; label = CV RMSE and the adoptive types' share.
+# by held-out type, the adoptive types at the bottom; label = CV RMSE.
 # Right: CV RMSE over all 10 types vs without the two adoptive types.
 if (has("models", "core_cv_scores.csv")) {
   ADOPT <- c("adoptive sibs", "adoptive cousins")
@@ -435,7 +435,7 @@ if (has("models", "core_cv_scores.csv")) {
   tot <- sc %>% group_by(model) %>%
     summarize(total = sum(contrib), adopt = sum(contrib[fold %in% ADOPT]),
               rmse_all = sqrt(mean(score)), rmse_noadopt = sqrt(mean(score[!fold %in% ADOPT])), .groups = "drop") %>%
-    mutate(label = sprintf("%.3f\n%.0f%%", rmse_all, 100 * adopt / total))
+    mutate(label = sprintf("%.3f", rmse_all))   # CV RMSE
   xtheme <- theme(panel.grid.major.x = element_blank(), panel.grid.minor = element_blank(),
                   axis.text.x = element_text(angle = 35, hjust = 1, color = "black", face = bold_x),
                   plot.title = element_text(size = BASE, face = "bold"), legend.position = "bottom")
