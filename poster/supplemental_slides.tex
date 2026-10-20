@@ -355,4 +355,15 @@
   \end{minipage}
 \end{frame}
 
+\begin{frame}{Where the cross-validation error comes from}{core models, Marginal Type fit}
+  \centering\vspace{-0.3em}
+  \includegraphics[width=0.9\textwidth]{\supp/s_cv_by_type}\par\smallskip
+  \begin{minipage}{0.94\textwidth}\scriptsize\color{gray!40!ink}
+  Left: each model's CV score (the precision-weighted squared error of the held-out correlations, averaged
+  over the 10 relative types), split into each held-out type's share, with the adoptive types at the bottom.
+  Label: CV RMSE and the adoptive types' share of the score. Right: CV RMSE over all 10 types and without the
+  two adoptive types. Models without a jointly fitted \mC\ predict little or no similarity for adoptees.
+  \end{minipage}
+\end{frame}
+
 \end{document}

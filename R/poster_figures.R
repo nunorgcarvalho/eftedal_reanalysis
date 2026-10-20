@@ -420,6 +420,52 @@ if (has("models", "core_param_corr.csv") && has("models", "core_cv_params.csv"))
   }
 }
 
+# ---- supplemental slides: where each core model's CV error comes from (Marginal Type row of m3e) ----
+# left: the CV score (mean over the 10 held-out relative types of the within-type weighted MSE) stacked
+# by held-out type, the adoptive types at the bottom; label = CV RMSE and the adoptive types' share.
+# Right: CV RMSE over all 10 types vs without the two adoptive types.
+if (has("models", "core_cv_scores.csv")) {
+  ADOPT <- c("adoptive sibs", "adoptive cousins")
+  STACK <- c(ADOPT, setdiff(names(FOLD_FILL), ADOPT))
+  xlev <- show_c(CORE_MODELS)
+  bold_x <- ifelse(xlev == show_c("A+GxG+F"), "bold", "plain")
+  sc <- rd("models", "core_cv_scores.csv") %>% filter(weights == "hybrid_block", fold %in% names(FOLD_FILL)) %>%
+    group_by(model) %>% mutate(contrib = score / n() * 1000) %>% ungroup() %>%
+    mutate(model = factor(show_c(model), xlev), fold = factor(fold, rev(STACK)))
+  tot <- sc %>% group_by(model) %>%
+    summarize(total = sum(contrib), adopt = sum(contrib[fold %in% ADOPT]),
+              rmse_all = sqrt(mean(score)), rmse_noadopt = sqrt(mean(score[!fold %in% ADOPT])), .groups = "drop") %>%
+    mutate(label = sprintf("%.3f\n%.0f%%", rmse_all, 100 * adopt / total))
+  xtheme <- theme(panel.grid.major.x = element_blank(), panel.grid.minor = element_blank(),
+                  axis.text.x = element_text(angle = 35, hjust = 1, color = "black", face = bold_x),
+                  plot.title = element_text(size = BASE, face = "bold"), legend.position = "bottom")
+  g1 <- ggplot(sc, aes(x = model, y = contrib, fill = fold)) +
+    geom_col(width = 0.72, color = "white", linewidth = 0.25) +
+    geom_text(data = tot, aes(x = model, y = total, label = label), inherit.aes = FALSE,
+              vjust = -0.2, size = BASE * 0.24, lineheight = 0.9) +
+    scale_fill_manual(values = FOLD_FILL, labels = FOLD_LABELS, breaks = STACK, name = NULL) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.2))) +
+    labs(x = NULL, y = "CV score (×10⁻³)", title = "CV score, stacked by held-out type") +
+    theme_bw(base_size = BASE) + xtheme +
+    theme(legend.key.size = unit(0.9, "lines"), legend.text = element_text(size = BASE * 0.8),
+          legend.key.spacing.x = unit(18, "pt")) +
+    guides(fill = guide_legend(nrow = 3, byrow = TRUE))
+  db <- tot %>% select(model, rmse_all, rmse_noadopt) %>%
+    pivot_longer(c(rmse_all, rmse_noadopt), names_to = "set", values_to = "rmse") %>%
+    mutate(set = factor(set, c("rmse_all", "rmse_noadopt"), c("all 10 types", "without the adoptive types")))
+  g2 <- ggplot(db, aes(x = model, y = rmse)) +
+    geom_line(aes(group = model), color = "grey60", linewidth = 0.7) +
+    geom_point(aes(color = set, shape = set), size = 3.2) +
+    scale_color_manual(values = c("all 10 types" = "#eb6834", "without the adoptive types" = "#184f95"), name = NULL) +
+    scale_shape_manual(values = c("all 10 types" = 16, "without the adoptive types" = 17), name = NULL) +
+    labs(x = NULL, y = "CV RMSE", title = "CV RMSE with and without\nthe adoptive types") +
+    theme_bw(base_size = BASE) + xtheme +
+    theme(legend.direction = "vertical", legend.text = element_text(size = BASE * 0.8))
+  g <- cowplot::plot_grid(g1, g2, nrow = 1, rel_widths = c(1.35, 1), align = "h", axis = "tb") +
+    theme(plot.background = element_rect(fill = "white", color = NA))
+  save_poster(g, file.path("supplement", "s_cv_by_type"), width = 13.0, height = 6.2)
+}
+
 # Eftedal et al.'s additive fit (their estimator; biological relatives + in-laws), same plot
 if (has("poster", "eftedal_predictions.csv") && has("poster", "additive_by_cohort.csv")) {
   ac <- rd("poster", "additive_by_cohort.csv") %>% filter(label == "Eftedal et al.", cohort_name == "bio + in-laws")
