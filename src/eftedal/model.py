@@ -18,7 +18,7 @@ from .data import cohort_mask
 PARAM_ORDER = (
     "V_A", "V_GxG", "V_house", "V_house1", "V_house2", "V_house3", "V_housepart",
     "V_cousins1", "V_cousins2", "V_family", "m", "r", "r_f", "pi", "delta",
-    "rho_g", "rho_e", "s_mat", "s_pat",
+    "rho_g", "rho_e", "k_side",
 )
 
 # Starting values (the 2025 starting values, plus the new parameters).
@@ -26,7 +26,7 @@ DEFAULT_START = {
     "V_A": 0.5, "V_GxG": 0.25, "V_house": 0.1, "V_house1": 0.1, "V_house2": 0.1,
     "V_house3": 0.1, "V_housepart": 0.1, "V_cousins1": 0.1, "V_cousins2": 0.1,
     "V_family": 0.1, "m": 0.5, "r": 0.5, "r_f": 0.5, "pi": 0.5, "delta": 0.0,
-    "rho_g": 1.0, "rho_e": 1.0, "s_mat": 1.0, "s_pat": 1.0,
+    "rho_g": 1.0, "rho_e": 1.0, "k_side": 0.0,
 }
 
 # Box bounds; [0, 1] unless listed. delta may be negative so that a paternal excess is
@@ -34,17 +34,21 @@ DEFAULT_START = {
 PARAM_BOUNDS = {"delta": (-0.5, 1.0),
                 # Phase 2: rho_g is a male-female genetic correlation (<= 1); the environmental
                 # and side multipliers may exceed 1
-                "rho_e": (0.0, 2.0), "s_mat": (0.0, 3.0), "s_pat": (0.0, 3.0)}
+                "rho_e": (0.0, 2.0), "k_side": (-0.95, 0.95)}
 
 # Phase-2 modifiers (sex composition and family side), applied on top of the components:
 #   'sex_g' : opposite-sex pairs' genetic covariance x rho_g (A) and rho_g^2 (GxG): the
 #             male-female genetic correlation (G x sex); decays with relatedness with the kernel
 #   'sex_e' : opposite-sex pairs' familial environment x rho_e
-#   'side'  : familial environment x s_mat (maternal side) / s_pat (paternal side), relative to
-#             'other'; equivalently a family-degree offset df = ln s / ln r_f
+#   'side'  : familial environment x (1 + k_side) on the maternal side and x (1 - k_side) on the
+#             paternal side ('other' x 1): a contrast that redistributes the familial environment
+#             within a type without changing its level. (Separate maternal / paternal multipliers
+#             were tried first: types with no 'other' category, e.g. half sibs, then get a free
+#             level, i.e. a block-specific fudge factor, which breaks the replication rule.) A
+#             multiplier s is equivalent to a family-degree offset df = ln s / ln r_f.
 # No modifiers = Phase 1. The multipliers are shared across all cv blocks where the contrast
 # exists (replication rule), never block-specific.
-MODIFIERS = {"sex_g": ("rho_g",), "sex_e": ("rho_e",), "side": ("s_mat", "s_pat")}
+MODIFIERS = {"sex_g": ("rho_g",), "sex_e": ("rho_e",), "side": ("k_side",)}
 
 WEIGHT_SCHEMES = ("invSqErr", "invvar", "uniform", "hybrid", "hybrid_invvar", "hybrid_block")
 MR_MODES = ("free", "equilibrium", "equal")
@@ -407,12 +411,12 @@ class Model:
 
     def family_multiplier(self, p: Mapping[str, float]) -> np.ndarray:
         """Phase-2 row multiplier of the familial environment: rho_e for opposite-sex pairs
-        ('sex_e') times s_mat / s_pat by family side ('side'), else 1."""
+        ('sex_e') times 1 +/- k_side on the maternal / paternal side ('side'), else 1."""
         mult = np.ones(len(self.data))
         if "sex_e" in self.spec.modifiers:
             mult = mult * np.where(self.os, p["rho_e"], 1.0)
         if "side" in self.spec.modifiers:
-            mult = mult * np.where(self.side_mat, p["s_mat"], np.where(self.side_pat, p["s_pat"], 1.0))
+            mult = mult * (1.0 + p["k_side"] * (self.side_mat.astype(float) - self.side_pat.astype(float)))
         return mult
 
     def components(self, p: Mapping[str, float]) -> pd.DataFrame:

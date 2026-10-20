@@ -32,7 +32,7 @@ SETS = {"core": (list(CORE_MODELS), {}),
         "phase2": (list(PHASE2_MODELS), {})}
 DEFAULT_SETS = ["core", "joint", "core_am2"]
 PARAMS = ["V_A", "V_GxG", "V_house", "V_family", "V_sum", "V_A0", "V_fam_sib", "V_fam_ext", "pi", "r_f", "m", "r",
-          "rho_g", "rho_e", "s_mat", "s_pat"]
+          "rho_g", "rho_e", "k_side"]
 
 
 def run_set(df, name, models, overrides, out, n_starts):
