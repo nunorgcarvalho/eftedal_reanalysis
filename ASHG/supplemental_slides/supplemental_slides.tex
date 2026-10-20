@@ -1,5 +1,5 @@
 % Supplemental slides for the ASHG 2026 poster (linked from the poster's QR code via the repo).
-% Build: poster/build.sh (or pdflatex supplemental_slides.tex twice, from poster/).
+% Build: ASHG/build.sh (or pdflatex supplemental_slides.tex twice, from ASHG/supplemental_slides/).
 % Figures and the per-model fit statistics come from `Rscript R/poster_figures.R`
 % (results/figures/poster/supplement/).
 \documentclass[aspectratio=169, 10pt]{beamer}
@@ -9,9 +9,9 @@
 \usepackage{booktabs, array}
 \usepackage{fontawesome5}
 \usefonttheme{professionalfonts}
-\input{components/style/palette.tex}
-\graphicspath{{../results/figures/}{logos/}}
-\newcommand{\supp}{../results/figures/poster/supplement}
+\input{../poster/components/style/palette.tex}
+\graphicspath{{../../results/figures/}{../poster/logos/}}
+\newcommand{\supp}{../../results/figures/poster/supplement}
 
 % ---- look: plain, navy title bar, as on the poster ----
 \definecolor{navy}{HTML}{1F3A5F}

@@ -270,7 +270,7 @@ if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")
   for (m in CORE_MODELS)
     save_poster(components_and_params(m), file.path("supplement", paste0("s_components_", model_tag(m))),
                 width = 8.8, height = 8.0)   # smaller than P5, so text is larger on a slide
-  # fit statistics (Marginal Type) as LaTeX snippets, \input by poster/supplemental_slides.tex
+  # fit statistics (Marginal Type) as LaTeX snippets, \input by ASHG/supplemental_slides/supplemental_slides.tex
   fs <- rd("models", "core_fits.csv") %>% filter(weights == "hybrid_block") %>%
     left_join(rd("models", "core_cv_summary.csv") %>% select(model, weights, cv_rmse), by = c("model", "weights")) %>%
     mutate(cv_rank = rank(cv_rmse))

@@ -11,16 +11,16 @@ and fitting choices.
 
 > **Here from the QR code on the poster?**
 >
-> ### [Poster (PDF)](https://raw.githubusercontent.com/nunorgcarvalho/eftedal_reanalysis/main/poster/poster.pdf)
-> ### [Supplemental slides (PDF)](https://raw.githubusercontent.com/nunorgcarvalho/eftedal_reanalysis/main/poster/supplemental_slides.pdf)
+> ### [Poster (PDF)](https://raw.githubusercontent.com/nunorgcarvalho/eftedal_reanalysis/main/ASHG/poster/poster.pdf)
+> ### [Supplemental slides (PDF)](https://raw.githubusercontent.com/nunorgcarvalho/eftedal_reanalysis/main/ASHG/supplemental_slides/supplemental_slides.pdf)
 >
-> (The links download the PDFs; to view them in the browser instead: [poster](poster/poster.pdf),
-> [slides](poster/supplemental_slides.pdf).)
+> (The links download the PDFs; to view them in the browser instead: [poster](ASHG/poster/poster.pdf),
+> [slides](ASHG/supplemental_slides/supplemental_slides.pdf).)
 >
 > *Relatives' similarity in test score performance is explained by a wide range of genetic and
 > environmental parameters.* Nuno R. G. Carvalho and Alexander Gusev, ASHG 2026 Annual Meeting,
 > Montréal. The supplemental slides add a model-by-model view of every fit, the cross-validation
-> results, and clarifications to the poster.
+> results, and clarifications to the poster. All ASHG materials are in [`ASHG/`](ASHG/).
 
 ## AI Disclosure
 I used Claude (Opus 5.5) extensively to help me with this project, and almost
@@ -116,11 +116,12 @@ python scripts/07_decay.py                 # component decay across relative typ
 python scripts/08_param_corr.py            # parameter sampling correlations (needs 03)
 Rscript R/make_figures.R                   # -> results/figures/
 
-# ASHG 2026 poster and supplemental slides
+# ASHG 2026 poster, supplemental slides and Q&A notes (see ASHG/README.md)
 python scripts/poster_additive.py          # additive model by estimator and cohort
 python scripts/poster_eftedal_predictions.py
 Rscript R/poster_figures.R                 # -> results/figures/poster/
-bash poster/build.sh                       # -> poster/poster.pdf, poster/supplemental_slides.pdf
+python ASHG/QnA/make_tables.py             # -> results/qna/
+bash ASHG/build.sh                         # -> the PDFs in ASHG/
 ```
 
 `docs/codebase_overview.html` explains the model, estimation, optimisers, uncertainty and
