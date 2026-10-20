@@ -20,15 +20,19 @@ import pandas as pd
 
 from eftedal import cv
 from eftedal import data as D
-from eftedal.model import CORE_MODELS, JOINT_MODELS
+from eftedal.model import CORE_MODELS, JOINT_MODELS, PHASE2_MODELS
 from eftedal.presets import MAIN_WEIGHTINGS, main_spec
 
 # set name -> (models, FitSpec overrides)
 SETS = {"core": (list(CORE_MODELS), {}),
         "joint": (list(JOINT_MODELS), {}),
         # supplement: the earlier GxG kernel, square of the assortative-mating kernel
-        "core_am2": (list(CORE_MODELS), {"gxg_kernel": "am2"})}
-PARAMS = ["V_A", "V_GxG", "V_house", "V_family", "V_sum", "V_A0", "V_fam_sib", "V_fam_ext", "pi", "r_f", "m", "r"]
+        "core_am2": (list(CORE_MODELS), {"gxg_kernel": "am2"}),
+        # Phase 2: sex-composition and family-side multipliers (not run by default)
+        "phase2": (list(PHASE2_MODELS), {})}
+DEFAULT_SETS = ["core", "joint", "core_am2"]
+PARAMS = ["V_A", "V_GxG", "V_house", "V_family", "V_sum", "V_A0", "V_fam_sib", "V_fam_ext", "pi", "r_f", "m", "r",
+          "rho_g", "rho_e", "s_mat", "s_pat"]
 
 
 def run_set(df, name, models, overrides, out, n_starts):
@@ -73,6 +77,6 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out", type=Path, default=D.REPO_ROOT / "results" / "models")
     ap.add_argument("--n-starts", type=int, default=20)
-    ap.add_argument("--sets", nargs="+", default=list(SETS), choices=list(SETS))
+    ap.add_argument("--sets", nargs="+", default=DEFAULT_SETS, choices=list(SETS))
     a = ap.parse_args()
     main(a.out, a.n_starts, a.sets)

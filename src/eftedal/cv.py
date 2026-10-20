@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+from scipy import stats
 
 from . import data as D
 from .fit import derived_params, fit, variance_sum
@@ -77,10 +78,16 @@ def summarize_scores(scores: pd.DataFrame) -> dict:
             "cv_chi2": s["chi2"].sum(), "n_folds": len(s)}
 
 
+def jackknife_quantile(B: int, level: float = 0.95) -> float:
+    """t quantile for a B-block jackknife interval (B - 1 degrees of freedom)."""
+    return float(stats.t.ppf(0.5 + level / 2, B - 1))
+
+
 def jackknife(fold_params: pd.DataFrame, full_params: dict, params: list[str],
               blocks: list[str] | None = None) -> pd.DataFrame:
     """Block-jackknife SEs from the single-block refits:
-    SE = sqrt((B - 1) / B * sum_b (theta_(b) - mean)^2); interval = estimate +/- 1.96 SE.
+    SE = sqrt((B - 1) / B * sum_b (theta_(b) - mean)^2); interval = estimate +/- t_(B-1) SE
+    (t_9 = 2.26 for the 10 blocks: the jackknife variance has B - 1 degrees of freedom).
     'V_sum' (sum of the variance components) can be requested as a parameter."""
     blocks = D.CV_BLOCKS if blocks is None else blocks
     fp = fold_params[fold_params["fold"].isin(blocks)]     # single-block folds present
@@ -94,8 +101,9 @@ def jackknife(fold_params: pd.DataFrame, full_params: dict, params: list[str],
         th = fp[p].to_numpy(dtype=float)
         se = np.sqrt((B - 1) / B * np.sum((th - th.mean()) ** 2))
         est = full_params[p]
-        rows.append({"param": p, "estimate": est, "se": se, "lo": est - 1.96 * se,
-                     "hi": est + 1.96 * se, "jk_min": th.min(), "jk_max": th.max(),
+        q = jackknife_quantile(B)
+        rows.append({"param": p, "estimate": est, "se": se, "lo": est - q * se,
+                     "hi": est + q * se, "jk_min": th.min(), "jk_max": th.max(),
                      "method": "block jackknife", "n_blocks": B})
     return pd.DataFrame(rows)
 

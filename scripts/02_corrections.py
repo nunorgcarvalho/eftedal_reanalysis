@@ -102,7 +102,7 @@ def inlaw(df, n_starts, n_boot):
                 rows.append({"estimator": key, "label": label, "quantity": what, "estimate": est,
                              "se": r["se"], "lo": r["lo"], "hi": r["hi"], "method": r["method"]})
         rows.append({"estimator": key, "label": label, "quantity": "difference", "estimate": gap,
-                     "se": se_gap, "lo": gap - 1.96 * se_gap, "hi": gap + 1.96 * se_gap,
+                     "se": se_gap, "lo": gap - cv.jackknife_quantile(B) * se_gap, "hi": gap + cv.jackknife_quantile(B) * se_gap,
                      "method": "block jackknife"})
         d = rb["V_A"].to_numpy() - ra["V_A"].to_numpy()
         rows.append({"estimator": key, "label": label, "quantity": "difference", "estimate": gap,

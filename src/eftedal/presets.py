@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import itertools
 
-from .model import CORE_MODELS, JOINT_MODELS, SEQUENTIAL_CARRY, FitSpec, MODELS
+from .model import CORE_MODELS, JOINT_MODELS, PHASE2_MODELS, SEQUENTIAL_CARRY, FitSpec, MODELS
 
 # Options that reproduce the 2025 R code (archive/03_model_fitting.R, functions.R).
 LEGACY = dict(uz="exponent", log_zero="legacy", adoptive="legacy_n99",
@@ -31,6 +31,9 @@ def main_spec(model: str, weights: str = "hybrid_block", cohort: str = "ALL", **
             extra = dict(sequential_base=base, sequential_carry=SEQUENTIAL_CARRY)
     elif model in JOINT_MODELS:
         comps = JOINT_MODELS[model]
+    elif model in PHASE2_MODELS:
+        comps, mods = PHASE2_MODELS[model]
+        extra = dict(modifiers=mods)
     else:
         comps = MODELS[model]
     return FitSpec(components=comps, cohort=cohort, weights=weights, **{**MAIN, **extra, **kw},

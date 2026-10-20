@@ -18,6 +18,7 @@ from .data import cohort_mask
 PARAM_ORDER = (
     "V_A", "V_GxG", "V_house", "V_house1", "V_house2", "V_house3", "V_housepart",
     "V_cousins1", "V_cousins2", "V_family", "m", "r", "r_f", "pi", "delta",
+    "rho_g", "rho_e", "s_mat", "s_pat",
 )
 
 # Starting values (the 2025 starting values, plus the new parameters).
@@ -25,11 +26,25 @@ DEFAULT_START = {
     "V_A": 0.5, "V_GxG": 0.25, "V_house": 0.1, "V_house1": 0.1, "V_house2": 0.1,
     "V_house3": 0.1, "V_housepart": 0.1, "V_cousins1": 0.1, "V_cousins2": 0.1,
     "V_family": 0.1, "m": 0.5, "r": 0.5, "r_f": 0.5, "pi": 0.5, "delta": 0.0,
+    "rho_g": 1.0, "rho_e": 1.0, "s_mat": 1.0, "s_pat": 1.0,
 }
 
 # Box bounds; [0, 1] unless listed. delta may be negative so that a paternal excess is
 # allowed: the maternal contrast is tested two-sided.
-PARAM_BOUNDS = {"delta": (-0.5, 1.0)}
+PARAM_BOUNDS = {"delta": (-0.5, 1.0),
+                # Phase 2: rho_g is a male-female genetic correlation (<= 1); the environmental
+                # and side multipliers may exceed 1
+                "rho_e": (0.0, 2.0), "s_mat": (0.0, 3.0), "s_pat": (0.0, 3.0)}
+
+# Phase-2 modifiers (sex composition and family side), applied on top of the components:
+#   'sex_g' : opposite-sex pairs' genetic covariance x rho_g (A) and rho_g^2 (GxG): the
+#             male-female genetic correlation (G x sex); decays with relatedness with the kernel
+#   'sex_e' : opposite-sex pairs' familial environment x rho_e
+#   'side'  : familial environment x s_mat (maternal side) / s_pat (paternal side), relative to
+#             'other'; equivalently a family-degree offset df = ln s / ln r_f
+# No modifiers = Phase 1. The multipliers are shared across all cv blocks where the contrast
+# exists (replication rule), never block-specific.
+MODIFIERS = {"sex_g": ("rho_g",), "sex_e": ("rho_e",), "side": ("s_mat", "s_pat")}
 
 WEIGHT_SCHEMES = ("invSqErr", "invvar", "uniform", "hybrid", "hybrid_invvar", "hybrid_block")
 MR_MODES = ("free", "equilibrium", "equal")
@@ -76,6 +91,24 @@ CORE_MODELS = {
     "A+GxG+F": (("A", "GxG", "family"), None),
 }
 SEQUENTIAL_CARRY = ("all",)
+
+# Phase-2 model set: name -> (components, modifiers). Each Phase-1 joint model with every
+# modifier its components allow, plus one modifier at a time for A+GxG+F. With the multipliers
+# at 1 every model is its Phase-1 counterpart.
+_P1 = {"A": ("A",), "A+GxG": ("A", "GxG"), "A+F": ("A", "family"), "A+GxG+F": ("A", "GxG", "family")}
+
+
+def _phase2_models() -> dict[str, tuple[tuple[str, ...], tuple[str, ...]]]:
+    out = {}
+    for name, comps in _P1.items():
+        mods = ("sex_g",) + (("sex_e", "side") if "family" in comps else ())
+        out[f"{name} | {'+'.join(mods)}"] = (comps, mods)
+    for mods in (("sex_g",), ("sex_e",), ("side",), ("sex_g", "sex_e")):
+        out[f"A+GxG+F | {'+'.join(mods)}"] = (_P1["A+GxG+F"], mods)
+    return out
+
+
+PHASE2_MODELS = _phase2_models()
 
 @dataclass(frozen=True)
 class FitSpec:
@@ -145,6 +178,7 @@ class FitSpec:
     fixed: tuple[tuple[str, float], ...] = ()
     sequential_base: tuple[str, ...] | None = None
     sequential_carry: tuple[str, ...] = ("V_A",)
+    modifiers: tuple[str, ...] = ()
     label: str = field(default="", compare=False)
 
     def __post_init__(self):
@@ -162,6 +196,13 @@ class FitSpec:
         if self.sequential_base is not None:
             if not set(self.sequential_base) < set(self.components):
                 raise ValueError("sequential_base must be a proper subset of components")
+        bad = set(self.modifiers) - set(MODIFIERS)
+        if bad:
+            raise ValueError(f"unknown modifiers {bad}")
+        if "sex_g" in self.modifiers and not any(c in C.GENETIC_COMPONENTS for c in self.components):
+            raise ValueError("modifier 'sex_g' needs a genetic component")
+        if {"sex_e", "side"} & set(self.modifiers) and "family" not in self.components:
+            raise ValueError("modifiers 'sex_e' / 'side' need the family component")
 
     def with_(self, **kw) -> "FitSpec":
         return replace(self, **kw)
@@ -175,6 +216,7 @@ class FitSpec:
         d["fixed"] = ";".join(f"{k}={v:g}" for k, v in self.fixed)
         d["sequential_base"] = "+".join(self.sequential_base) if self.sequential_base else ""
         d["sequential_carry"] = "+".join(self.sequential_carry) if self.sequential_base else ""
+        d["modifiers"] = "+".join(self.modifiers)
         d["label"] = self.label
         return d
 
@@ -190,6 +232,8 @@ def required_params(spec: FitSpec) -> list[str]:
         p += ["pi"]
     if "maternal" in spec.components:
         p += ["delta"]
+    for mod in spec.modifiers:
+        p += list(MODIFIERS[mod])
     return [q for q in PARAM_ORDER if q in p]
 
 
@@ -218,6 +262,9 @@ class Model:
         self.kd = C.KernelData(self.data)
         self.house_full, self.house_part = C.household_share(self.data)
         self.mat = C.maternal_indicator(self.data)
+        self.os = (self.data["sex"].to_numpy() == "os")
+        side = self.data["side"].to_numpy()
+        self.side_mat, self.side_pat = side == "maternal", side == "paternal"
 
         fixed = dict(spec.fixed)
         req = required_params(spec)
@@ -334,37 +381,59 @@ class Model:
             K, K2 = C.genetic_kernels(self.kd, p["m"], p["r"], stepsib=spec.stepsib,
                                       uz=spec.uz, mz_frac=spec.mz_frac,
                                       adoptive=spec.adoptive, gxg=spec.gxg_kernel)
+            g1, g2 = self.genetic_multipliers(p)
             if "A" in spec.components:
-                pred += p["V_A"] * K
+                pred += p["V_A"] * K * g1
             if "GxG" in spec.components:
-                pred += p["V_GxG"] * K2
+                pred += p["V_GxG"] * K2 * g2
         for c, ind in self.indicators.items():
             pred += p[f"V_{c}"] * ind
         if "house" in spec.components:
             pred += p["V_house"] * (self.house_full + p["pi"] * self.house_part)
         if "family" in spec.components:
-            pred += p["V_family"] * p["r_f"] ** self.f
+            pred += p["V_family"] * p["r_f"] ** self.f * self.family_multiplier(p)
         if "maternal" in spec.components:
             pred = pred * (1.0 + p["delta"] * self.mat)
         return pred
 
+    def genetic_multipliers(self, p: Mapping[str, float]) -> tuple[np.ndarray, np.ndarray]:
+        """Phase-2 row multipliers of the (A, GxG) genetic covariance: rho_g, rho_g^2 for
+        opposite-sex pairs ('sex_g'), else 1."""
+        one = np.ones(len(self.data))
+        if "sex_g" not in self.spec.modifiers:
+            return one, one
+        g = np.where(self.os, p["rho_g"], 1.0)
+        return g, g ** 2
+
+    def family_multiplier(self, p: Mapping[str, float]) -> np.ndarray:
+        """Phase-2 row multiplier of the familial environment: rho_e for opposite-sex pairs
+        ('sex_e') times s_mat / s_pat by family side ('side'), else 1."""
+        mult = np.ones(len(self.data))
+        if "sex_e" in self.spec.modifiers:
+            mult = mult * np.where(self.os, p["rho_e"], 1.0)
+        if "side" in self.spec.modifiers:
+            mult = mult * np.where(self.side_mat, p["s_mat"], np.where(self.side_pat, p["s_pat"], 1.0))
+        return mult
+
     def components(self, p: Mapping[str, float]) -> pd.DataFrame:
-        """Per-row contribution of each component (columns sum to `predict(p)`)."""
+        """Per-row contribution of each component (columns sum to `predict(p)`). Phase-2
+        multipliers are folded into the component they act on."""
         spec, out = self.spec, {}
         if any(c in C.GENETIC_COMPONENTS for c in spec.components):
             K, K2 = C.genetic_kernels(self.kd, p["m"], p["r"], stepsib=spec.stepsib,
                                       uz=spec.uz, mz_frac=spec.mz_frac,
                                       adoptive=spec.adoptive, gxg=spec.gxg_kernel)
+            g1, g2 = self.genetic_multipliers(p)
             if "A" in spec.components:
-                out["A"] = p["V_A"] * K
+                out["A"] = p["V_A"] * K * g1
             if "GxG" in spec.components:
-                out["GxG"] = p["V_GxG"] * K2
+                out["GxG"] = p["V_GxG"] * K2 * g2
         for c, ind in self.indicators.items():
             out[c] = p[f"V_{c}"] * ind
         if "house" in spec.components:
             out["house"] = p["V_house"] * (self.house_full + p["pi"] * self.house_part)
         if "family" in spec.components:
-            out["family"] = p["V_family"] * p["r_f"] ** self.f
+            out["family"] = p["V_family"] * p["r_f"] ** self.f * self.family_multiplier(p)
         if "maternal" in spec.components:
             # the inflation applied to the sum of the other components
             base = np.sum(list(out.values()), axis=0) if out else np.zeros(len(self.data))

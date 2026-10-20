@@ -210,3 +210,33 @@ def test_family_split(df):
     from eftedal.fit import family_split
     sib0, ext0 = family_split(e, {"V_family": 0.2, "r_f": 0.0})
     np.testing.assert_allclose(ext0, 0); np.testing.assert_allclose(sib0, 0.2 * (e.f == 0))
+
+
+def test_phase2_reduces_to_phase1(df):
+    """Phase-2 modifiers at their null values reproduce Phase 1 exactly."""
+    from eftedal.model import PHASE2_MODELS
+    p1 = fit(df, main_spec("A+GxG+F", "invvar"), n_starts=2)
+    full = main_spec("A+GxG+F | sex_g+sex_e+side", "invvar")
+    assert set(full.modifiers) == {"sex_g", "sex_e", "side"}
+    null = dict(p1.params, rho_g=1.0, rho_e=1.0, s_mat=1.0, s_pat=1.0)
+    np.testing.assert_allclose(Model(df, full).predict(null), p1.pred)
+    # fixing the multipliers at 1 gives the Phase-1 fit
+    r = fit(df, full.with_(fixed=(("rho_g", 1.0), ("rho_e", 1.0), ("s_mat", 1.0), ("s_pat", 1.0))), n_starts=2)
+    assert r.loss == pytest.approx(p1.loss, rel=1e-6)
+    assert all(name.split(" | ")[0] in ("A", "A+GxG", "A+F", "A+GxG+F") for name in PHASE2_MODELS)
+
+
+def test_phase2_multipliers_act_where_they_should(df):
+    spec = main_spec("A+GxG+F | sex_g+sex_e+side", "invvar")
+    m = Model(df, spec)
+    base = dict(V_A=0.4, V_GxG=0.2, V_family=0.15, r_f=0.5, r=0.5, m=0.2, rho_g=1.0, rho_e=1.0, s_mat=1.0, s_pat=1.0)
+    c0 = m.components(base)
+    c = m.components(dict(base, rho_g=0.9, rho_e=0.5, s_mat=1.5, s_pat=0.8))
+    os_, mat, pat = m.os, m.side_mat, m.side_pat
+    np.testing.assert_allclose(c.A[os_], 0.9 * c0.A[os_]); np.testing.assert_allclose(c.A[~os_], c0.A[~os_])
+    np.testing.assert_allclose(c.GxG[os_], 0.81 * c0.GxG[os_])
+    side = np.where(mat, 1.5, np.where(pat, 0.8, 1.0)) * np.where(os_, 0.5, 1.0)
+    np.testing.assert_allclose(c.family, side * c0.family)
+    np.testing.assert_allclose(m.predict(dict(base, rho_g=0.9, rho_e=0.5, s_mat=1.5, s_pat=0.8)), c.sum(axis=1))
+    with pytest.raises(ValueError):
+        FitSpec(components=("A",), modifiers=("side",), **{k: v for k, v in MAIN.items()})
