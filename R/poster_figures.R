@@ -402,6 +402,24 @@ if (has("models", "core_cv_summary.csv") && has("models", "core_cv_scores.csv"))
   save_poster(g, file.path("supplement", "s_cv"), width = 11.0, height = 6.3)
 }
 
+# ---- supplemental slides: parameter sampling correlations (leave-one-type-out refits), per core model -
+# the S7 pairs plot (R/make_figures.R's plot_param_pairs) without heading or footnote, key on the right
+if (has("models", "core_param_corr.csv") && has("models", "core_cv_params.csv")) {
+  cvp_all <- rd("models", "core_cv_params.csv") %>% filter(fold %in% names(FOLD_FILL)) %>%
+    mutate(fold = factor(fold, names(FOLD_FILL)))
+  fits_all <- rd("models", "core_fits.csv"); jk_all <- rd("models", "core_jackknife.csv")
+  pc_all <- rd("models", "core_param_corr.csv")
+  for (m in CORE_MODELS) {
+    sel <- function(d) d %>% filter(model == .env$m, weights == "hybrid_block")
+    est <- sel(fits_all)
+    k <- sum(!is.na(unlist(est[1, intersect(PAIR_PARAMS, names(est))])))
+    # text scaled to the panel size (6.5 in / k), as in the notebook version (base 9 at ~1.4 in panels)
+    g <- plot_param_pairs(sel(cvp_all), est, sel(jk_all), sel(pc_all),
+                          title = NULL, foot = FALSE, legend = "right", base = min(14, 9 * (6.5 / k) / 1.4))
+    save_poster(g, file.path("supplement", paste0("s_paircorr_", model_tag(m))), width = 8.6, height = 6.5)
+  }
+}
+
 # Eftedal et al.'s additive fit (their estimator; biological relatives + in-laws), same plot
 if (has("poster", "eftedal_predictions.csv") && has("poster", "additive_by_cohort.csv")) {
   ac <- rd("poster", "additive_by_cohort.csv") %>% filter(label == "Eftedal et al.", cohort_name == "bio + in-laws")

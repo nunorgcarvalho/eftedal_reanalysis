@@ -75,6 +75,33 @@
   \end{columns}
 \end{frame}}
 
+% second slide per core model: parameter sampling correlations across the leave-one-type-out refits.
+% [#1 \comments{items}], #2 file tag, #3 model (title)
+\newcommand{\pairslide}[3][]{%
+\begin{frame}{#3}{parameter correlations, Marginal Type fit}
+  \begin{columns}[T, onlytextwidth]
+    \begin{column}{0.69\textwidth}
+      \vspace{-0.4em}\includegraphics[width=\linewidth]{\supp/s_paircorr_#2}
+    \end{column}
+    \begin{column}{0.29\textwidth}\small
+      \begin{minipage}[t][0.84\textheight]{\linewidth}\raggedright
+      \vspace{0.3em}{\color{navy}\bfseries Reading the plot}\par\smallskip
+      {\footnotesize
+      \textbf{Lower:} estimates from the 10 leave-one-type-out refits (colour: type left out); cross:
+      full-data estimate.\par\smallskip
+      \textbf{Upper:} $r$, the correlation of the refit estimates (jackknife sampling correlation),
+      approximate 95\% interval.\par\smallskip
+      \textbf{Diagonal:} estimate and Marginal Type CI.\par}
+      #1
+      \vfill
+      {\scriptsize\color{gray!40!ink}
+      With only 10 relative types, one or two influential types set $r$ and its intervals are wide: read
+      $r$ as the direction of the trade-off.\par}
+      \end{minipage}
+    \end{column}
+  \end{columns}
+\end{frame}}
+
 % section divider, titled as the poster's blocks
 \AtBeginSection[]{{%
   \setbeamercolor{background canvas}{bg=navy}
@@ -266,31 +293,57 @@
   \item The additive component (in the current and all subsequent models) has only two degrees of freedom, as
         $V_A^0 = V_A(1-m)$ and $m = V_A\,r$.}}
 
+\pairslide[\comments{\item $V_A$ and $m$ trade off ($r = -0.85$): the only pair in any core model whose
+  interval excludes 0.}]{A}{Revised (\mA)}
+
 % ================================================================ section 2
 \section{Models with GxG and shared environment}
 
 \modelslide{A_to_GxG}{\mA\then\mG}{%
   \mA\ fitted first; \mG\ then fitted to what remains, with \mA's parameters held fixed.}{}
+
+\pairslide{A_to_GxG}{\mA\then\mG}
+
 \modelslide{AGxG}{\mA\ + \mG}{%
   \mA\ and \mG\ fitted jointly.}{}
+
+\pairslide{AGxG}{\mA\ + \mG}
+
 \modelslide{A_to_F}{\mA\then\mC}{%
   \mA\ fitted first; \mC\ then fitted to what remains, with \mA's parameters held fixed.}{\comments{%
   \item Since $c = 0$, the shared environment is shared by siblings only, with no shared environment beyond
         siblings.}}
+
+\pairslide{A_to_F}{\mA\then\mC}
+
 \modelslide{AF}{\mA\ + \mC}{%
   \mA\ and \mC\ fitted jointly.}{\comments{%
   \item Finds no assortative mating ($m = r = 0$) on test performance, which is likely implausible.}}
+
+\pairslide{AF}{\mA\ + \mC}
+
 \modelslide{AGxG_to_F}{\mA\ + \mG\then\mC}{%
   \mA\ and \mG\ fitted jointly first; \mC\ then fitted with their parameters held fixed.}{\comments{%
   \item Like \mA\then\mC, finds a shared environment between siblings only ($c = 0$).}}
+
+\pairslide{AGxG_to_F}{\mA\ + \mG\then\mC}
+
 \modelslide{AF_to_GxG}{\mA\ + \mC\then\mG}{%
   \mA\ and \mC\ fitted jointly first; \mG\ then fitted with their parameters held fixed.}{\comments{%
   \item Like \mA\ + \mC, finds no assortative mating ($m = r = 0$).}}
+
+\pairslide{AF_to_GxG}{\mA\ + \mC\then\mG}
+
 \modelslide{A_to_GxGF}{\mA\then\mG\ + \mC}{%
   \mA\ fitted first; \mG\ and \mC\ then fitted jointly, with \mA's parameters held fixed.}{\comments{%
   \item Like \mA\then\mC, finds a shared environment between siblings only ($c = 0$).}}
+
+\pairslide{A_to_GxGF}{\mA\then\mG\ + \mC}
+
 \modelslide{AGxGF}{\mA\ + \mG\ + \mC}{%
   All three components fitted jointly. This is the example shown on the poster.}{}
+
+\pairslide{AGxGF}{\mA\ + \mG\ + \mC}
 
 \begin{frame}{Leave-one-type-out cross-validation}{core models, Marginal Type fit}
   \centering\vspace{-0.3em}
