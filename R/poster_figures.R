@@ -335,16 +335,26 @@ if (has("models", "core_cv_summary.csv") && has("models", "core_cv_scores.csv"))
   ylev <- rev(show_c(CORE_MODELS))
   cvs <- rd("models", "core_cv_summary.csv") %>% filter(weights == "hybrid_block") %>%
     mutate(y = factor(show_c(model), ylev), best = cv_rmse == min(cv_rmse))
-  # right panel: mean held-out error of each relative type, predicted - observed, weighted as the CV
-  # score (precision-weighted within each relationship type, then averaged over the block's types)
+  # right panel: mean held-out residual of each relative type, observed - predicted, weighted as the
+  # CV score (precision-weighted within each relationship type, then averaged over the block's types).
+  # Hatched: the model predicts exactly 0 for every category of the type, so the residual is just the
+  # observed correlation (e.g. adoptees under a genetics-only model).
   sc <- rd("models", "core_cv_heldout.csv") %>% filter(weights == "hybrid_block", fold %in% names(FOLD_SHOW)) %>%
-    mutate(w = 1 / se^2, e = pred - corr) %>%
-    group_by(model, fold, rel) %>% summarize(err = sum(w * e) / sum(w), .groups = "drop") %>%
-    group_by(model, fold) %>% summarize(err = mean(err), .groups = "drop") %>%
-    mutate(label = ifelse(round(err, 3) == 0, "0.000", sub("^-", "\u2212", sprintf("%+.3f", err))),
+    mutate(w = 1 / se^2, e = corr - pred) %>%
+    group_by(model, fold, rel) %>%
+    summarize(res = sum(w * e) / sum(w), zero = all(abs(pred) < 1e-12), .groups = "drop") %>%
+    group_by(model, fold) %>% summarize(res = mean(res), zero = all(zero), .groups = "drop") %>%
+    mutate(label = ifelse(round(res, 3) == 0, "0.000", sub("^-", "\u2212", sprintf("%+.3f", res))),
            y = factor(show_c(model), ylev), x = factor(FOLD_SHOW[fold], FOLD_SHOW))
-  LIM <- ceiling(max(abs(sc$err)) * 100) / 100
-  sc <- sc %>% mutate(dark = abs(err) > 0.55 * LIM)   # white text on the darker tiles
+  LIM <- ceiling(max(abs(sc$res)) * 100) / 100
+  RES_COLS <- c("#2166AC", "#67A9CF", "#F7F7F7", "#EF8A62", "#B2182B")
+  tile_col <- scales::gradient_n_pal(RES_COLS)(scales::rescale(sc$res, from = c(-LIM, LIM)))
+  sc <- sc %>% mutate(dark = abs(res) > 0.55 * LIM, tile_col = tile_col)   # white text on the darker tiles
+  # diagonal hatch lines clipped to each zero-prediction tile (tile = unit square around (x, y))
+  hatch <- sc %>% filter(zero) %>% mutate(xi = as.numeric(x), yi = as.numeric(y)) %>%
+    reframe(t = seq(-0.9, 0.9, by = 0.15), .by = c(xi, yi, dark)) %>%
+    mutate(x0 = pmax(-0.5, -0.5 - t), x1 = pmin(0.5, 0.5 - t)) %>% filter(x1 > x0) %>%
+    transmute(dark, x = xi + x0, xend = xi + x1, y = yi + x0 + t, yend = yi + x1 + t)
   ytheme <- theme(axis.text.y = element_text(color = "black", size = BASE * 0.95,
                                              face = ifelse(levels(cvs$y) == show_c("A+GxG+F"), "bold", "plain")))
   g1 <- ggplot(cvs, aes(x = cv_rmse, y = y)) +
@@ -360,18 +370,28 @@ if (has("models", "core_cv_summary.csv") && has("models", "core_cv_scores.csv"))
     theme(panel.grid.major.y = element_blank(), panel.grid.minor = element_blank(),
           plot.margin = margin(5.5, 22, 5.5, 5.5),
           plot.title = element_text(size = BASE, face = "bold", hjust = 0.5))
-  g2 <- ggplot(sc, aes(x = x, y = y, fill = err)) +
-    geom_tile(color = "white", linewidth = 0.6) +
-    geom_text(aes(label = label, color = dark), size = BASE * 0.25) +
-    scale_color_manual(values = c(`TRUE` = "white", `FALSE` = "grey10"), guide = "none") +
-    # diverging: red = over-predicts, blue = under-predicts
-    scale_fill_gradientn(colours = c("#2166AC", "#67A9CF", "#F7F7F7", "#EF8A62", "#B2182B"),
+  g2 <- ggplot(sc, aes(x = x, y = y)) +
+    geom_tile(aes(fill = res), color = "white", linewidth = 0.6) +
+    geom_segment(data = hatch, aes(x = x, xend = xend, y = y, yend = yend,
+                                   color = ifelse(dark, "white", "grey10")), inherit.aes = FALSE,
+                 alpha = 0.55, linewidth = 0.45) +
+    scale_color_identity() +
+    geom_tile(fill = NA, color = "white", linewidth = 0.6) +   # borders over the hatching
+    new_scale_color() +
+    # diverging: blue = negative residual (over-predicts), red = positive (under-predicts)
+    scale_fill_gradientn(colours = RES_COLS,
                          limits = c(-LIM, LIM), name = NULL,
                          breaks = c(-0.1, 0, 0.1),
-                         labels = c("\u22120.10\nunder-predicts", "0", "+0.10\nover-predicts"),
+                         labels = c("\u22120.10\nover-predicts", "0", "+0.10\nunder-predicts"),
                          guide = guide_colorbar(barwidth = unit(20, "lines"), barheight = unit(0.8, "lines"))) +
+    # labels on a patch of the tile's own colour, so the hatching never crosses the text
+    new_scale_fill() +
+    geom_label(aes(label = label, color = dark, fill = tile_col), size = BASE * 0.25, label.size = 0,
+               label.padding = unit(0.12, "lines"), label.r = unit(0, "lines")) +
+    scale_fill_identity() +
+    scale_color_manual(values = c(`TRUE` = "white", `FALSE` = "grey10"), guide = "none") +
     scale_x_discrete(expand = expansion(add = 0)) + scale_y_discrete(expand = expansion(add = 0)) +
-    labs(x = "Held-out relative type", y = NULL, title = "Mean error by held-out relative type (predicted \u2212 observed)") +
+    labs(x = "Held-out relative type", y = NULL, title = "Mean residual by held-out relative type (observed \u2212 predicted)") +
     theme_bw(base_size = BASE) +
     theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(), panel.grid = element_blank(),
           legend.position = "bottom", legend.text = element_text(size = BASE * 0.8, lineheight = 0.9),

@@ -297,9 +297,9 @@
   \includegraphics[width=0.79\textwidth]{\supp/s_cv}\par\smallskip
   \begin{minipage}{0.94\textwidth}\scriptsize\color{gray!40!ink}
   Each relative type is held out in turn and predicted from a fit to the other nine. Left: CV RMSE over
-  all 10 types (precision-weighted; lower is better; best in pink). Right: each held-out type's mean error,
-  predicted $-$ observed, precision-weighted as the CV score (red: predicted above observed; blue: below).
-  A mean error near 0 can hide misses in both directions, e.g.\ MZ under-predicted but DZ over-predicted.
+  all 10 types (precision-weighted; lower is better; best in pink). Right: each held-out type's mean
+  residual, observed $-$ predicted, precision-weighted as the CV score. Hatched: the model predicts 0 for the
+  type, so its residual is the observed correlation. A residual near 0 can hide misses in both directions.
   \end{minipage}
 \end{frame}
 
