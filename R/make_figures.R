@@ -323,8 +323,8 @@ plot_param_pairs <- function(cvp, est, jk, pc, title = NULL, foot = TRUE, legend
     if (i == j) {
       # symbol (plotmath) above the estimate and its Marginal Type CI
       g <- ggplot() + annotate("text", x = 0.5, y = 0.7, label = par_math(pi_), parse = TRUE, size = base * 0.5) +
-        annotate("text", x = 0.5, y = 0.36, size = base * 0.38, lineheight = 1.1,
-                 label = sprintf("%.3f\n[%.3f, %.3f]", e[[pi_]], lo[[pi_]], hi[[pi_]])) +
+        annotate("text", x = 0.5, y = 0.4, size = base * 0.38, label = sprintf("%.3f", e[[pi_]])) +
+        annotate("text", x = 0.5, y = 0.24, size = base * 0.3, label = sprintf("[%.3f, %.3f]", lo[[pi_]], hi[[pi_]])) +
         xlim(0, 1) + ylim(0, 1) + theme_void() +
         theme(panel.background = element_rect(fill = "grey95", color = NA), plot.margin = margin(2, 2, 2, 2))
     } else if (i < j) {
