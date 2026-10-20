@@ -47,6 +47,16 @@ COMP_LINE <- c(A = "#1F4E6E", GxG = "#9A4A14", house = "#5B3F78", family = "#2F6
 FOLD_ORDER <- c("twins", "sibs", "half sibs", "1st cousins", "half cousins", "2nd cousins",
                 "step sibs", "cocousins", "adoptive sibs", "adoptive cousins",
                 "all in-laws", "all adoptive")
+# held-out blocks: blue ramp = biological, orange ramp = non-biological (darker = closer); shape
+# separates the two groups as well
+FOLD_FILL <- c(twins = "#0d366b", sibs = "#184f95", `half sibs` = "#256abf", `1st cousins` = "#3987e5",
+               `half cousins` = "#6da7ec", `2nd cousins` = "#86b6ef",
+               `step sibs` = "#9a3a12", cocousins = "#c94f1f", `adoptive sibs` = "#eb6834",
+               `adoptive cousins` = "#f29466")
+FOLD_SHAPE <- setNames(c(rep(21, 6), rep(24, 4)), names(FOLD_FILL))
+FOLD_LABELS <- c(twins = "twins", sibs = "full-sibs", `half sibs` = "half-sibs", `1st cousins` = "1st cousins",
+                 `half cousins` = "half cousins", `2nd cousins` = "2nd cousins", `step sibs` = "step-sibs",
+                 cocousins = "co-cousins", `adoptive sibs` = "adoptive sibs", `adoptive cousins` = "adoptive cousins")
 obs_from <- function(p) p %>% distinct(row, .keep_all = TRUE) %>% select(row, rel, side, sex, corr, se)
 fmt_par <- function(d, ps) {
   d %>% select(any_of(ps)) %>% pivot_longer(everything()) %>% filter(!is.na(value)) %>%
@@ -394,6 +404,57 @@ if (has("models", "core_predictions.csv")) {
   }
 }
 
+# ---- M3e. where each core model's CV error comes from -------------------------------------------
+# Left: the CV score (mean over the 10 held-out blocks of the within-block weighted MSE) stacked by
+# block, the adoptive blocks at the bottom; label = CV RMSE and the adoptive blocks' share. Right: CV
+# RMSE over all blocks vs without the two adoptive blocks.
+if (has("models", "core_cv_scores.csv")) {
+  ADOPT <- c("adoptive sibs", "adoptive cousins")
+  STACK <- c(ADOPT, setdiff(names(FOLD_FILL), ADOPT))
+  sc <- rd("models", "core_cv_scores.csv") %>% filter(fold %in% names(FOLD_FILL)) %>%
+    group_by(weights, model) %>% mutate(contrib = score / n() * 1000) %>% ungroup() %>%
+    mutate(model = factor(model, CORE_ORDER), weights = factor(weights, c("invvar", "hybrid_block")),
+           fold = factor(fold, rev(STACK)))
+  tot <- sc %>% group_by(weights, model) %>%
+    summarize(total = sum(contrib), adopt = sum(contrib[fold %in% ADOPT]),
+              rmse_all = sqrt(mean(score)), rmse_noadopt = sqrt(mean(score[!fold %in% ADOPT])), .groups = "drop") %>%
+    mutate(label = sprintf("%.3f\n%.0f%%", rmse_all, 100 * adopt / total))
+  g1 <- ggplot(sc, aes(x = model, y = contrib, fill = fold)) +
+    geom_col(width = 0.72, color = "white", linewidth = 0.25) +
+    geom_text(data = tot, aes(x = model, y = total, label = label), inherit.aes = FALSE,
+              vjust = -0.25, size = 2.7, lineheight = 0.9) +
+    facet_wrap(~weights, ncol = 1, labeller = as_labeller(WEIGHT_LABELS)) +
+    scale_fill_manual(values = FOLD_FILL, labels = FOLD_LABELS, breaks = STACK, name = "Held-out block") +
+    scale_x_discrete(labels = show_model) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.22))) +
+    labs(x = NULL, y = "CV score (×10⁻³), stacked by held-out block",
+         subtitle = "Label: CV RMSE and the adoptive blocks' share of the score") +
+    theme_bw(base_size = 10) +
+    theme(panel.grid.major.x = element_blank(), axis.text.x = element_text(angle = 35, hjust = 1),
+          legend.position = "bottom", legend.key.spacing.x = unit(14, "pt")) +
+    guides(fill = guide_legend(nrow = 2, byrow = TRUE))
+  db <- tot %>% select(weights, model, rmse_all, rmse_noadopt) %>%
+    pivot_longer(c(rmse_all, rmse_noadopt), names_to = "set", values_to = "rmse") %>%
+    mutate(set = factor(set, c("rmse_all", "rmse_noadopt"),
+                        c("all 10 blocks", "without the adoptive blocks")))
+  g2 <- ggplot(db, aes(x = model, y = rmse)) +
+    geom_line(aes(group = model), color = "grey60", linewidth = 0.6) +
+    geom_point(aes(color = set, shape = set), size = 2.6) +
+    facet_wrap(~weights, ncol = 1, labeller = as_labeller(WEIGHT_LABELS)) +
+    scale_color_manual(values = c("all 10 blocks" = "#eb6834", "without the adoptive blocks" = "#184f95"), name = NULL) +
+    scale_shape_manual(values = c("all 10 blocks" = 16, "without the adoptive blocks" = 17), name = NULL) +
+    scale_x_discrete(labels = show_model) +
+    labs(x = NULL, y = "CV RMSE (correlation units)", subtitle = "CV RMSE with and without the adoptive blocks") +
+    theme_bw(base_size = 10) +
+    theme(panel.grid.major.x = element_blank(), axis.text.x = element_text(angle = 35, hjust = 1),
+          legend.position = "bottom", legend.direction = "vertical")
+  g <- cowplot::plot_grid(g1, g2, nrow = 1, rel_widths = c(1.35, 1), align = "h", axis = "tb")
+  g <- cowplot::plot_grid(cowplot::ggdraw() + cowplot::draw_label(
+    "Core models: where the cross-validation error comes from", x = 0.01, hjust = 0, size = 13),
+    g, ncol = 1, rel_heights = c(0.05, 1)) + theme(plot.background = element_rect(fill = "white", color = NA))
+  save_fig(g, "m3e_cv_by_block", width = 3600, height = 2400)
+}
+
 # ---- M4. component correlation decay across relationship types (scripts/07_decay.py) -----------
 DECAY_TITLES <- c(genetics = "Shared genetic effects across relationship types",
                   environment = "Shared familial environment across relationship types")
@@ -585,14 +646,6 @@ if (has("robustness", "phenotypes.csv")) {
 # (colour = block left out; blue ramp = biological, orange ramp = non-biological, darker = closer) and
 # the full-data estimate (black cross); axes zoomed on the refits. Upper triangle: the jackknife
 # correlation r with its approximate 95% interval. Diagonal: the estimate and its Marginal Type CI.
-FOLD_FILL <- c(twins = "#0d366b", sibs = "#184f95", `half sibs` = "#256abf", `1st cousins` = "#3987e5",
-               `half cousins` = "#6da7ec", `2nd cousins` = "#86b6ef",
-               `step sibs` = "#9a3a12", cocousins = "#c94f1f", `adoptive sibs` = "#eb6834",
-               `adoptive cousins` = "#f29466")
-FOLD_SHAPE <- setNames(c(rep(21, 6), rep(24, 4)), names(FOLD_FILL))
-FOLD_LABELS <- c(twins = "twins", sibs = "full-sibs", `half sibs` = "half-sibs", `1st cousins` = "1st cousins",
-                 `half cousins` = "half cousins", `2nd cousins` = "2nd cousins", `step sibs` = "step-sibs",
-                 cocousins = "co-cousins", `adoptive sibs` = "adoptive sibs", `adoptive cousins` = "adoptive cousins")
 PAIR_PARAMS <- c("V_A", "m", "V_GxG", "V_family", "r_f")
 PAIR_LABELS <- c(V_A = "V_A", m = "m", V_GxG = "V_GxG", V_family = "V_fam", r_f = "r_f")
 
