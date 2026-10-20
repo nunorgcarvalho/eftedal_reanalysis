@@ -37,6 +37,7 @@ poster/*.fdb_latexmk
 poster/*.synctex.gz
 poster/*.pdf
 !poster/supplemental_slides.pdf
+!poster/poster.pdf
 poster/components/*.pdf
 poster/components/*.aux
 poster/components/*.log

@@ -7,6 +7,18 @@ from genetic relatedness under assortative mating, with optional nonadditive (Gx
 shared-environment components, and ask how sensitive the conclusions are to modelling
 and fitting choices.
 
+## ASHG 2026 poster and supplemental slides
+
+> **Here from the QR code on the poster?**
+>
+> ### [Poster (PDF)](poster/poster.pdf)
+> ### [Supplemental slides (PDF)](poster/supplemental_slides.pdf)
+>
+> *Relatives' similarity in test score performance is explained by a wide range of genetic and
+> environmental parameters.* Nuno R. G. Carvalho and Alexander Gusev, ASHG 2026 Annual Meeting,
+> Montréal. The supplemental slides add a model-by-model view of every fit, the cross-validation
+> results, and clarifications to the poster.
+
 ## AI Disclosure
 I used Claude (Opus 5.5) extensively to help me with this project, and almost
 everything in this repository was ultimately written by Claude.
