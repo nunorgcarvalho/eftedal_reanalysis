@@ -74,7 +74,8 @@ connect_path <- function(seg) {
     arrange(model, x_min, x)
 }
 
-plot_fits <- function(obs, preds, colors = NULL, R2 = NULL, legend = "auto") {
+# labels: legend labels for the models (e.g. plotmath expressions), in the order of `colors`
+plot_fits <- function(obs, preds, colors = NULL, R2 = NULL, legend = "auto", labels = waiver()) {
   obs <- layout_obs(obs)
   seg <- pred_segments(obs, preds)
   labs_df <- obs %>% group_by(rel) %>%
@@ -92,7 +93,7 @@ plot_fits <- function(obs, preds, colors = NULL, R2 = NULL, legend = "auto") {
     geom_segment(data = seg, inherit.aes = FALSE, linewidth = 1.5, alpha = 0.6,
                  aes(x = x_min - 0.5, xend = x_max + 0.5, y = pred, yend = pred, color = model,
                      linetype = in_cohort)) +
-    scale_color_manual(values = colors, breaks = names(colors), name = "Model", guide = model_guide) +
+    scale_color_manual(values = colors, breaks = names(colors), labels = labels, name = "Model", guide = model_guide) +
     scale_linetype_manual(values = c(`TRUE` = "solid", `FALSE` = "22"), guide = "none") +
     geom_text_repel(data = labs_df, inherit.aes = FALSE, size = 3, direction = "y", vjust = 1,
                     min.segment.length = 999, aes(x = x, y = y, label = label))
@@ -146,7 +147,7 @@ pool_by_type <- function(obs) {
     mutate(x = match(rel, CONDENSED_ORDER))
 }
 
-plot_fits_condensed <- function(obs, preds, colors, title = NULL) {
+plot_fits_condensed <- function(obs, preds, colors, title = NULL, labels = waiver()) {
   po <- pool_by_type(obs) %>%
     mutate(lo = corr - z95 * se, hi = corr + z95 * se, label = str_wrap(CONDENSED_LABELS[rel], 10))
   w <- obs %>% transmute(row, w = 1 / se^2)
@@ -168,7 +169,7 @@ plot_fits_condensed <- function(obs, preds, colors, title = NULL) {
     geom_text(data = lab, aes(x = x, y = y, label = label), size = 2.6, vjust = 0, lineheight = 0.85) +
     scale_x_continuous(breaks = NULL, expand = expansion(add = 0.6)) +
     scale_y_continuous(breaks = seq(-0.05, 1, by = 0.05), expand = c(0, 0)) +
-    scale_color_manual(values = colors, breaks = names(colors), name = "Model") +
+    scale_color_manual(values = colors, breaks = names(colors), labels = labels, name = "Model") +
     coord_cartesian(ylim = c(-0.05, 1)) +
     labs(x = "Relationship Type", y = "Correlation", title = title,
          caption = "Points: inverse-variance pooled correlation of each relationship type (95% CI); bars: model predictions pooled with the same weights") +

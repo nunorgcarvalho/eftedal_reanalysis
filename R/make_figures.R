@@ -29,20 +29,26 @@ overlay_ci <- function(d, x = "estimate") {
        scale_color_manual(values = CI_COLORS, breaks = names(CI_COLORS), name = "95% interval"))
 }
 JOINT_ORDER <- c("A", "A+H", "A+F", "A+H+F", "A+GxG", "A+GxG+H", "A+GxG+F", "A+GxG+H+F")
-show_model <- function(x) gsub(">", " → ", x)
+show_model <- function(x) gsub("\\bF\\b", "C", gsub(">", " \u2192 ", x), perl = TRUE)   # shared env. F shown as C
+# parameter symbols as plotmath strings (for label_parsed / parse(text = ...))
+PAR_MATH <- c(V_A = "V[A]", V_A0 = "V[A]^0", m = "m", r = "r", V_GxG = "V[GxG]", V_family = "V[C]",
+              V_house = "V[H]", V_sum = "Sigma*V", r_f = "c", pi = "pi", V_fam_ext = "V[C]~c",
+              V_fam_sib = "V[C]*(1-c)")
+par_math <- function(p) unname(ifelse(p %in% names(PAR_MATH), PAR_MATH[p], p))
 COMP_ORDER <- c("A", "GxG", "house", "family")
 COMP_FILL <- c(A = "#4C8CB5", GxG = "#E3894B", house = "#9B7BB8", family = "#6FAF7A")
 # bar segments: the additive component split into its random-mating part V_A0 = V_A(1 - m) and the
-# excess due to assortative mating, V_A m; the familial component split into its extended-family part
-# V_fam r_f (shared by relatives of family degree >= 1) and the sib-specific part V_fam (1 - r_f)
+# excess due to assortative mating, V_A m; the shared environment C (V_family, decay r_f = c) split
+# into its beyond-sibling part V_C c (shared by relatives of family degree >= 1) and the
+# within-sibling part V_C (1 - c)
 SEG_ORDER <- c("A0", "A_AM", "GxG", "house", "fam_ext", "fam_sib")
 # A_AM / fam_sib: same colour as A0 / fam_ext, distinguished by white diagonal stripes (/ and \
 # respectively); their hex differs by one unit so the legend key can recognise them
 SEG_FILL <- c(A0 = "#4C8CB5", A_AM = "#4C8CB6", GxG = "#E3894B", house = "#9B7BB8",
               fam_ext = "#6FAF7A", fam_sib = "#6FAF7B")
 STRIPE_DIR <- c("#4C8CB6" = 1, "#6FAF7B" = -1)   # fill -> stripe direction (slope sign)
-SEG_LABELS <- c(A0 = "A (random mating)", A_AM = "A (excess under AM)", GxG = "GxG", house = "house",
-                fam_ext = "familial environment (extended)", fam_sib = "familial environment (sib-specific)")
+SEG_LABELS <- c(A0 = "A (random mating)", A_AM = "A (excess under AM)", GxG = "GxG", house = "H (household)",
+                fam_ext = "C (beyond-sibling)", fam_sib = "C (within-sibling)")
 COMP_LINE <- c(A = "#1F4E6E", GxG = "#9A4A14", house = "#5B3F78", family = "#2F6B3A")
 FOLD_ORDER <- c("twins", "sibs", "half sibs", "1st cousins", "half cousins", "2nd cousins",
                 "step sibs", "cocousins", "adoptive sibs", "adoptive cousins",
@@ -58,10 +64,13 @@ FOLD_LABELS <- c(twins = "twins", sibs = "full-sibs", `half sibs` = "half-sibs",
                  `half cousins` = "half cousins", `2nd cousins` = "2nd cousins", `step sibs` = "step-sibs",
                  cocousins = "co-cousins", `adoptive sibs` = "adoptive sibs", `adoptive cousins` = "adoptive cousins")
 obs_from <- function(p) p %>% distinct(row, .keep_all = TRUE) %>% select(row, rel, side, sex, corr, se)
+# parameters and their values as one plotmath string, e.g. list(V[A]=='0.42', m=='0.25')
 fmt_par <- function(d, ps) {
-  d %>% select(any_of(ps)) %>% pivot_longer(everything()) %>% filter(!is.na(value)) %>%
-    mutate(s = sprintf("%s=%.2f", sub("V_", "", name), value)) %>% pull(s) %>% paste(collapse = ", ")
+  v <- d %>% select(any_of(ps)) %>% pivot_longer(everything()) %>% filter(!is.na(value))
+  sprintf("list(%s)", paste(sprintf("%s=='%.2f'", par_math(v$name), v$value), collapse = ", "))
 }
+# "<model>:  <parameters>" as a plotmath string
+model_par_label <- function(model, d, ps) sprintf("'%s:'~~%s", show_model(model), fmt_par(d, ps))
 
 # Interval glyphs: vertical line, flat caps at ends inside the parameter range, arrowheads at
 # ends that were clipped because the interval runs past the range (e.g. a negative variance).
@@ -184,8 +193,8 @@ stacked_components <- function(jk, order, title) {
     labs(x = NULL, y = "Variance component (proportion of phenotypic variance)", title = title,
          subtitle = paste0("Black outline and diamond: sum of the components, with its 95% Marginal Type CI (black, centre)\n",
                            "Coloured: each component's 95% Marginal Type CI, at the top of its segment\n",
-                           "A: V_A\u2070 = V_A(1 \u2212 m) (solid) + excess under assortative mating (striped); CI for total V_A\n",
-                           "Familial env.: extended V_fam r_f (solid) + sib-specific V_fam(1 \u2212 r_f) (striped); CI for total V_fam\n",
+                           "A: random-mating part (solid) + excess under assortative mating (striped); CI for the total\n",
+                           "C: beyond-sibling part (solid) + within-sibling part (striped); CI for the total\n",
                            "Faded: the component's CI includes 0. Arrowhead: the CI runs past [0, 1]")) +
     theme_bw() + theme(legend.position = "bottom", panel.grid.major.x = element_blank(),
                        panel.grid.minor.x = element_blank(), panel.spacing = unit(1.2, "lines"),
@@ -231,8 +240,8 @@ plot_condensed_components <- function(preds, title = NULL) {
     coord_cartesian(ylim = c(-0.05, 1)) +
     labs(x = "Relationship Type", y = "Correlation", title = title,
          caption = paste0("Points: inverse-variance pooled correlation of each relationship type (95% CI).\n",
-                          "Bars: predicted correlation split by component; A = V_A\u2070 \u00d7 (1/2)\u207f under random mating + the excess under AM;\n",
-                          "familial env. = extended V_fam r_f^max(f, 1) + sib-specific V_fam max(r_f^f \u2212 r_f, 0) (f: family degree).")) +
+                          "Bars: predicted correlation split by component; A = random-mating part + the excess under assortative mating;\n",
+                          "C = beyond-sibling part + within-sibling part.")) +
     theme_bw() +
     theme(axis.ticks.x = element_blank(), panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
           panel.grid.major.y = element_line(linetype = "dashed"), panel.grid.minor.y = element_line(linetype = "dashed"),
@@ -272,26 +281,115 @@ plot_component_decay <- function(dec, title = NULL, subtitle = NULL) {
     coord_cartesian(ylim = c(0, 1.14)) +
     labs(x = "Relationship Type", y = "Correlation (scaled: all kernels 1 \u2192 1)", title = title, subtitle = subtitle,
          caption = paste0("Contributions divided by the summed variance components",
-                          if ("part_A0" %in% names(dec)) "; A = V_A\u2070 \u00d7 (1/2)\u207f under random mating + the excess under AM." else ".",
-                          if ("part_fam_sib" %in% names(dec)) "\nFamilial env. = extended r_f^max(f, 1) + sib-specific max(r_f^f \u2212 r_f, 0) (f: family degree)." else "")) +
+                          if ("part_A0" %in% names(dec)) "; A = random-mating part + the excess under assortative mating." else ".",
+                          if ("part_fam_sib" %in% names(dec)) "\nC = beyond-sibling part + within-sibling part." else "")) +
     theme_bw() +
     theme(axis.ticks.x = element_blank(), panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
           panel.grid.major.y = element_line(linetype = "dashed"), panel.grid.minor.y = element_blank(),
           legend.position = "bottom")
 }
 
+# Parameter sampling correlations from the leave-one-type-out refits (scripts/08; figure S7).
+# One pairs plot per core model x weighting. Lower triangle: the 10 single-block refit estimates
+# (colour = block left out; blue ramp = biological, orange ramp = non-biological, darker = closer) and
+# the full-data estimate (black cross); axes zoomed on the refits. Upper triangle: the jackknife
+# correlation r with its approximate 95% interval. Diagonal: the estimate and its Marginal Type CI.
+PAIR_PARAMS <- c("V_A", "m", "V_GxG", "V_family", "r_f")
+
+pairs_grid_px <- function(k) max(420 * k + 300, 1900)   # side of the k x k grid, in pixels at 300 dpi
+
+# title = NULL drops the heading, foot = FALSE the explanatory footnote; legend = "right" puts the
+# key beside the grid (one column) instead of below it.
+plot_param_pairs <- function(cvp, est, jk, pc, title = NULL, foot = TRUE, legend = c("bottom", "right"),
+                             base = 9) {
+  legend <- match.arg(legend)
+  ps <- PAIR_PARAMS[PAIR_PARAMS %in% names(est)]
+  ps <- ps[!is.na(unlist(est[1, ps]))]
+  k <- length(ps)
+  e <- setNames(as.numeric(est[1, ps]), ps)
+  lo <- setNames(jk$lo, jk$param); hi <- setNames(jk$hi, jk$param)
+  # axis range: the refits and the full-data estimate, padded
+  lims <- lapply(ps, function(p) {
+    r <- range(c(cvp[[p]], e[[p]]), na.rm = TRUE)
+    if (diff(r) < 1e-6) r <- r + c(-0.02, 0.02)
+    r + c(-1, 1) * 0.12 * diff(r)
+  }) %>% setNames(ps)
+  th <- theme_bw(base_size = base) +
+    theme(panel.grid.minor = element_blank(), plot.margin = margin(4, 8, 2, 2),
+          axis.title = element_blank(), legend.position = "none")
+  panels <- list()
+  for (i in seq_len(k)) for (j in seq_len(k)) {
+    pi_ <- ps[i]; pj <- ps[j]
+    if (i == j) {
+      # symbol (plotmath) above the estimate and its Marginal Type CI
+      g <- ggplot() + annotate("text", x = 0.5, y = 0.7, label = par_math(pi_), parse = TRUE, size = base * 0.5) +
+        annotate("text", x = 0.5, y = 0.36, size = base * 0.38, lineheight = 1.1,
+                 label = sprintf("%.3f\n[%.3f, %.3f]", e[[pi_]], lo[[pi_]], hi[[pi_]])) +
+        xlim(0, 1) + ylim(0, 1) + theme_void() +
+        theme(panel.background = element_rect(fill = "grey95", color = NA), plot.margin = margin(2, 2, 2, 2))
+    } else if (i < j) {
+      r <- pc %>% filter((p1 == pi_ & p2 == pj) | (p1 == pj & p2 == pi_))
+      lab <- if (nrow(r) == 0 || is.na(r$r)) "r undefined\n(a parameter does not move)" else
+        if (is.na(r$lo)) sprintf("r = %.2f\n(no interval: a parameter is\nfixed in some leave-two-out refits)", r$r) else sprintf("r = %.2f\n[%.2f, %.2f]", r$r, r$lo, r$hi)
+      rv <- if (nrow(r) == 0 || is.na(r$r)) 0 else r$r
+      g <- ggplot() + annotate("rect", xmin = 0, xmax = 1, ymin = 0, ymax = 1,
+                               fill = scales::gradient_n_pal(c("#2a78d6", "#f0efec", "#e34948"), c(-1, 0, 1))(rv), alpha = 0.55) +
+        annotate("text", x = 0.5, y = 0.5, label = lab, size = base * 0.37, lineheight = 1.1) +
+        scale_x_continuous(limits = c(0, 1), expand = c(0, 0)) + scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +
+        theme_void() + theme(plot.margin = margin(2, 2, 2, 2))
+    } else {
+      g <- ggplot() +
+        geom_point(data = cvp, aes(x = .data[[pj]], y = .data[[pi_]], fill = fold, shape = fold),
+                   size = 2.4, stroke = 0.4, color = "white") +
+        annotate("point", x = e[[pj]], y = e[[pi_]], shape = 3, size = 3.2, stroke = 1.1) +
+        scale_fill_manual(values = FOLD_FILL) + scale_shape_manual(values = FOLD_SHAPE) +
+        scale_x_continuous(breaks = scales::breaks_pretty(n = 3)) +
+        scale_y_continuous(breaks = scales::breaks_pretty(n = 3)) +
+        coord_cartesian(xlim = lims[[pj]], ylim = lims[[pi_]], expand = FALSE) + th +
+        theme(axis.text.x = if (i == k) element_text(size = base * 0.78) else element_blank(),
+              axis.text.y = if (j == 1) element_text(size = base * 0.78) else element_blank(),
+              axis.ticks.x = if (i == k) element_line() else element_blank(),
+              axis.ticks.y = if (j == 1) element_line() else element_blank())
+    }
+    panels[[length(panels) + 1]] <- g
+  }
+  grid <- cowplot::plot_grid(plotlist = panels, nrow = k, align = "hv", axis = "tblr")
+  key <- ggplot(tibble(fold = factor(names(FOLD_FILL), names(FOLD_FILL)), x = seq_along(FOLD_FILL))) +
+    geom_point(aes(x = x, y = x, fill = fold, shape = fold), size = 3, color = "white", stroke = 0.4) +
+    scale_fill_manual(values = FOLD_FILL, labels = FOLD_LABELS, name = "Refit leaving out") +
+    scale_shape_manual(values = FOLD_SHAPE, labels = FOLD_LABELS, name = "Refit leaving out") +
+    theme_bw(base_size = if (legend == "right") max(base, 12) else base) + theme(legend.position = legend) +
+    guides(fill = if (legend == "bottom") guide_legend(nrow = 3, title.position = "top") else guide_legend(ncol = 1))
+  leg <- cowplot::get_plot_component(key, paste0("guide-box-", legend), return_all = TRUE)
+  if (legend == "right") {
+    return(cowplot::plot_grid(grid, leg, nrow = 1, rel_widths = c(1, 0.32)) +
+             theme(plot.background = element_rect(fill = "white", color = NA), plot.margin = margin(4, 4, 4, 4)))
+  }
+  head <- cowplot::ggdraw() + cowplot::draw_label(title %||% "", x = 0.01, hjust = 0, size = 12)
+  ft <- cowplot::ggdraw() + cowplot::draw_label(paste0(
+    "Lower: leave-one-type-out refit estimates (axes zoomed on them); black cross = full-data estimate.\n",
+    "Upper: jackknife correlation of the two estimates (correlation of the refits), with an approximate 95% interval\n",
+    "(jackknife over blocks on Fisher's z, from refits leaving out two blocks).\n",
+    "Diagonal: estimate and 95% Marginal Type CI."),
+    x = 0.01, hjust = 0, size = 7.5, lineheight = 1.1)
+  gpx <- pairs_grid_px(k)
+  cowplot::plot_grid(head, grid, leg, if (foot) ft else NULL, ncol = 1,
+                     rel_heights = c(if (is.null(title)) 0 else 130, gpx, 330, if (foot) 280 else 0)) +
+    theme(plot.background = element_rect(fill = "white", color = NA), plot.margin = margin(4, 10, 4, 14))
+}
+
 # ---- M1. Eftedal's estimator -> ours ----------------------------------------------------------
 if (has("corrections", "steps.csv")) {
   st <- rd("corrections", "steps.csv")
   lev <- rev(unique(st$label[order(st$order)]))
-  PL <- c(V_A = "h² (V_A)", V_A0 = "V_A\u2070 = V_A(1 \u2212 m)\n(random-mating additive variance)",
-          m = "m (mate genetic corr.)", r = "r (mate phenotypic corr.)")
+  PL <- c(V_A = "V[A]", V_A0 = "V[A]^0==V[A]*(1-m)", m = "m~~'(mates\\' genetic correlation)'",
+          r = "r~~'(mates\\' phenotypic correlation)'")
   d <- st %>% mutate(label = factor(label, lev), panel = factor(PL[param], PL),
                      lo_c = pmax(lo, 0), hi_c = pmin(hi, 1))
   pts <- d %>% distinct(label, panel, estimate)
   g <- ggplot(d, aes(y = label)) + overlay_ci(d) +
     geom_point(data = pts, aes(x = estimate), size = 2.6) +
-    facet_wrap(~panel, scales = "free_x", nrow = 1) + wrap_y +
+    facet_wrap(~panel, scales = "free_x", nrow = 1, labeller = label_parsed) + wrap_y +
     labs(x = "Estimate", y = NULL, title = "Additive model: Eftedal et al.'s estimator vs. the revised estimator",
          caption = "Both CIs drawn from the same point; the Marginal Pair CI is often narrower than the point itself") +
     theme_bw() + theme(legend.position = "bottom")
@@ -373,15 +471,15 @@ if (has("models", "core_predictions.csv")) {
   for (wt in c("hybrid_block", "invvar")) {
     for (cmp in names(COMPARISONS)) {
       ms <- COMPARISONS[[cmp]]
-      labs <- sapply(ms, function(mod) paste0(show_model(mod), ": ", fmt_par(fs %>% filter(model == !!mod, weights == !!wt),
-                                                    c("V_A", "V_GxG", "V_family", "r_f", "m", "r"))))
+      labs <- sapply(ms, function(mod) model_par_label(mod, fs %>% filter(model == !!mod, weights == !!wt),
+                                                       c("V_A", "V_GxG", "V_family", "r_f", "m", "r")))
       pr <- bind_rows(lapply(seq_along(ms), function(i)
         fp %>% filter(model == ms[i], weights == !!wt) %>% mutate(model = labs[i])))
       cols <- setNames(PAL[seq_along(ms)], labs)
-      save_fig(plot_fits(obs, pr, colors = cols) +
+      save_fig(plot_fits(obs, pr, colors = cols, labels = parse(text = labs), legend = "bottom") +
                  labs(title = WEIGHT_LABELS[[wt]]), height = 1950,
                sprintf("m3b_eftedalfit_%s_%s", cmp, wt))
-      save_fig(plot_fits_condensed(obs, pr, colors = cols, title = WEIGHT_LABELS[[wt]]),
+      save_fig(plot_fits_condensed(obs, pr, colors = cols, title = WEIGHT_LABELS[[wt]], labels = parse(text = labs)),
                sprintf("m3b_condensedfit_%s_%s", cmp, wt), width = 2600, height = 1500)
     }
   }
@@ -397,7 +495,7 @@ if (has("models", "core_predictions.csv")) {
         ttl <- paste0(show_model(mod), " (", WEIGHT_LABELS[[wt]], ")")
         sub <- fmt_par(cf %>% filter(model == !!mod, weights == !!wt), c("V_A", "V_A0", "V_GxG", "V_family", "V_fam_ext", "V_fam_sib", "r_f", "m", "r"))
         save_fig(plot_condensed_components(cpp %>% filter(model == !!mod, weights == !!wt), title = ttl) +
-                   labs(subtitle = sub),
+                   labs(subtitle = parse(text = sub)),
                  sprintf("m3d_condensedcomp_%s_%s", gsub("\\+", "", gsub(">", "_to_", mod)), wt), width = 2600, height = 1500)
       }
     }
@@ -457,7 +555,7 @@ if (has("models", "core_cv_scores.csv")) {
 
 # ---- M4. component correlation decay across relationship types (scripts/07_decay.py) -----------
 DECAY_TITLES <- c(genetics = "Shared genetic effects across relationship types",
-                  environment = "Shared familial environment across relationship types")
+                  environment = "Shared environment (C) across relationship types")
 for (f in Sys.glob(file.path(RESULTS, "decay", "*.csv"))) {
   name <- tools::file_path_sans_ext(basename(f))
   dec <- as_tibble(fread(f))
@@ -465,7 +563,7 @@ for (f in Sys.glob(file.path(RESULTS, "decay", "*.csv"))) {
   pars <- if ("V_A" %in% names(pars)) pars %>% mutate(V_A0 = V_A * (1 - m), .after = V_A) else pars %>% select(-m, -r)
   if (sum(startsWith(names(pars), "V_")) == 1) pars <- pars %>% select(-starts_with("V_"))   # scaled away
   ttl <- if (name %in% names(DECAY_TITLES)) DECAY_TITLES[[name]] else name
-  save_fig(plot_component_decay(dec, title = ttl, subtitle = paste0(dec$model[1], ": ", fmt_par(pars, names(pars)))),
+  save_fig(plot_component_decay(dec, title = ttl, subtitle = parse(text = model_par_label(dec$model[1], pars, names(pars)))),
            paste0("m4_decay_", name), width = 2600, height = 1500)
 }
 
@@ -521,8 +619,8 @@ if (has("models", "core_jackknife.csv")) {
     geom_point(size = 3.2) +
     ggrepel::geom_text_repel(aes(label = model), size = 3, show.legend = FALSE, max.overlaps = 30) +
     facet_wrap(~weights) +
-    labs(x = "V_A (h²)", y = "m (mate genetic correlation)", color = NULL,
-         title = "V_A vs m across the core models (95% Marginal Type CIs)",
+    labs(x = expression(V[A]), y = "m (mates' genetic correlation)", color = NULL,
+         title = expression(paste(V[A], " vs ", m, " across the core models (95% Marginal Type CIs)")),
          subtitle = "Models whose step 1 is A share A's V_A and m exactly") +
     theme_bw() + theme(legend.position = "bottom")
   save_fig(g, "s2c_VA_vs_m_core", width = 3000, height = 1600)
@@ -534,10 +632,11 @@ if (has("bootstrap", "intervals.csv") && has("models", "core_jackknife.csv")) {
                   rd("models", "core_jackknife.csv") %>% mutate(method = CI_LABELS[["block jackknife"]])) %>%
     filter(param %in% c("V_A", "V_GxG", "V_house", "V_family", "V_sum", "pi", "r_f", "r")) %>%
     mutate(model = factor(show_model(model), rev(show_model(CORE_ORDER))), weights = WEIGHT_LABELS[weights],
+           param = factor(par_math(param), par_math(c("V_A", "V_GxG", "V_house", "V_family", "V_sum", "pi", "r_f", "r"))),
            lo = pmax(lo, 0), hi = pmin(hi, 1.1))
   g <- ggplot(iv, aes(x = estimate, xmin = lo, xmax = hi, y = model, color = method)) +
     geom_pointrange(position = position_dodge(width = 0.6), size = 0.25) +
-    facet_grid(weights ~ param, scales = "free_x") +
+    facet_grid(weights ~ param, scales = "free_x", labeller = labeller(param = label_parsed)) +
     labs(x = "Estimate and 95% interval", y = NULL, color = NULL) +
     theme_bw() + theme(legend.position = "bottom")
   save_fig(g, "s3_bootstrap_vs_jackknife", width = 3800, height = 1900)
@@ -546,16 +645,17 @@ if (has("models", "core_cv_params.csv")) {
   jk <- rd("models", "core_cv_params.csv") %>% filter(fold %in% FOLD_ORDER[1:10]) %>%
     select(model, weights, fold, V_A, V_sum) %>% pivot_longer(c(V_A, V_sum), names_to = "param") %>%
     mutate(model = factor(show_model(model), show_model(CORE_ORDER)), fold = factor(fold, rev(FOLD_ORDER)),
-           weights = WEIGHT_LABELS[weights])
+           weights = WEIGHT_LABELS[weights], param = factor(par_math(param), par_math(c("V_A", "V_sum"))))
   g <- ggplot(jk, aes(x = value, y = fold, color = model)) + geom_point(size = 2.2) +
-    facet_grid(param ~ weights) + labs(x = "Estimate with the type left out", y = "Type left out", color = NULL) +
+    scale_y_discrete(labels = FOLD_LABELS) +
+    facet_grid(param ~ weights, labeller = labeller(param = label_parsed)) + labs(x = "Estimate with the type left out", y = "Type left out", color = NULL) +
     theme_bw()
   save_fig(g, "s3b_jackknife_by_block", width = 3000, height = 2000)
 }
 
 # ---- S4. profile over V_A ----------------------------------------------------------------------
 if (has("profile", "profile_VA.csv")) {
-  pf <- rd("profile", "profile_VA.csv") %>% mutate(weights = WEIGHT_LABELS[weights])
+  pf <- rd("profile", "profile_VA.csv") %>% mutate(weights = WEIGHT_LABELS[weights], model = show_model(model))
   grid <- pf %>% filter(point == "grid")
   marks <- pf %>% filter(point != "grid")
   g1 <- ggplot(grid, aes(x = V_A, y = qlr)) +
@@ -564,9 +664,9 @@ if (has("profile", "profile_VA.csv")) {
     geom_point(data = marks %>% mutate(point = show_model(point)), aes(color = point), size = 3) +
     facet_grid(weights ~ model) + coord_cartesian(ylim = c(0, 60)) +
     scale_color_brewer(palette = "Set1", name = NULL) +
-    labs(x = "V_A (held fixed; everything else refitted)",
+    labs(x = expression(V[A]~"(held fixed; everything else refitted)"),
          y = "Loss increase / residual variance\n(quasi-likelihood ratio; dashed: 3.84)",
-         title = "How well is V_A pinned down? Profile over V_A") +
+         title = expression(paste("How well is ", V[A], " pinned down? Profile over ", V[A]))) +
     theme_bw() + theme(legend.position = "bottom")
   save_fig(g1, "s4_profile_VA_loss", width = 3300, height = 1700)
   comp <- grid %>% select(model, weights, V_A, V_GxG, V_family) %>%
@@ -575,8 +675,10 @@ if (has("profile", "profile_VA.csv")) {
   g2 <- ggplot(comp, aes(x = V_A, y = value, color = component)) + geom_line(linewidth = 0.9) +
     geom_abline(intercept = 1, slope = -1, linetype = "dotted", color = "grey50") +
     facet_grid(weights ~ model) +
-    labs(x = "V_A (held fixed)", y = "Refitted variance component", color = NULL,
-         title = "What the other components do as V_A is moved (dotted: sum of V = 1)") +
+    scale_color_manual(values = c(GxG = COMP_FILL[["GxG"]], family = COMP_FILL[["family"]]),
+                       breaks = c("GxG", "family"), labels = expression(V[GxG], V[C])) +
+    labs(x = expression(V[A]~"(held fixed)"), y = "Refitted variance component", color = NULL,
+         title = expression(paste("What the other components do as ", V[A], " is moved (dotted: components sum to 1)"))) +
     theme_bw() + theme(legend.position = "bottom")
   save_fig(g2, "s4b_profile_VA_components", width = 3300, height = 1700)
 }
@@ -591,10 +693,11 @@ if (has("models", "core_am2_jackknife.csv") && has("models", "core_jackknife.csv
                   rd("models", "core_am2_jackknife.csv") %>% mutate(kernel = "(AM kernel)\u00b2 (earlier)")) %>%
     filter(model %in% gx, param %in% c("V_A", "V_GxG", "V_family", "V_sum")) %>%
     mutate(model = factor(show_model(model), rev(show_model(gx))),
+           param = factor(par_math(param), par_math(c("V_A", "V_GxG", "V_family", "V_sum"))),
            weights = factor(WEIGHT_LABELS[weights], WEIGHT_LABELS[c("invvar", "hybrid_block")]))
   g <- ggplot(kk, aes(x = estimate, xmin = pmax(lo, 0), xmax = pmin(hi, 1), y = model, color = kernel)) +
     geom_pointrange(position = position_dodge(width = 0.55), size = 0.3) +
-    facet_grid(weights ~ param) +
+    facet_grid(weights ~ param, labeller = labeller(param = label_parsed)) +
     labs(x = "Estimate (95% Marginal Type CI)", y = NULL, color = "GxG kernel",
          title = "GxG kernel: a\u00b2 (main) vs the square of the assortative-mating kernel") +
     theme_bw() + theme(legend.position = "bottom")
@@ -642,84 +745,7 @@ if (has("robustness", "phenotypes.csv")) {
   save_fig(g, "s5c_inlaw_all_phenotypes", width = 2200, height = 2000)
 }
 # ---- S7. parameter sampling correlations from the leave-one-type-out refits (scripts/08) ------------
-# One pairs plot per core model x weighting. Lower triangle: the 10 single-block refit estimates
-# (colour = block left out; blue ramp = biological, orange ramp = non-biological, darker = closer) and
-# the full-data estimate (black cross); axes zoomed on the refits. Upper triangle: the jackknife
-# correlation r with its approximate 95% interval. Diagonal: the estimate and its Marginal Type CI.
-PAIR_PARAMS <- c("V_A", "m", "V_GxG", "V_family", "r_f")
-PAIR_LABELS <- c(V_A = "V_A", m = "m", V_GxG = "V_GxG", V_family = "V_fam", r_f = "r_f")
-
-pairs_grid_px <- function(k) max(420 * k + 300, 1900)   # side of the k x k grid, in pixels at 300 dpi
-
-plot_param_pairs <- function(cvp, est, jk, pc, title) {
-  ps <- PAIR_PARAMS[PAIR_PARAMS %in% names(est)]
-  ps <- ps[!is.na(unlist(est[1, ps]))]
-  k <- length(ps)
-  e <- setNames(as.numeric(est[1, ps]), ps)
-  lo <- setNames(jk$lo, jk$param); hi <- setNames(jk$hi, jk$param)
-  # axis range: the refits and the full-data estimate, padded
-  lims <- lapply(ps, function(p) {
-    r <- range(c(cvp[[p]], e[[p]]), na.rm = TRUE)
-    if (diff(r) < 1e-6) r <- r + c(-0.02, 0.02)
-    r + c(-1, 1) * 0.12 * diff(r)
-  }) %>% setNames(ps)
-  th <- theme_bw(base_size = 9) +
-    theme(panel.grid.minor = element_blank(), plot.margin = margin(4, 8, 2, 2),
-          axis.title = element_blank(), legend.position = "none")
-  panels <- list()
-  for (i in seq_len(k)) for (j in seq_len(k)) {
-    pi_ <- ps[i]; pj <- ps[j]
-    if (i == j) {
-      lab <- sprintf("%s\n%.3f\n[%.3f, %.3f]", PAIR_LABELS[[pi_]], e[[pi_]], lo[[pi_]], hi[[pi_]])
-      g <- ggplot() + annotate("text", x = 0.5, y = 0.5, label = lab, size = 3.4, lineheight = 1.1) +
-        xlim(0, 1) + ylim(0, 1) + theme_void() +
-        theme(panel.background = element_rect(fill = "grey95", color = NA), plot.margin = margin(2, 2, 2, 2))
-    } else if (i < j) {
-      r <- pc %>% filter((p1 == pi_ & p2 == pj) | (p1 == pj & p2 == pi_))
-      lab <- if (nrow(r) == 0 || is.na(r$r)) "r undefined\n(a parameter does not move)" else
-        if (is.na(r$lo)) sprintf("r = %.2f\n(no interval: a parameter is\nfixed in some leave-two-out refits)", r$r) else sprintf("r = %.2f\n[%.2f, %.2f]", r$r, r$lo, r$hi)
-      rv <- if (nrow(r) == 0 || is.na(r$r)) 0 else r$r
-      g <- ggplot() + annotate("rect", xmin = 0, xmax = 1, ymin = 0, ymax = 1,
-                               fill = scales::gradient_n_pal(c("#2a78d6", "#f0efec", "#e34948"), c(-1, 0, 1))(rv), alpha = 0.55) +
-        annotate("text", x = 0.5, y = 0.5, label = lab, size = 3.3, lineheight = 1.1) +
-        scale_x_continuous(limits = c(0, 1), expand = c(0, 0)) + scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +
-        theme_void() + theme(plot.margin = margin(2, 2, 2, 2))
-    } else {
-      g <- ggplot() +
-        geom_point(data = cvp, aes(x = .data[[pj]], y = .data[[pi_]], fill = fold, shape = fold),
-                   size = 2.4, stroke = 0.4, color = "white") +
-        annotate("point", x = e[[pj]], y = e[[pi_]], shape = 3, size = 3.2, stroke = 1.1) +
-        scale_fill_manual(values = FOLD_FILL) + scale_shape_manual(values = FOLD_SHAPE) +
-        scale_x_continuous(breaks = scales::breaks_pretty(n = 3)) +
-        scale_y_continuous(breaks = scales::breaks_pretty(n = 3)) +
-        coord_cartesian(xlim = lims[[pj]], ylim = lims[[pi_]], expand = FALSE) + th +
-        theme(axis.text.x = if (i == k) element_text(size = 7) else element_blank(),
-              axis.text.y = if (j == 1) element_text(size = 7) else element_blank(),
-              axis.ticks.x = if (i == k) element_line() else element_blank(),
-              axis.ticks.y = if (j == 1) element_line() else element_blank())
-    }
-    panels[[length(panels) + 1]] <- g
-  }
-  grid <- cowplot::plot_grid(plotlist = panels, nrow = k, align = "hv", axis = "tblr")
-  key <- ggplot(tibble(fold = factor(names(FOLD_FILL), names(FOLD_FILL)), x = seq_along(FOLD_FILL))) +
-    geom_point(aes(x = x, y = x, fill = fold, shape = fold), size = 3, color = "white", stroke = 0.4) +
-    scale_fill_manual(values = FOLD_FILL, labels = FOLD_LABELS, name = "Refit leaving out") +
-    scale_shape_manual(values = FOLD_SHAPE, labels = FOLD_LABELS, name = "Refit leaving out") +
-    theme_bw(base_size = 9) + theme(legend.position = "bottom") +
-    guides(fill = guide_legend(nrow = 3, title.position = "top"))
-  leg <- cowplot::get_plot_component(key, "guide-box-bottom", return_all = TRUE)
-  head <- cowplot::ggdraw() + cowplot::draw_label(title, x = 0.01, hjust = 0, size = 12)
-  foot <- cowplot::ggdraw() + cowplot::draw_label(paste0(
-    "Lower: leave-one-type-out refit estimates (axes zoomed on them); black cross = full-data estimate.\n",
-    "Upper: jackknife correlation of the two estimates (correlation of the refits), with an approximate 95% interval\n",
-    "(jackknife over blocks on Fisher's z, from refits leaving out two blocks).\n",
-    "Diagonal: estimate and 95% Marginal Type CI."),
-    x = 0.01, hjust = 0, size = 7.5, lineheight = 1.1)
-  gpx <- pairs_grid_px(k)
-  cowplot::plot_grid(head, grid, leg, foot, ncol = 1, rel_heights = c(130, gpx, 330, 280)) +
-    theme(plot.background = element_rect(fill = "white", color = NA), plot.margin = margin(4, 10, 4, 14))
-}
-
+# (plot_param_pairs is defined with the helpers above)
 if (has("models", "core_param_corr.csv")) {
   cvp_all <- rd("models", "core_cv_params.csv") %>% filter(fold %in% names(FOLD_FILL)) %>%
     mutate(fold = factor(fold, names(FOLD_FILL)))
