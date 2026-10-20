@@ -293,7 +293,7 @@ plot_component_decay <- function(dec, title = NULL, subtitle = NULL) {
 # One pairs plot per core model x weighting. Lower triangle: the 10 single-block refit estimates
 # (colour = block left out; blue ramp = biological, orange ramp = non-biological, darker = closer) and
 # the full-data estimate (black cross); axes zoomed on the refits. Upper triangle: the jackknife
-# correlation r with its approximate 95% interval. Diagonal: the estimate and its Marginal Type CI.
+# correlation r. Diagonal: the estimate and its Marginal Type CI.
 PAIR_PARAMS <- c("V_A", "m", "V_GxG", "V_family", "r_f")
 
 pairs_grid_px <- function(k) max(420 * k + 300, 1900)   # side of the k x k grid, in pixels at 300 dpi
@@ -329,12 +329,12 @@ plot_param_pairs <- function(cvp, est, jk, pc, title = NULL, foot = TRUE, legend
         theme(panel.background = element_rect(fill = "grey95", color = NA), plot.margin = margin(2, 2, 2, 2))
     } else if (i < j) {
       r <- pc %>% filter((p1 == pi_ & p2 == pj) | (p1 == pj & p2 == pi_))
-      lab <- if (nrow(r) == 0 || is.na(r$r)) "r undefined\n(a parameter does not move)" else
-        if (is.na(r$lo)) sprintf("r = %.2f\n(no interval: a parameter is\nfixed in some leave-two-out refits)", r$r) else sprintf("r = %.2f\n[%.2f, %.2f]", r$r, r$lo, r$hi)
+      # r only: its interval (scripts/08) is too wide to be informative with 10 blocks
+      lab <- if (nrow(r) == 0 || is.na(r$r)) "r undefined\n(a parameter does not move)" else sprintf("r = %.2f", r$r)
       rv <- if (nrow(r) == 0 || is.na(r$r)) 0 else r$r
       g <- ggplot() + annotate("rect", xmin = 0, xmax = 1, ymin = 0, ymax = 1,
                                fill = scales::gradient_n_pal(c("#2a78d6", "#f0efec", "#e34948"), c(-1, 0, 1))(rv), alpha = 0.55) +
-        annotate("text", x = 0.5, y = 0.5, label = lab, size = base * 0.37, lineheight = 1.1) +
+        annotate("text", x = 0.5, y = 0.5, label = lab, size = base * 0.48, lineheight = 1.1) +
         scale_x_continuous(limits = c(0, 1), expand = c(0, 0)) + scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +
         theme_void() + theme(plot.margin = margin(2, 2, 2, 2))
     } else {
@@ -368,8 +368,7 @@ plot_param_pairs <- function(cvp, est, jk, pc, title = NULL, foot = TRUE, legend
   head <- cowplot::ggdraw() + cowplot::draw_label(title %||% "", x = 0.01, hjust = 0, size = 12)
   ft <- cowplot::ggdraw() + cowplot::draw_label(paste0(
     "Lower: leave-one-type-out refit estimates (axes zoomed on them); black cross = full-data estimate.\n",
-    "Upper: jackknife correlation of the two estimates (correlation of the refits), with an approximate 95% interval\n",
-    "(jackknife over blocks on Fisher's z, from refits leaving out two blocks).\n",
+    "Upper: jackknife correlation of the two estimates (correlation of the refits).\n",
     "Diagonal: estimate and 95% Marginal Type CI."),
     x = 0.01, hjust = 0, size = 7.5, lineheight = 1.1)
   gpx <- pairs_grid_px(k)
