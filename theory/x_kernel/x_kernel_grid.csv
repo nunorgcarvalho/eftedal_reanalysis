@@ -1,0 +1,1149 @@
+rel,side,sex,m,Kauto,KX,D
+mz,other,ssf,0.0,1.0,0.666667,-0.333333
+mz,other,ssm,0.0,1.0,1.333333,0.333333
+uz,other,ssf,0.0,0.75,0.583333,-0.166667
+uz,other,ssm,0.0,0.75,1.0,0.25
+dz,other,ssf,0.0,0.5,0.5,0.0
+dz,other,ssm,0.0,0.5,0.666667,0.166667
+dz,other,os,0.0,0.5,0.333333,-0.166667
+sibs,other,ssf,0.0,0.5,0.5,0.0
+sibs,other,ssm,0.0,0.5,0.666667,0.166667
+sibs,other,os,0.0,0.5,0.333333,-0.166667
+half sibs,maternal,ssf,0.0,0.25,0.166667,-0.083333
+half sibs,maternal,ssm,0.0,0.25,0.666667,0.416667
+half sibs,maternal,os,0.0,0.25,0.333333,0.083333
+half sibs,paternal,ssf,0.0,0.25,0.333333,0.083333
+half sibs,paternal,ssm,0.0,0.25,0.0,-0.25
+half sibs,paternal,os,0.0,0.25,0.0,-0.25
+1st cousins t/uz,maternal,ssf,0.0,0.1875,0.145833,-0.041667
+1st cousins t/uz,maternal,ssm,0.0,0.1875,0.583333,0.395833
+1st cousins t/uz,maternal,os,0.0,0.1875,0.291667,0.104167
+1st cousins t/uz,paternal,ssf,0.0,0.1875,0.25,0.0625
+1st cousins t/uz,paternal,ssm,0.0,0.1875,0.0,-0.1875
+1st cousins t/uz,paternal,os,0.0,0.1875,0.0,-0.1875
+1st cousins,maternal,ssf,0.0,0.125,0.125,0.0
+1st cousins,maternal,ssm,0.0,0.125,0.5,0.375
+1st cousins,maternal,os,0.0,0.125,0.25,0.125
+1st cousins,paternal,ssf,0.0,0.125,0.166667,0.041667
+1st cousins,paternal,ssm,0.0,0.125,0.0,-0.125
+1st cousins,paternal,os,0.0,0.125,0.0,-0.125
+1st cousins,other,ssf,0.0,0.125,0.083333,-0.041667
+1st cousins,other,ssm,0.0,0.125,0.0,-0.125
+1st cousins,other,os,0.0,0.125,0.083333,-0.041667
+half cousins,maternal,ssf,0.0,0.0625,0.0625,-0.0
+half cousins,maternal,ssm,0.0,0.0625,0.25,0.1875
+half cousins,maternal,os,0.0,0.0625,0.125,0.0625
+half cousins,paternal,ssf,0.0,0.0625,0.083333,0.020833
+half cousins,paternal,ssm,0.0,0.0625,0.0,-0.0625
+half cousins,paternal,os,0.0,0.0625,0.0,-0.0625
+half cousins,other,ssf,0.0,0.0625,0.041667,-0.020833
+half cousins,other,ssm,0.0,0.0625,0.0,-0.0625
+half cousins,other,os,0.0,0.0625,0.041667,-0.020833
+2nd cousins t/uz,maternal,ssf,0.0,0.046875,0.049479,0.002604
+2nd cousins t/uz,maternal,ssm,0.0,0.046875,0.197917,0.151042
+2nd cousins t/uz,maternal,os,0.0,0.046875,0.098958,0.052083
+2nd cousins t/uz,paternal,ssf,0.0,0.046875,0.072917,0.026042
+2nd cousins t/uz,paternal,ssm,0.0,0.046875,0.0,-0.046875
+2nd cousins t/uz,paternal,os,0.0,0.046875,0.0,-0.046875
+2nd cousins t/uz,other,ssf,0.0,0.046875,0.036458,-0.010417
+2nd cousins t/uz,other,ssm,0.0,0.046875,0.0,-0.046875
+2nd cousins t/uz,other,os,0.0,0.046875,0.036458,-0.010417
+2nd cousins,maternal,ssf,0.0,0.03125,0.028646,-0.002604
+2nd cousins,maternal,ssm,0.0,0.03125,0.114583,0.083333
+2nd cousins,maternal,os,0.0,0.03125,0.057292,0.026042
+2nd cousins,paternal,ssf,0.0,0.03125,0.03125,-0.0
+2nd cousins,paternal,ssm,0.0,0.03125,0.0,-0.03125
+2nd cousins,paternal,os,0.0,0.03125,0.0,-0.03125
+2nd cousins,other,ssf,0.0,0.03125,0.026042,-0.005208
+2nd cousins,other,ssm,0.0,0.03125,0.0,-0.03125
+2nd cousins,other,os,0.0,0.03125,0.026042,-0.005208
+step sibs,other,ssf,0.0,0.0,0.0,0.0
+step sibs,other,ssm,0.0,0.0,0.0,0.0
+step sibs,other,os,0.0,0.0,0.0,0.0
+cocousins,maternal,ssf,0.0,0.0,0.0,0.0
+cocousins,maternal,ssm,0.0,0.0,0.0,0.0
+cocousins,maternal,os,0.0,0.0,0.0,0.0
+cocousins,paternal,ssf,0.0,0.0,0.0,0.0
+cocousins,paternal,ssm,0.0,0.0,0.0,0.0
+cocousins,paternal,os,0.0,0.0,0.0,0.0
+cocousins,other,ssf,0.0,0.0,0.0,0.0
+cocousins,other,ssm,0.0,0.0,0.0,0.0
+cocousins,other,os,0.0,0.0,0.0,0.0
+adoptive sibs,other,ssf,0.0,0.0,0.0,0.0
+adoptive sibs,other,ssm,0.0,0.0,0.0,0.0
+adoptive sibs,other,os,0.0,0.0,0.0,0.0
+adoptive 1st cousins,other,ssf,0.0,0.0,0.0,0.0
+adoptive 1st cousins,other,ssm,0.0,0.0,0.0,0.0
+adoptive 1st cousins,other,os,0.0,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssf,0.0,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssm,0.0,0.0,0.0,0.0
+adoptive 2nd cousins,other,os,0.0,0.0,0.0,0.0
+adoptive cocousins,other,ssf,0.0,0.0,0.0,0.0
+adoptive cocousins,other,ssm,0.0,0.0,0.0,0.0
+adoptive cocousins,other,os,0.0,0.0,0.0,0.0
+mz,other,ssf,0.05,1.0,0.689401,-0.310599
+mz,other,ssm,0.05,1.0,1.310599,0.310599
+uz,other,ssf,0.05,0.7625,0.607189,-0.155311
+uz,other,ssm,0.05,0.7625,0.990824,0.228324
+dz,other,ssf,0.05,0.525,0.524976,-2.4e-05
+dz,other,ssm,0.05,0.525,0.67105,0.14605
+dz,other,os,0.05,0.525,0.360451,-0.164549
+sibs,other,ssf,0.05,0.525,0.524976,-2.4e-05
+sibs,other,ssm,0.05,0.525,0.67105,0.14605
+sibs,other,os,0.05,0.525,0.360451,-0.164549
+half sibs,maternal,ssf,0.05,0.276219,0.199118,-0.077101
+half sibs,maternal,ssm,0.05,0.276219,0.678745,0.402526
+half sibs,maternal,os,0.05,0.276219,0.359835,0.083616
+half sibs,paternal,ssf,0.05,0.276219,0.353291,0.077073
+half sibs,paternal,ssm,0.05,0.276219,0.002427,-0.273791
+half sibs,paternal,os,0.05,0.276219,0.01959,-0.256628
+1st cousins t/uz,maternal,ssf,0.05,0.210461,0.174054,-0.036406
+1st cousins t/uz,maternal,ssm,0.05,0.210461,0.601163,0.390702
+1st cousins t/uz,maternal,os,0.05,0.210461,0.318392,0.107931
+1st cousins t/uz,paternal,ssf,0.05,0.210461,0.26698,0.056519
+1st cousins t/uz,paternal,ssm,0.05,0.210461,-0.001393,-0.211854
+1st cousins t/uz,paternal,os,0.05,0.210461,0.014066,-0.196395
+1st cousins,maternal,ssf,0.05,0.144703,0.148991,0.004288
+1st cousins,maternal,ssm,0.05,0.144703,0.523582,0.378879
+1st cousins,maternal,os,0.05,0.144703,0.27695,0.132247
+1st cousins,paternal,ssf,0.05,0.144703,0.180668,0.035965
+1st cousins,paternal,ssm,0.05,0.144703,-0.005213,-0.149916
+1st cousins,paternal,os,0.05,0.144703,0.008542,-0.136161
+1st cousins,other,ssf,0.05,0.144703,0.099362,-0.045341
+1st cousins,other,ssm,0.05,0.144703,0.017392,-0.127311
+1st cousins,other,os,0.05,0.144703,0.097995,-0.046708
+half cousins,maternal,ssf,0.05,0.076133,0.078388,0.002256
+half cousins,maternal,ssm,0.05,0.076133,0.272413,0.196281
+half cousins,maternal,os,0.05,0.076133,0.145706,0.069573
+half cousins,paternal,ssf,0.05,0.076133,0.091619,0.015486
+half cousins,paternal,ssm,0.05,0.076133,-0.005889,-0.082022
+half cousins,paternal,os,0.05,0.076133,0.003271,-0.072862
+half cousins,other,ssf,0.05,0.076133,0.052296,-0.023837
+half cousins,other,ssm,0.05,0.076133,0.01225,-0.063882
+half cousins,other,os,0.05,0.076133,0.052109,-0.024024
+2nd cousins t/uz,maternal,ssf,0.05,0.058008,0.062503,0.004495
+2nd cousins t/uz,maternal,ssm,0.05,0.058008,0.21736,0.159352
+2nd cousins t/uz,maternal,os,0.05,0.058008,0.116417,0.058409
+2nd cousins t/uz,paternal,ssf,0.05,0.058008,0.080931,0.022923
+2nd cousins t/uz,paternal,ssm,0.05,0.058008,-0.005139,-0.063147
+2nd cousins t/uz,paternal,os,0.05,0.058008,0.003245,-0.054763
+2nd cousins t/uz,other,ssf,0.05,0.058008,0.045822,-0.012186
+2nd cousins t/uz,other,ssm,0.05,0.058008,0.010616,-0.047393
+2nd cousins t/uz,other,os,0.05,0.058008,0.045575,-0.012433
+2nd cousins,maternal,ssf,0.05,0.039884,0.03759,-0.002293
+2nd cousins,maternal,ssm,0.05,0.039884,0.129498,0.089614
+2nd cousins,maternal,os,0.05,0.039884,0.069918,0.030034
+2nd cousins,paternal,ssf,0.05,0.039884,0.036941,-0.002943
+2nd cousins,paternal,ssm,0.05,0.039884,-0.00451,-0.044393
+2nd cousins,paternal,os,0.05,0.039884,0.001348,-0.038536
+2nd cousins,other,ssf,0.05,0.039884,0.033181,-0.006703
+2nd cousins,other,ssm,0.05,0.039884,0.007652,-0.032232
+2nd cousins,other,os,0.05,0.039884,0.032814,-0.00707
+step sibs,other,ssf,0.05,0.015056,0.015066,1e-05
+step sibs,other,ssm,0.05,0.015056,0.005589,-0.009467
+step sibs,other,os,0.05,0.015056,0.010413,-0.004643
+cocousins,maternal,ssf,0.05,0.003798,0.002723,-0.001075
+cocousins,maternal,ssm,0.05,0.003798,0.00837,0.004572
+cocousins,maternal,os,0.05,0.003798,0.005527,0.001728
+cocousins,paternal,ssf,0.05,0.003798,0.00355,-0.000249
+cocousins,paternal,ssm,0.05,0.003798,-0.003236,-0.007034
+cocousins,paternal,os,0.05,0.003798,0.000129,-0.003669
+cocousins,other,ssf,0.05,0.003798,0.003144,-0.000655
+cocousins,other,ssm,0.05,0.003798,0.002482,-0.001317
+cocousins,other,os,0.05,0.003798,0.00284,-0.000959
+adoptive sibs,other,ssf,0.05,0.0,0.0,0.0
+adoptive sibs,other,ssm,0.05,0.0,0.0,0.0
+adoptive sibs,other,os,0.05,0.0,0.0,0.0
+adoptive 1st cousins,other,ssf,0.05,0.0,0.0,0.0
+adoptive 1st cousins,other,ssm,0.05,0.0,0.0,0.0
+adoptive 1st cousins,other,os,0.05,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssf,0.05,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssm,0.05,0.0,0.0,0.0
+adoptive 2nd cousins,other,os,0.05,0.0,0.0,0.0
+adoptive cocousins,other,ssf,0.05,0.0,0.0,0.0
+adoptive cocousins,other,ssm,0.05,0.0,0.0,0.0
+adoptive cocousins,other,os,0.05,0.0,0.0,0.0
+mz,other,ssf,0.1,1.0,0.711393,-0.288607
+mz,other,ssm,0.1,1.0,1.288607,0.288607
+uz,other,ssf,0.1,0.775,0.630676,-0.144324
+uz,other,ssm,0.1,0.775,0.982774,0.207774
+dz,other,ssf,0.1,0.55,0.549958,-4.2e-05
+dz,other,ssm,0.1,0.55,0.676941,0.126941
+dz,other,os,0.1,0.55,0.388334,-0.161666
+sibs,other,ssf,0.1,0.55,0.549958,-4.2e-05
+sibs,other,ssm,0.1,0.55,0.676941,0.126941
+sibs,other,os,0.1,0.55,0.388334,-0.161666
+half sibs,maternal,ssf,0.1,0.30475,0.234643,-0.070107
+half sibs,maternal,ssm,0.1,0.30475,0.689907,0.385157
+half sibs,maternal,os,0.1,0.30475,0.387381,0.082631
+half sibs,paternal,ssf,0.1,0.30475,0.374905,0.070155
+half sibs,paternal,ssm,0.1,0.30475,0.011421,-0.293329
+half sibs,paternal,os,0.1,0.30475,0.043285,-0.261465
+1st cousins t/uz,maternal,ssf,0.1,0.235563,0.204882,-0.030681
+1st cousins t/uz,maternal,ssm,0.1,0.235563,0.618705,0.383142
+1st cousins t/uz,maternal,os,0.1,0.235563,0.346258,0.110696
+1st cousins t/uz,paternal,ssf,0.1,0.235563,0.285468,0.049905
+1st cousins t/uz,paternal,ssm,0.1,0.235563,0.00195,-0.233612
+1st cousins t/uz,paternal,os,0.1,0.235563,0.031255,-0.204308
+1st cousins,maternal,ssf,0.1,0.166375,0.17512,0.008745
+1st cousins,maternal,ssm,0.1,0.166375,0.547503,0.381128
+1st cousins,maternal,os,0.1,0.166375,0.305136,0.138761
+1st cousins,paternal,ssf,0.1,0.166375,0.196031,0.029656
+1st cousins,paternal,ssm,0.1,0.166375,-0.00752,-0.173895
+1st cousins,paternal,os,0.1,0.166375,0.019224,-0.147151
+1st cousins,other,ssf,0.1,0.166375,0.117494,-0.048881
+1st cousins,other,ssm,0.1,0.166375,0.036594,-0.129781
+1st cousins,other,os,0.1,0.166375,0.114607,-0.051768
+half cousins,maternal,ssf,0.1,0.092187,0.097047,0.00486
+half cousins,maternal,ssm,0.1,0.092187,0.297386,0.2052
+half cousins,maternal,os,0.1,0.092187,0.169078,0.076891
+half cousins,paternal,ssf,0.1,0.092187,0.101239,0.009052
+half cousins,paternal,ssm,0.1,0.092187,-0.010574,-0.102761
+half cousins,paternal,os,0.1,0.092187,0.007812,-0.084375
+half cousins,other,ssf,0.1,0.092187,0.065151,-0.027036
+half cousins,other,ssm,0.1,0.092187,0.026473,-0.065714
+half cousins,other,os,0.1,0.092187,0.064644,-0.027543
+2nd cousins t/uz,maternal,ssf,0.1,0.071258,0.077919,0.006662
+2nd cousins t/uz,maternal,ssm,0.1,0.071258,0.239088,0.16783
+2nd cousins t/uz,maternal,os,0.1,0.071258,0.136216,0.064959
+2nd cousins t/uz,paternal,ssf,0.1,0.071258,0.090123,0.018865
+2nd cousins t/uz,paternal,ssm,0.1,0.071258,-0.009276,-0.080534
+2nd cousins t/uz,paternal,os,0.1,0.071258,0.007583,-0.063675
+2nd cousins t/uz,other,ssf,0.1,0.071258,0.057109,-0.014149
+2nd cousins t/uz,other,ssm,0.1,0.071258,0.022914,-0.048344
+2nd cousins t/uz,other,os,0.1,0.071258,0.056489,-0.014769
+2nd cousins,maternal,ssf,0.1,0.050328,0.048484,-0.001845
+2nd cousins,maternal,ssm,0.1,0.050328,0.146445,0.096117
+2nd cousins,maternal,os,0.1,0.050328,0.084539,0.03421
+2nd cousins,paternal,ssf,0.1,0.050328,0.043742,-0.006586
+2nd cousins,paternal,ssm,0.1,0.050328,-0.008449,-0.058777
+2nd cousins,paternal,os,0.1,0.050328,0.003539,-0.04679
+2nd cousins,other,ssf,0.1,0.050328,0.041871,-0.008457
+2nd cousins,other,ssm,0.1,0.050328,0.016626,-0.033702
+2nd cousins,other,os,0.1,0.050328,0.041019,-0.009309
+step sibs,other,ssf,0.1,0.035402,0.035535,0.000132
+step sibs,other,ssm,0.1,0.035402,0.014674,-0.020728
+step sibs,other,os,0.1,0.035402,0.025234,-0.010168
+cocousins,maternal,ssf,0.1,0.009151,0.006947,-0.002204
+cocousins,maternal,ssm,0.1,0.009151,0.019018,0.009867
+cocousins,maternal,os,0.1,0.009151,0.012944,0.003794
+cocousins,paternal,ssf,0.1,0.009151,0.00809,-0.001061
+cocousins,paternal,ssm,0.1,0.009151,-0.006684,-0.015835
+cocousins,paternal,os,0.1,0.009151,0.000648,-0.008503
+cocousins,other,ssf,0.1,0.009151,0.007533,-0.001617
+cocousins,other,ssm,0.1,0.009151,0.005993,-0.003158
+cocousins,other,os,0.1,0.009151,0.006815,-0.002336
+adoptive sibs,other,ssf,0.1,0.0,0.0,0.0
+adoptive sibs,other,ssm,0.1,0.0,0.0,0.0
+adoptive sibs,other,os,0.1,0.0,0.0,0.0
+adoptive 1st cousins,other,ssf,0.1,0.0,0.0,0.0
+adoptive 1st cousins,other,ssm,0.1,0.0,0.0,0.0
+adoptive 1st cousins,other,os,0.1,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssf,0.1,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssm,0.1,0.0,0.0,0.0
+adoptive 2nd cousins,other,os,0.1,0.0,0.0,0.0
+adoptive cocousins,other,ssf,0.1,0.0,0.0,0.0
+adoptive cocousins,other,ssm,0.1,0.0,0.0,0.0
+adoptive cocousins,other,os,0.1,0.0,0.0,0.0
+mz,other,ssf,0.15,1.0,0.732662,-0.267338
+mz,other,ssm,0.15,1.0,1.267338,0.267338
+uz,other,ssf,0.15,0.7875,0.653804,-0.133696
+uz,other,ssm,0.15,0.7875,0.975818,0.188318
+dz,other,ssf,0.15,0.575,0.574946,-5.4e-05
+dz,other,ssm,0.15,0.575,0.684297,0.109297
+dz,other,os,0.15,0.575,0.416959,-0.158041
+sibs,other,ssf,0.15,0.575,0.574946,-5.4e-05
+sibs,other,ssm,0.15,0.575,0.684297,0.109297
+sibs,other,os,0.15,0.575,0.416959,-0.158041
+half sibs,maternal,ssf,0.15,0.335406,0.272777,-0.062629
+half sibs,maternal,ssm,0.15,0.335406,0.700447,0.365041
+half sibs,maternal,os,0.15,0.335406,0.415893,0.080487
+half sibs,paternal,ssf,0.15,0.335406,0.398322,0.062915
+half sibs,paternal,ssm,0.15,0.335406,0.027003,-0.308403
+half sibs,paternal,os,0.15,0.335406,0.071168,-0.264238
+1st cousins t/uz,maternal,ssf,0.15,0.262758,0.238084,-0.024674
+1st cousins t/uz,maternal,ssm,0.15,0.262758,0.636073,0.373315
+1st cousins t/uz,maternal,os,0.15,0.262758,0.37521,0.112452
+1st cousins t/uz,paternal,ssf,0.15,0.262758,0.305649,0.042892
+1st cousins t/uz,paternal,ssm,0.15,0.262758,0.010249,-0.252509
+1st cousins t/uz,paternal,os,0.15,0.262758,0.051766,-0.210991
+1st cousins,maternal,ssf,0.15,0.190109,0.20339,0.013281
+1st cousins,maternal,ssm,0.15,0.190109,0.571699,0.381589
+1st cousins,maternal,os,0.15,0.190109,0.334527,0.144417
+1st cousins,paternal,ssf,0.15,0.190109,0.212977,0.022868
+1st cousins,paternal,ssm,0.15,0.190109,-0.006505,-0.196615
+1st cousins,paternal,os,0.15,0.190109,0.032365,-0.157745
+1st cousins,other,ssf,0.15,0.190109,0.137888,-0.052222
+1st cousins,other,ssm,0.15,0.190109,0.057827,-0.132282
+1st cousins,other,os,0.15,0.190109,0.133359,-0.05675
+half cousins,maternal,ssf,0.15,0.110894,0.118698,0.007805
+half cousins,maternal,ssm,0.15,0.110894,0.324824,0.21393
+half cousins,maternal,os,0.15,0.110894,0.195182,0.084288
+half cousins,paternal,ssf,0.15,0.110894,0.112533,0.001639
+half cousins,paternal,ssm,0.15,0.110894,-0.01349,-0.124383
+half cousins,paternal,os,0.15,0.110894,0.014076,-0.096817
+half cousins,other,ssf,0.15,0.110894,0.080535,-0.030358
+half cousins,other,ssm,0.15,0.110894,0.042932,-0.067962
+half cousins,other,os,0.15,0.110894,0.079555,-0.031339
+2nd cousins t/uz,maternal,ssf,0.15,0.086874,0.095967,0.009093
+2nd cousins t/uz,maternal,ssm,0.15,0.086874,0.263104,0.176229
+2nd cousins t/uz,maternal,os,0.15,0.086874,0.158479,0.071604
+2nd cousins t/uz,paternal,ssf,0.15,0.086874,0.100777,0.013903
+2nd cousins t/uz,paternal,ssm,0.15,0.086874,-0.011956,-0.09883
+2nd cousins t/uz,paternal,os,0.15,0.086874,0.013382,-0.073492
+2nd cousins t/uz,other,ssf,0.15,0.086874,0.070599,-0.016276
+2nd cousins t/uz,other,ssm,0.15,0.086874,0.037147,-0.049728
+2nd cousins t/uz,other,os,0.15,0.086874,0.069466,-0.017408
+2nd cousins,maternal,ssf,0.15,0.062855,0.061599,-0.001256
+2nd cousins,maternal,ssm,0.15,0.062855,0.165559,0.102704
+2nd cousins,maternal,os,0.15,0.062855,0.101357,0.038502
+2nd cousins,paternal,ssf,0.15,0.062855,0.051915,-0.01094
+2nd cousins,paternal,ssm,0.15,0.062855,-0.011451,-0.074306
+2nd cousins,paternal,os,0.15,0.062855,0.006886,-0.055969
+2nd cousins,other,ssf,0.15,0.062855,0.052382,-0.010473
+2nd cousins,other,ssm,0.15,0.062855,0.027179,-0.035676
+2nd cousins,other,os,0.15,0.062855,0.05092,-0.011935
+step sibs,other,ssf,0.15,0.0612,0.061669,0.000469
+step sibs,other,ssm,0.15,0.0612,0.027988,-0.033212
+step sibs,other,os,0.15,0.0612,0.044971,-0.016229
+cocousins,maternal,ssf,0.15,0.016397,0.013041,-0.003356
+cocousins,maternal,ssm,0.15,0.016397,0.032204,0.015808
+cocousins,maternal,os,0.15,0.016397,0.022569,0.006172
+cocousins,paternal,ssf,0.15,0.016397,0.013863,-0.002534
+cocousins,paternal,ssm,0.15,0.016397,-0.010064,-0.026461
+cocousins,paternal,os,0.15,0.016397,0.001818,-0.014579
+cocousins,other,ssf,0.15,0.016397,0.013475,-0.002922
+cocousins,other,ssm,0.15,0.016397,0.010807,-0.00559
+cocousins,other,os,0.15,0.016397,0.012215,-0.004182
+adoptive sibs,other,ssf,0.15,0.0,0.0,0.0
+adoptive sibs,other,ssm,0.15,0.0,0.0,0.0
+adoptive sibs,other,os,0.15,0.0,0.0,0.0
+adoptive 1st cousins,other,ssf,0.15,0.0,0.0,0.0
+adoptive 1st cousins,other,ssm,0.15,0.0,0.0,0.0
+adoptive 1st cousins,other,os,0.15,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssf,0.15,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssm,0.15,0.0,0.0,0.0
+adoptive 2nd cousins,other,os,0.15,0.0,0.0,0.0
+adoptive cocousins,other,ssf,0.15,0.0,0.0,0.0
+adoptive cocousins,other,ssm,0.15,0.0,0.0,0.0
+adoptive cocousins,other,os,0.15,0.0,0.0,0.0
+mz,other,ssf,0.2,1.0,0.753227,-0.246773
+mz,other,ssm,0.2,1.0,1.246773,0.246773
+uz,other,ssf,0.2,0.8,0.676583,-0.123417
+uz,other,ssm,0.2,0.8,0.969927,0.169927
+dz,other,ssf,0.2,0.6,0.599939,-6.1e-05
+dz,other,ssm,0.2,0.6,0.69308,0.09308
+dz,other,os,0.2,0.6,0.446307,-0.153693
+sibs,other,ssf,0.2,0.6,0.599939,-6.1e-05
+sibs,other,ssm,0.2,0.6,0.69308,0.09308
+sibs,other,os,0.2,0.6,0.446307,-0.153693
+half sibs,maternal,ssf,0.2,0.368,0.31309,-0.05491
+half sibs,maternal,ssm,0.2,0.368,0.710646,0.342646
+half sibs,maternal,os,0.2,0.368,0.445304,0.077304
+half sibs,paternal,ssf,0.2,0.368,0.423636,0.055636
+half sibs,paternal,ssm,0.2,0.368,0.049117,-0.318883
+half sibs,paternal,os,0.2,0.368,0.103258,-0.264742
+1st cousins t/uz,maternal,ssf,0.2,0.292,0.273444,-0.018556
+1st cousins t/uz,maternal,ssm,0.2,0.292,0.653379,0.361379
+1st cousins t/uz,maternal,os,0.2,0.292,0.405198,0.113198
+1st cousins t/uz,paternal,ssf,0.2,0.292,0.327687,0.035687
+1st cousins t/uz,paternal,ssm,0.2,0.292,0.023693,-0.268307
+1st cousins t/uz,paternal,os,0.2,0.292,0.075777,-0.216223
+1st cousins,maternal,ssf,0.2,0.216,0.233797,0.017797
+1st cousins,maternal,ssm,0.2,0.216,0.596112,0.380112
+1st cousins,maternal,os,0.2,0.216,0.365091,0.149091
+1st cousins,paternal,ssf,0.2,0.216,0.231737,0.015737
+1st cousins,paternal,ssm,0.2,0.216,-0.001731,-0.217731
+1st cousins,paternal,os,0.2,0.216,0.048297,-0.167703
+1st cousins,other,ssf,0.2,0.216,0.160707,-0.055293
+1st cousins,other,ssm,0.2,0.216,0.081328,-0.134672
+1st cousins,other,os,0.2,0.216,0.154452,-0.061548
+half cousins,maternal,ssf,0.2,0.13248,0.14354,0.01106
+half cousins,maternal,ssm,0.2,0.13248,0.354608,0.222128
+half cousins,maternal,os,0.2,0.13248,0.224057,0.091577
+half cousins,paternal,ssf,0.2,0.13248,0.125884,-0.006596
+half cousins,paternal,ssm,0.2,0.13248,-0.01399,-0.14647
+half cousins,paternal,os,0.2,0.13248,0.022579,-0.109901
+half cousins,other,ssf,0.2,0.13248,0.098763,-0.033717
+half cousins,other,ssm,0.2,0.13248,0.06192,-0.07056
+half cousins,other,os,0.2,0.13248,0.097145,-0.035335
+2nd cousins t/uz,maternal,ssf,0.2,0.10512,0.11688,0.01176
+2nd cousins t/uz,maternal,ssm,0.2,0.10512,0.289401,0.184281
+2nd cousins t/uz,maternal,os,0.2,0.10512,0.183318,0.078198
+2nd cousins t/uz,paternal,ssf,0.2,0.10512,0.113223,0.008103
+2nd cousins t/uz,paternal,ssm,0.2,0.10512,-0.012642,-0.117762
+2nd cousins t/uz,paternal,os,0.2,0.10512,0.021078,-0.084042
+2nd cousins t/uz,other,ssf,0.2,0.10512,0.086593,-0.018527
+2nd cousins t/uz,other,ssm,0.2,0.10512,0.053601,-0.051519
+2nd cousins t/uz,other,os,0.2,0.10512,0.084801,-0.020319
+2nd cousins,maternal,ssf,0.2,0.07776,0.077229,-0.000531
+2nd cousins,maternal,ssm,0.2,0.07776,0.186977,0.109217
+2nd cousins,maternal,os,0.2,0.07776,0.120589,0.042829
+2nd cousins,paternal,ssf,0.2,0.07776,0.061771,-0.015989
+2nd cousins,paternal,ssm,0.2,0.07776,-0.013064,-0.090824
+2nd cousins,paternal,os,0.2,0.07776,0.011772,-0.065988
+2nd cousins,other,ssf,0.2,0.07776,0.065019,-0.012741
+2nd cousins,other,ssm,0.2,0.07776,0.03961,-0.03815
+2nd cousins,other,os,0.2,0.07776,0.062819,-0.014941
+step sibs,other,ssf,0.2,0.09248,0.09359,0.00111
+step sibs,other,ssm,0.2,0.09248,0.046192,-0.046288
+step sibs,other,os,0.2,0.09248,0.070025,-0.022455
+cocousins,maternal,ssf,0.2,0.02592,0.021421,-0.004499
+cocousins,maternal,ssm,0.2,0.02592,0.048203,0.022283
+cocousins,maternal,os,0.2,0.02592,0.034745,0.008825
+cocousins,paternal,ssf,0.2,0.02592,0.021175,-0.004745
+cocousins,paternal,ssm,0.2,0.02592,-0.012989,-0.038909
+cocousins,paternal,os,0.2,0.02592,0.003987,-0.021933
+cocousins,other,ssf,0.2,0.02592,0.021327,-0.004593
+cocousins,other,ssm,0.2,0.02592,0.017258,-0.008662
+cocousins,other,os,0.2,0.02592,0.019386,-0.006534
+adoptive sibs,other,ssf,0.2,0.0,0.0,0.0
+adoptive sibs,other,ssm,0.2,0.0,0.0,0.0
+adoptive sibs,other,os,0.2,0.0,0.0,0.0
+adoptive 1st cousins,other,ssf,0.2,0.0,0.0,0.0
+adoptive 1st cousins,other,ssm,0.2,0.0,0.0,0.0
+adoptive 1st cousins,other,os,0.2,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssf,0.2,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssm,0.2,0.0,0.0,0.0
+adoptive 2nd cousins,other,os,0.2,0.0,0.0,0.0
+adoptive cocousins,other,ssf,0.2,0.0,0.0,0.0
+adoptive cocousins,other,ssm,0.2,0.0,0.0,0.0
+adoptive cocousins,other,os,0.2,0.0,0.0,0.0
+mz,other,ssf,0.25,1.0,0.773107,-0.226893
+mz,other,ssm,0.25,1.0,1.226893,0.226893
+uz,other,ssf,0.25,0.8125,0.699022,-0.113478
+uz,other,ssm,0.25,0.8125,0.965072,0.152572
+dz,other,ssf,0.25,0.625,0.624936,-6.4e-05
+dz,other,ssm,0.25,0.625,0.703251,0.078251
+dz,other,os,0.25,0.625,0.476359,-0.148641
+sibs,other,ssf,0.25,0.625,0.624936,-6.4e-05
+sibs,other,ssm,0.25,0.625,0.703251,0.078251
+sibs,other,os,0.25,0.625,0.476359,-0.148641
+half sibs,maternal,ssf,0.25,0.402344,0.355184,-0.04716
+half sibs,maternal,ssm,0.25,0.402344,0.720772,0.318429
+half sibs,maternal,os,0.25,0.402344,0.475554,0.07321
+half sibs,paternal,ssf,0.25,0.402344,0.450891,0.048547
+half sibs,paternal,ssm,0.25,0.402344,0.077631,-0.324713
+half sibs,paternal,os,0.25,0.402344,0.13951,-0.262834
+1st cousins t/uz,maternal,ssf,0.25,0.323242,0.310759,-0.012483
+1st cousins t/uz,maternal,ssm,0.25,0.323242,0.670733,0.347491
+1st cousins t/uz,maternal,os,0.25,0.323242,0.436177,0.112935
+1st cousins t/uz,paternal,ssf,0.25,0.323242,0.351723,0.028481
+1st cousins t/uz,paternal,ssm,0.25,0.323242,0.042444,-0.280798
+1st cousins t/uz,paternal,os,0.25,0.323242,0.10344,-0.219802
+1st cousins,maternal,ssf,0.25,0.244141,0.266334,0.022193
+1st cousins,maternal,ssm,0.25,0.244141,0.620694,0.376553
+1st cousins,maternal,os,0.25,0.244141,0.3968,0.15266
+1st cousins,paternal,ssf,0.25,0.244141,0.252555,0.008414
+1st cousins,paternal,ssm,0.25,0.244141,0.007257,-0.236883
+1st cousins,paternal,os,0.25,0.244141,0.06737,-0.176771
+1st cousins,other,ssf,0.25,0.244141,0.186118,-0.058023
+1st cousins,other,ssm,0.25,0.244141,0.107341,-0.136799
+1st cousins,other,os,0.25,0.244141,0.178092,-0.066049
+half cousins,maternal,ssf,0.25,0.157166,0.17174,0.014574
+half cousins,maternal,ssm,0.25,0.157166,0.386604,0.229438
+half cousins,maternal,os,0.25,0.157166,0.25572,0.098555
+half cousins,paternal,ssf,0.25,0.157166,0.141715,-0.01545
+half cousins,paternal,ssm,0.25,0.157166,-0.011354,-0.168519
+half cousins,paternal,os,0.25,0.157166,0.033891,-0.123274
+half cousins,other,ssf,0.25,0.157166,0.120155,-0.03701
+half cousins,other,ssm,0.25,0.157166,0.083758,-0.073407
+half cousins,other,os,0.25,0.157166,0.117736,-0.03943
+2nd cousins t/uz,maternal,ssf,0.25,0.126266,0.140888,0.014621
+2nd cousins t/uz,maternal,ssm,0.25,0.126266,0.317963,0.191697
+2nd cousins t/uz,maternal,os,0.25,0.126266,0.210839,0.084573
+2nd cousins t/uz,paternal,ssf,0.25,0.126266,0.12784,0.001574
+2nd cousins t/uz,paternal,ssm,0.25,0.126266,-0.010715,-0.136982
+2nd cousins t/uz,paternal,os,0.25,0.126266,0.031169,-0.095098
+2nd cousins t/uz,other,ssf,0.25,0.126266,0.105415,-0.020852
+2nd cousins t/uz,other,ssm,0.25,0.126266,0.072602,-0.053664
+2nd cousins t/uz,other,os,0.25,0.126266,0.102815,-0.023451
+2nd cousins,maternal,ssf,0.25,0.095367,0.095688,0.00032
+2nd cousins,maternal,ssm,0.25,0.095367,0.210841,0.115474
+2nd cousins,maternal,os,0.25,0.095367,0.142461,0.047094
+2nd cousins,paternal,ssf,0.25,0.095367,0.07368,-0.021687
+2nd cousins,paternal,ssm,0.25,0.095367,-0.012742,-0.108109
+2nd cousins,paternal,os,0.25,0.095367,0.018656,-0.076711
+2nd cousins,other,ssf,0.25,0.095367,0.080128,-0.015239
+2nd cousins,other,ssm,0.25,0.095367,0.054269,-0.041098
+2nd cousins,other,os,0.25,0.095367,0.077064,-0.018303
+step sibs,other,ssf,0.25,0.12915,0.131279,0.002128
+step sibs,other,ssm,0.25,0.12915,0.06985,-0.059301
+step sibs,other,os,0.25,0.12915,0.100677,-0.028473
+cocousins,maternal,ssf,0.25,0.038147,0.032545,-0.005602
+cocousins,maternal,ssm,0.25,0.038147,0.067299,0.029152
+cocousins,maternal,os,0.25,0.038147,0.049846,0.011699
+cocousins,paternal,ssf,0.25,0.038147,0.030403,-0.007744
+cocousins,paternal,ssm,0.25,0.038147,-0.014947,-0.053094
+cocousins,paternal,os,0.25,0.038147,0.007601,-0.030546
+cocousins,other,ssf,0.25,0.038147,0.031508,-0.006639
+cocousins,other,ssm,0.25,0.038147,0.025748,-0.012399
+cocousins,other,os,0.25,0.038147,0.028737,-0.00941
+adoptive sibs,other,ssf,0.25,0.0,0.0,0.0
+adoptive sibs,other,ssm,0.25,0.0,0.0,0.0
+adoptive sibs,other,os,0.25,0.0,0.0,0.0
+adoptive 1st cousins,other,ssf,0.25,0.0,0.0,0.0
+adoptive 1st cousins,other,ssm,0.25,0.0,0.0,0.0
+adoptive 1st cousins,other,os,0.25,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssf,0.25,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssm,0.25,0.0,0.0,0.0
+adoptive 2nd cousins,other,os,0.25,0.0,0.0,0.0
+adoptive cocousins,other,ssf,0.25,0.0,0.0,0.0
+adoptive cocousins,other,ssm,0.25,0.0,0.0,0.0
+adoptive cocousins,other,os,0.25,0.0,0.0,0.0
+mz,other,ssf,0.3,1.0,0.792321,-0.207679
+mz,other,ssm,0.3,1.0,1.207679,0.207679
+uz,other,ssf,0.3,0.825,0.721128,-0.103872
+uz,other,ssm,0.3,0.825,0.961226,0.136226
+dz,other,ssf,0.3,0.65,0.649935,-6.5e-05
+dz,other,ssm,0.3,0.65,0.714773,0.064773
+dz,other,os,0.3,0.65,0.507093,-0.142907
+sibs,other,ssf,0.3,0.65,0.649935,-6.5e-05
+sibs,other,ssm,0.3,0.65,0.714773,0.064773
+sibs,other,os,0.3,0.65,0.507093,-0.142907
+half sibs,maternal,ssf,0.3,0.43825,0.39869,-0.03956
+half sibs,maternal,ssm,0.3,0.43825,0.73108,0.29283
+half sibs,maternal,os,0.3,0.43825,0.506589,0.068339
+half sibs,paternal,ssf,0.3,0.43825,0.480081,0.041831
+half sibs,paternal,ssm,0.3,0.43825,0.112342,-0.325908
+half sibs,paternal,os,0.3,0.43825,0.179819,-0.258431
+1st cousins t/uz,maternal,ssf,0.3,0.356437,0.349839,-0.006598
+1st cousins t/uz,maternal,ssm,0.3,0.356437,0.68824,0.331802
+1st cousins t/uz,maternal,os,0.3,0.356437,0.468108,0.11167
+1st cousins t/uz,paternal,ssf,0.3,0.356437,0.377882,0.021444
+1st cousins t/uz,paternal,ssm,0.3,0.356437,0.066638,-0.2898
+1st cousins t/uz,paternal,os,0.3,0.356437,0.134883,-0.221555
+1st cousins,maternal,ssf,0.3,0.274625,0.300989,0.026364
+1st cousins,maternal,ssm,0.3,0.274625,0.6454,0.370775
+1st cousins,maternal,os,0.3,0.274625,0.429627,0.155002
+1st cousins,paternal,ssf,0.3,0.274625,0.275683,0.001058
+1st cousins,paternal,ssm,0.3,0.274625,0.020933,-0.253692
+1st cousins,paternal,os,0.3,0.274625,0.089946,-0.184679
+1st cousins,other,ssf,0.3,0.274625,0.214289,-0.060336
+1st cousins,other,ssm,0.3,0.274625,0.136128,-0.138497
+1st cousins,other,os,0.3,0.274625,0.204493,-0.070132
+half cousins,maternal,ssf,0.3,0.185161,0.203435,0.018274
+half cousins,maternal,ssm,0.3,0.185161,0.420657,0.235496
+half cousins,maternal,os,0.3,0.185161,0.290162,0.105001
+half cousins,paternal,ssf,0.3,0.185161,0.160483,-0.024677
+half cousins,paternal,ssm,0.3,0.185161,-0.004791,-0.189952
+half cousins,paternal,os,0.3,0.185161,0.048638,-0.136522
+half cousins,other,ssf,0.3,0.185161,0.145032,-0.040129
+half cousins,other,ssm,0.3,0.185161,0.108791,-0.07637
+half cousins,other,os,0.3,0.185161,0.141659,-0.043502
+2nd cousins t/uz,maternal,ssf,0.3,0.150595,0.168209,0.017614
+2nd cousins t/uz,maternal,ssm,0.3,0.150595,0.348769,0.198174
+2nd cousins t/uz,maternal,os,0.3,0.150595,0.241142,0.090547
+2nd cousins t/uz,paternal,ssf,0.3,0.150595,0.145053,-0.005542
+2nd cousins t/uz,paternal,ssm,0.3,0.150595,-0.005472,-0.156067
+2nd cousins t/uz,paternal,os,0.3,0.150595,0.044219,-0.106376
+2nd cousins t/uz,other,ssf,0.3,0.150595,0.127405,-0.02319
+2nd cousins t/uz,other,ssm,0.3,0.150595,0.09451,-0.056085
+2nd cousins t/uz,other,os,0.3,0.150595,0.123862,-0.026733
+2nd cousins,maternal,ssf,0.3,0.116029,0.117311,0.001282
+2nd cousins,maternal,ssm,0.3,0.116029,0.237302,0.121273
+2nd cousins,maternal,os,0.3,0.116029,0.167217,0.051188
+2nd cousins,paternal,ssf,0.3,0.116029,0.088077,-0.027952
+2nd cousins,paternal,ssm,0.3,0.116029,-0.009834,-0.125863
+2nd cousins,paternal,os,0.3,0.116029,0.02808,-0.087949
+2nd cousins,other,ssf,0.3,0.116029,0.098097,-0.017932
+2nd cousins,other,ssm,0.3,0.116029,0.071562,-0.044468
+2nd cousins,other,os,0.3,0.116029,0.094052,-0.021977
+step sibs,other,ssf,0.3,0.171007,0.174575,0.003567
+step sibs,other,ssm,0.3,0.171007,0.099402,-0.071605
+step sibs,other,os,0.3,0.171007,0.137073,-0.033934
+cocousins,maternal,ssf,0.3,0.053552,0.046919,-0.006632
+cocousins,maternal,ssm,0.3,0.053552,0.089797,0.036245
+cocousins,maternal,os,0.3,0.053552,0.068275,0.014723
+cocousins,paternal,ssf,0.3,0.053552,0.042007,-0.011545
+cocousins,paternal,ssm,0.3,0.053552,-0.015287,-0.068839
+cocousins,paternal,os,0.3,0.053552,0.013214,-0.040338
+cocousins,other,ssf,0.3,0.053552,0.044501,-0.009051
+cocousins,other,ssm,0.3,0.053552,0.036757,-0.016795
+cocousins,other,os,0.3,0.053552,0.040749,-0.012802
+adoptive sibs,other,ssf,0.3,0.0,0.0,0.0
+adoptive sibs,other,ssm,0.3,0.0,0.0,0.0
+adoptive sibs,other,os,0.3,0.0,0.0,0.0
+adoptive 1st cousins,other,ssf,0.3,0.0,0.0,0.0
+adoptive 1st cousins,other,ssm,0.3,0.0,0.0,0.0
+adoptive 1st cousins,other,os,0.3,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssf,0.3,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssm,0.3,0.0,0.0,0.0
+adoptive 2nd cousins,other,os,0.3,0.0,0.0,0.0
+adoptive cocousins,other,ssf,0.3,0.0,0.0,0.0
+adoptive cocousins,other,ssm,0.3,0.0,0.0,0.0
+adoptive cocousins,other,os,0.3,0.0,0.0,0.0
+mz,other,ssf,0.35,1.0,0.810884,-0.189116
+mz,other,ssm,0.35,1.0,1.189116,0.189116
+uz,other,ssf,0.35,0.8375,0.742911,-0.094589
+uz,other,ssm,0.35,0.8375,0.958363,0.120863
+dz,other,ssf,0.35,0.675,0.674937,-6.3e-05
+dz,other,ssm,0.35,0.675,0.72761,0.05261
+dz,other,os,0.35,0.675,0.538494,-0.136506
+sibs,other,ssf,0.35,0.675,0.674937,-6.3e-05
+sibs,other,ssm,0.35,0.675,0.72761,0.05261
+sibs,other,os,0.35,0.675,0.538494,-0.136506
+half sibs,maternal,ssf,0.35,0.475531,0.443266,-0.032265
+half sibs,maternal,ssm,0.35,0.475531,0.741808,0.266277
+half sibs,maternal,os,0.35,0.475531,0.538364,0.062833
+half sibs,paternal,ssf,0.35,0.475531,0.511156,0.035625
+half sibs,paternal,ssm,0.35,0.475531,0.152983,-0.322548
+half sibs,paternal,os,0.35,0.475531,0.224028,-0.251503
+1st cousins t/uz,maternal,ssf,0.35,0.391539,0.390507,-0.001032
+1st cousins t/uz,maternal,ssm,0.35,0.391539,0.706002,0.314463
+1st cousins t/uz,maternal,os,0.35,0.391539,0.500955,0.109416
+1st cousins t/uz,paternal,ssf,0.35,0.391539,0.40627,0.014731
+1st cousins t/uz,paternal,ssm,0.35,0.391539,0.096384,-0.295155
+1st cousins t/uz,paternal,os,0.35,0.391539,0.170214,-0.221325
+1st cousins,maternal,ssf,0.35,0.307547,0.337749,0.030202
+1st cousins,maternal,ssm,0.35,0.307547,0.670196,0.362649
+1st cousins,maternal,os,0.35,0.307547,0.463545,0.155998
+1st cousins,paternal,ssf,0.35,0.307547,0.301384,-0.006163
+1st cousins,paternal,ssm,0.35,0.307547,0.039784,-0.267763
+1st cousins,paternal,os,0.35,0.307547,0.1164,-0.191147
+1st cousins,other,ssf,0.35,0.307547,0.245393,-0.062154
+1st cousins,other,ssm,0.35,0.307547,0.167958,-0.139589
+1st cousins,other,os,0.35,0.307547,0.23388,-0.073667
+half cousins,maternal,ssf,0.35,0.216664,0.238728,0.022064
+half cousins,maternal,ssm,0.35,0.216664,0.456599,0.239935
+half cousins,maternal,os,0.35,0.216664,0.327349,0.110685
+half cousins,paternal,ssf,0.35,0.216664,0.182674,-0.03399
+half cousins,paternal,ssm,0.35,0.216664,0.006545,-0.210119
+half cousins,paternal,os,0.35,0.216664,0.067486,-0.149178
+half cousins,other,ssf,0.35,0.216664,0.173712,-0.042952
+half cousins,other,ssm,0.35,0.216664,0.137382,-0.079282
+half cousins,other,os,0.35,0.216664,0.169257,-0.047407
+2nd cousins t/uz,maternal,ssf,0.35,0.178395,0.199057,0.020662
+2nd cousins t/uz,maternal,ssm,0.35,0.178395,0.381789,0.203394
+2nd cousins t/uz,maternal,os,0.35,0.178395,0.274318,0.095923
+2nd cousins t/uz,paternal,ssf,0.35,0.178395,0.165333,-0.013062
+2nd cousins t/uz,paternal,ssm,0.35,0.178395,0.003875,-0.17452
+2nd cousins t/uz,paternal,os,0.35,0.178395,0.060858,-0.117537
+2nd cousins t/uz,other,ssf,0.35,0.178395,0.152925,-0.02547
+2nd cousins t/uz,other,ssm,0.35,0.178395,0.119724,-0.058671
+2nd cousins t/uz,other,os,0.35,0.178395,0.148321,-0.030074
+2nd cousins,maternal,ssf,0.35,0.140126,0.142456,0.00233
+2nd cousins,maternal,ssm,0.35,0.140126,0.266518,0.126392
+2nd cousins,maternal,os,0.35,0.140126,0.195114,0.054988
+2nd cousins,paternal,ssf,0.35,0.140126,0.105467,-0.034659
+2nd cousins,paternal,ssm,0.35,0.140126,-0.003578,-0.143704
+2nd cousins,paternal,os,0.35,0.140126,0.040679,-0.099447
+2nd cousins,other,ssf,0.35,0.140126,0.119359,-0.020767
+2nd cousins,other,ssm,0.35,0.140126,0.091953,-0.048173
+2nd cousins,other,os,0.35,0.140126,0.114232,-0.025894
+step sibs,other,ssf,0.35,0.217744,0.223182,0.005437
+step sibs,other,ssm,0.35,0.217744,0.135147,-0.082597
+step sibs,other,os,0.35,0.217744,0.179219,-0.038525
+cocousins,maternal,ssf,0.35,0.072658,0.065096,-0.007562
+cocousins,maternal,ssm,0.35,0.072658,0.116015,0.043358
+cocousins,maternal,os,0.35,0.072658,0.09047,0.017812
+cocousins,paternal,ssf,0.35,0.072658,0.05654,-0.016118
+cocousins,paternal,ssm,0.35,0.072658,-0.013202,-0.08586
+cocousins,paternal,os,0.35,0.072658,0.021509,-0.051149
+cocousins,other,ssf,0.35,0.072658,0.060858,-0.0118
+cocousins,other,ssm,0.35,0.072658,0.050853,-0.021805
+cocousins,other,os,0.35,0.072658,0.055983,-0.016675
+adoptive sibs,other,ssf,0.35,0.0,0.0,0.0
+adoptive sibs,other,ssm,0.35,0.0,0.0,0.0
+adoptive sibs,other,os,0.35,0.0,0.0,0.0
+adoptive 1st cousins,other,ssf,0.35,0.0,0.0,0.0
+adoptive 1st cousins,other,ssm,0.35,0.0,0.0,0.0
+adoptive 1st cousins,other,os,0.35,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssf,0.35,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssm,0.35,0.0,0.0,0.0
+adoptive 2nd cousins,other,os,0.35,0.0,0.0,0.0
+adoptive cocousins,other,ssf,0.35,0.0,0.0,0.0
+adoptive cocousins,other,ssm,0.35,0.0,0.0,0.0
+adoptive cocousins,other,os,0.35,0.0,0.0,0.0
+mz,other,ssf,0.4,1.0,0.828814,-0.171186
+mz,other,ssm,0.4,1.0,1.171186,0.171186
+uz,other,ssf,0.4,0.85,0.764378,-0.085622
+uz,other,ssm,0.4,0.85,0.956457,0.106457
+dz,other,ssf,0.4,0.7,0.699941,-5.9e-05
+dz,other,ssm,0.4,0.7,0.741728,0.041728
+dz,other,os,0.4,0.7,0.570542,-0.129458
+sibs,other,ssf,0.4,0.7,0.699941,-5.9e-05
+sibs,other,ssm,0.4,0.7,0.741728,0.041728
+sibs,other,os,0.4,0.7,0.570542,-0.129458
+half sibs,maternal,ssf,0.4,0.514,0.488595,-0.025405
+half sibs,maternal,ssm,0.4,0.514,0.753182,0.239182
+half sibs,maternal,os,0.4,0.514,0.570836,0.056836
+half sibs,paternal,ssf,0.4,0.514,0.544027,0.030027
+half sibs,paternal,ssm,0.4,0.514,0.199223,-0.314777
+half sibs,paternal,os,0.4,0.514,0.271925,-0.242075
+1st cousins t/uz,maternal,ssf,0.4,0.4285,0.432596,0.004096
+1st cousins t/uz,maternal,ssm,0.4,0.4285,0.724119,0.295619
+1st cousins t/uz,maternal,os,0.4,0.4285,0.534686,0.106186
+1st cousins t/uz,paternal,ssf,0.4,0.4285,0.436977,0.008477
+1st cousins t/uz,paternal,ssm,0.4,0.4285,0.131768,-0.296732
+1st cousins t/uz,paternal,os,0.4,0.4285,0.209521,-0.218979
+1st cousins,maternal,ssf,0.4,0.343,0.376598,0.033598
+1st cousins,maternal,ssm,0.4,0.343,0.695055,0.352055
+1st cousins,maternal,os,0.4,0.343,0.498535,0.155535
+1st cousins,paternal,ssf,0.4,0.343,0.329928,-0.013072
+1st cousins,paternal,ssm,0.4,0.343,0.064314,-0.278686
+1st cousins,paternal,os,0.4,0.343,0.147117,-0.195883
+1st cousins,other,ssf,0.4,0.343,0.279606,-0.063394
+1st cousins,other,ssm,0.4,0.343,0.203114,-0.139886
+1st cousins,other,os,0.4,0.343,0.266479,-0.076521
+half cousins,maternal,ssf,0.4,0.25186,0.277686,0.025826
+half cousins,maternal,ssm,0.4,0.25186,0.494251,0.242391
+half cousins,maternal,os,0.4,0.25186,0.367225,0.115365
+half cousins,paternal,ssf,0.4,0.25186,0.208792,-0.043068
+half cousins,paternal,ssm,0.4,0.25186,0.023549,-0.228311
+half cousins,paternal,os,0.4,0.25186,0.091133,-0.160727
+half cousins,other,ssf,0.4,0.25186,0.206507,-0.045353
+half cousins,other,ssm,0.4,0.25186,0.169913,-0.081947
+half cousins,other,os,0.4,0.25186,0.200876,-0.050984
+2nd cousins t/uz,maternal,ssf,0.4,0.209965,0.233636,0.023671
+2nd cousins t/uz,maternal,ssm,0.4,0.209965,0.416991,0.207026
+2nd cousins t/uz,maternal,os,0.4,0.209965,0.310452,0.100487
+2nd cousins t/uz,paternal,ssf,0.4,0.209965,0.189199,-0.020766
+2nd cousins t/uz,paternal,ssm,0.4,0.209965,0.018196,-0.191769
+2nd cousins t/uz,paternal,os,0.4,0.209965,0.081779,-0.128186
+2nd cousins t/uz,other,ssf,0.4,0.209965,0.182356,-0.027609
+2nd cousins t/uz,other,ssm,0.4,0.209965,0.148682,-0.061283
+2nd cousins t/uz,other,os,0.4,0.209965,0.176603,-0.033362
+2nd cousins,maternal,ssf,0.4,0.16807,0.171504,0.003434
+2nd cousins,maternal,ssm,0.4,0.16807,0.298659,0.130589
+2nd cousins,maternal,os,0.4,0.16807,0.226427,0.058357
+2nd cousins,paternal,ssf,0.4,0.16807,0.12643,-0.04164
+2nd cousins,paternal,ssm,0.4,0.16807,0.006915,-0.161155
+2nd cousins,paternal,os,0.4,0.16807,0.057187,-0.110883
+2nd cousins,other,ssf,0.4,0.16807,0.1444,-0.02367
+2nd cousins,other,ssm,0.4,0.16807,0.115977,-0.052093
+2nd cousins,other,os,0.4,0.16807,0.138113,-0.029957
+step sibs,other,ssf,0.4,0.26896,0.276669,0.007709
+step sibs,other,ssm,0.4,0.26896,0.177228,-0.091732
+step sibs,other,os,0.4,0.26896,0.226974,-0.041986
+cocousins,maternal,ssf,0.4,0.09604,0.087679,-0.008361
+cocousins,maternal,ssm,0.4,0.09604,0.146298,0.050258
+cocousins,maternal,os,0.4,0.09604,0.116902,0.020862
+cocousins,paternal,ssf,0.4,0.09604,0.07466,-0.02138
+cocousins,paternal,ssm,0.4,0.09604,-0.007709,-0.103749
+cocousins,paternal,os,0.4,0.09604,0.033306,-0.062734
+cocousins,other,ssf,0.4,0.09604,0.081209,-0.014831
+cocousins,other,ssm,0.4,0.09604,0.068699,-0.027341
+cocousins,other,os,0.4,0.09604,0.075085,-0.020955
+adoptive sibs,other,ssf,0.4,0.0,0.0,0.0
+adoptive sibs,other,ssm,0.4,0.0,0.0,0.0
+adoptive sibs,other,os,0.4,0.0,0.0,0.0
+adoptive 1st cousins,other,ssf,0.4,0.0,0.0,0.0
+adoptive 1st cousins,other,ssm,0.4,0.0,0.0,0.0
+adoptive 1st cousins,other,os,0.4,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssf,0.4,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssm,0.4,0.0,0.0,0.0
+adoptive 2nd cousins,other,os,0.4,0.0,0.0,0.0
+adoptive cocousins,other,ssf,0.4,0.0,0.0,0.0
+adoptive cocousins,other,ssm,0.4,0.0,0.0,0.0
+adoptive cocousins,other,os,0.4,0.0,0.0,0.0
+mz,other,ssf,0.43,1.0,0.839275,-0.160725
+mz,other,ssm,0.43,1.0,1.160725,0.160725
+uz,other,ssf,0.43,0.8575,0.77711,-0.08039
+uz,other,ssm,0.43,0.8575,0.955762,0.098262
+dz,other,ssf,0.43,0.715,0.714944,-5.6e-05
+dz,other,ssm,0.43,0.715,0.7508,0.0358
+dz,other,os,0.43,0.715,0.590075,-0.124925
+sibs,other,ssf,0.43,0.715,0.714944,-5.6e-05
+sibs,other,ssm,0.43,0.715,0.7508,0.0358
+sibs,other,os,0.43,0.715,0.590075,-0.124925
+half sibs,maternal,ssf,0.43,0.537573,0.516029,-0.021544
+half sibs,maternal,ssm,0.43,0.537573,0.760405,0.222832
+half sibs,maternal,os,0.43,0.537573,0.590637,0.053063
+half sibs,paternal,ssf,0.43,0.537573,0.564558,0.026984
+half sibs,paternal,ssm,0.43,0.537573,0.229494,-0.308079
+half sibs,paternal,os,0.43,0.537573,0.302328,-0.235245
+1st cousins t/uz,maternal,ssf,0.43,0.45155,0.458466,0.006916
+1st cousins t/uz,maternal,ssm,0.43,0.45155,0.735199,0.283649
+1st cousins t/uz,maternal,os,0.43,0.45155,0.555336,0.103787
+1st cousins t/uz,paternal,ssf,0.43,0.45155,0.456546,0.004996
+1st cousins t/uz,paternal,ssm,0.43,0.45155,0.155733,-0.295817
+1st cousins t/uz,paternal,os,0.43,0.45155,0.235043,-0.216506
+1st cousins,maternal,ssf,0.43,0.365526,0.400903,0.035377
+1st cousins,maternal,ssm,0.43,0.365526,0.709992,0.344466
+1st cousins,maternal,os,0.43,0.365526,0.520036,0.15451
+1st cousins,paternal,ssf,0.43,0.365526,0.348534,-0.016992
+1st cousins,paternal,ssm,0.43,0.365526,0.081971,-0.283554
+1st cousins,paternal,os,0.43,0.365526,0.167758,-0.197768
+1st cousins,other,ssf,0.43,0.365526,0.301701,-0.063825
+1st cousins,other,ssm,0.43,0.365526,0.225924,-0.139602
+1st cousins,other,os,0.43,0.365526,0.287679,-0.077847
+half cousins,maternal,ssf,0.43,0.274821,0.302834,0.028013
+half cousins,maternal,ssm,0.43,0.274821,0.517583,0.242762
+half cousins,maternal,os,0.43,0.274821,0.392408,0.117587
+half cousins,paternal,ssf,0.43,0.274821,0.226564,-0.048257
+half cousins,paternal,ssm,0.43,0.274821,0.036857,-0.237964
+half cousins,paternal,os,0.43,0.274821,0.107926,-0.166895
+half cousins,other,ssf,0.43,0.274821,0.228283,-0.046538
+half cousins,other,ssm,0.43,0.274821,0.191485,-0.083336
+half cousins,other,os,0.43,0.274821,0.221922,-0.052899
+2nd cousins t/uz,maternal,ssf,0.43,0.230843,0.256254,0.025411
+2nd cousins t/uz,maternal,ssm,0.43,0.230843,0.439146,0.208303
+2nd cousins t/uz,maternal,os,0.43,0.230843,0.333585,0.102742
+2nd cousins t/uz,paternal,ssf,0.43,0.230843,0.205472,-0.025371
+2nd cousins t/uz,paternal,ssm,0.43,0.230843,0.029568,-0.201276
+2nd cousins t/uz,paternal,os,0.43,0.230843,0.096701,-0.134143
+2nd cousins t/uz,other,ssf,0.43,0.230843,0.202056,-0.028788
+2nd cousins t/uz,other,ssm,0.43,0.230843,0.168051,-0.062792
+2nd cousins t/uz,other,os,0.43,0.230843,0.195588,-0.035256
+2nd cousins,maternal,ssf,0.43,0.186866,0.190974,0.004108
+2nd cousins,maternal,ssm,0.43,0.186866,0.319422,0.132556
+2nd cousins,maternal,os,0.43,0.186866,0.246976,0.06011
+2nd cousins,paternal,ssf,0.43,0.186866,0.140996,-0.04587
+2nd cousins,paternal,ssm,0.43,0.186866,0.015663,-0.171203
+2nd cousins,paternal,os,0.43,0.186866,0.069313,-0.117553
+2nd cousins,other,ssf,0.43,0.186866,0.161459,-0.025407
+2nd cousins,other,ssm,0.43,0.186866,0.132384,-0.054482
+2nd cousins,other,os,0.43,0.186866,0.154454,-0.032412
+step sibs,other,ssf,0.43,0.301641,0.310879,0.009238
+step sibs,other,ssm,0.43,0.301641,0.205514,-0.096126
+step sibs,other,os,0.43,0.301641,0.258206,-0.043434
+cocousins,maternal,ssf,0.43,0.112381,0.103613,-0.008768
+cocousins,maternal,ssm,0.43,0.112381,0.166571,0.05419
+cocousins,maternal,os,0.43,0.112381,0.135006,0.022626
+cocousins,paternal,ssf,0.43,0.112381,0.087569,-0.024812
+cocousins,paternal,ssm,0.43,0.112381,-0.002297,-0.114678
+cocousins,paternal,os,0.43,0.112381,0.042463,-0.069918
+cocousins,other,ssf,0.43,0.112381,0.09563,-0.016751
+cocousins,other,ssm,0.43,0.112381,0.081525,-0.030856
+cocousins,other,os,0.43,0.112381,0.088709,-0.023672
+adoptive sibs,other,ssf,0.43,0.0,0.0,0.0
+adoptive sibs,other,ssm,0.43,0.0,0.0,0.0
+adoptive sibs,other,os,0.43,0.0,0.0,0.0
+adoptive 1st cousins,other,ssf,0.43,0.0,0.0,0.0
+adoptive 1st cousins,other,ssm,0.43,0.0,0.0,0.0
+adoptive 1st cousins,other,os,0.43,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssf,0.43,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssm,0.43,0.0,0.0,0.0
+adoptive 2nd cousins,other,os,0.43,0.0,0.0,0.0
+adoptive cocousins,other,ssf,0.43,0.0,0.0,0.0
+adoptive cocousins,other,ssm,0.43,0.0,0.0,0.0
+adoptive cocousins,other,os,0.43,0.0,0.0,0.0
+mz,other,ssf,0.45,1.0,0.846128,-0.153872
+mz,other,ssm,0.45,1.0,1.153872,0.153872
+uz,other,ssf,0.45,0.8625,0.785537,-0.076963
+uz,other,ssm,0.45,0.8625,0.955483,0.092983
+dz,other,ssf,0.45,0.725,0.724947,-5.3e-05
+dz,other,ssm,0.45,0.725,0.757093,0.032093
+dz,other,os,0.45,0.725,0.603221,-0.121779
+sibs,other,ssf,0.45,0.725,0.724947,-5.3e-05
+sibs,other,ssm,0.45,0.725,0.757093,0.032093
+sibs,other,os,0.45,0.725,0.603221,-0.121779
+half sibs,maternal,ssf,0.45,0.553469,0.53438,-0.019089
+half sibs,maternal,ssm,0.45,0.553469,0.765413,0.211944
+half sibs,maternal,os,0.45,0.553469,0.603965,0.050496
+half sibs,paternal,ssf,0.45,0.553469,0.578561,0.025093
+half sibs,paternal,ssm,0.45,0.553469,0.250672,-0.302797
+half sibs,paternal,os,0.45,0.553469,0.323251,-0.230217
+1st cousins t/uz,maternal,ssf,0.45,0.467273,0.47595,0.008676
+1st cousins t/uz,maternal,ssm,0.45,0.467273,0.742685,0.275412
+1st cousins t/uz,maternal,os,0.45,0.467273,0.569271,0.101998
+1st cousins t/uz,paternal,ssf,0.45,0.467273,0.470077,0.002804
+1st cousins t/uz,paternal,ssm,0.45,0.467273,0.172855,-0.294418
+1st cousins t/uz,paternal,os,0.45,0.467273,0.252873,-0.214401
+1st cousins,maternal,ssf,0.45,0.381078,0.417519,0.036441
+1st cousins,maternal,ssm,0.45,0.381078,0.719957,0.338879
+1st cousins,maternal,os,0.45,0.381078,0.534578,0.1535
+1st cousins,paternal,ssf,0.45,0.381078,0.361593,-0.019486
+1st cousins,paternal,ssm,0.45,0.381078,0.095038,-0.28604
+1st cousins,paternal,os,0.45,0.381078,0.182494,-0.198584
+1st cousins,other,ssf,0.45,0.381078,0.317106,-0.063972
+1st cousins,other,ssm,0.45,0.381078,0.241886,-0.139192
+1st cousins,other,os,0.45,0.381078,0.302528,-0.07855
+half cousins,maternal,ssf,0.45,0.290917,0.320339,0.029422
+half cousins,maternal,ssm,0.45,0.290917,0.53342,0.242503
+half cousins,maternal,os,0.45,0.290917,0.409707,0.11879
+half cousins,paternal,ssf,0.45,0.290917,0.239357,-0.05156
+half cousins,paternal,ssm,0.45,0.290917,0.047149,-0.243768
+half cousins,paternal,os,0.45,0.290917,0.120305,-0.170613
+half cousins,other,ssf,0.45,0.290917,0.243713,-0.047204
+half cousins,other,ssm,0.45,0.290917,0.206774,-0.084143
+half cousins,other,os,0.45,0.290917,0.236862,-0.054055
+2nd cousins t/uz,maternal,ssf,0.45,0.245611,0.272138,0.026528
+2nd cousins t/uz,maternal,ssm,0.45,0.245611,0.454342,0.208732
+2nd cousins t/uz,maternal,os,0.45,0.245611,0.349623,0.104012
+2nd cousins t/uz,paternal,ssf,0.45,0.245611,0.217215,-0.028396
+2nd cousins t/uz,paternal,ssm,0.45,0.245611,0.038441,-0.207169
+2nd cousins t/uz,paternal,os,0.45,0.245611,0.107741,-0.137869
+2nd cousins t/uz,other,ssf,0.45,0.245611,0.216095,-0.029516
+2nd cousins t/uz,other,ssm,0.45,0.245611,0.181862,-0.063749
+2nd cousins t/uz,other,os,0.45,0.245611,0.209145,-0.036466
+2nd cousins,maternal,ssf,0.45,0.200304,0.204861,0.004557
+2nd cousins,maternal,ssm,0.45,0.200304,0.333906,0.133601
+2nd cousins,maternal,os,0.45,0.200304,0.26145,0.061146
+2nd cousins,paternal,ssf,0.45,0.200304,0.151631,-0.048674
+2nd cousins,paternal,ssm,0.45,0.200304,0.022666,-0.177638
+2nd cousins,paternal,os,0.45,0.200304,0.078446,-0.121858
+2nd cousins,other,ssf,0.45,0.200304,0.173756,-0.026548
+2nd cousins,other,ssm,0.45,0.200304,0.144239,-0.056066
+2nd cousins,other,os,0.45,0.200304,0.166268,-0.034036
+step sibs,other,ssf,0.45,0.324169,0.334482,0.010312
+step sibs,other,ssm,0.45,0.324169,0.22562,-0.09855
+step sibs,other,os,0.45,0.324169,0.280051,-0.044118
+cocousins,maternal,ssf,0.45,0.124327,0.115322,-0.009005
+cocousins,maternal,ssm,0.45,0.124327,0.181013,0.056686
+cocousins,maternal,os,0.45,0.124327,0.148083,0.023756
+cocousins,paternal,ssf,0.45,0.124327,0.097137,-0.02719
+cocousins,paternal,ssm,0.45,0.124327,0.002366,-0.12196
+cocousins,paternal,os,0.45,0.124327,0.049578,-0.074749
+cocousins,other,ssf,0.45,0.124327,0.106268,-0.018059
+cocousins,other,ssm,0.45,0.124327,0.091071,-0.033256
+cocousins,other,os,0.45,0.124327,0.0988,-0.025527
+adoptive sibs,other,ssf,0.45,0.0,0.0,0.0
+adoptive sibs,other,ssm,0.45,0.0,0.0,0.0
+adoptive sibs,other,os,0.45,0.0,0.0,0.0
+adoptive 1st cousins,other,ssf,0.45,0.0,0.0,0.0
+adoptive 1st cousins,other,ssm,0.45,0.0,0.0,0.0
+adoptive 1st cousins,other,os,0.45,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssf,0.45,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssm,0.45,0.0,0.0,0.0
+adoptive 2nd cousins,other,os,0.45,0.0,0.0,0.0
+adoptive cocousins,other,ssf,0.45,0.0,0.0,0.0
+adoptive cocousins,other,ssm,0.45,0.0,0.0,0.0
+adoptive cocousins,other,os,0.45,0.0,0.0,0.0
+mz,other,ssf,0.5,1.0,0.86284,-0.13716
+mz,other,ssm,0.5,1.0,1.13716,0.13716
+uz,other,ssf,0.5,0.875,0.806396,-0.068604
+uz,other,ssm,0.5,0.875,0.955417,0.080417
+dz,other,ssf,0.5,0.75,0.749953,-4.7e-05
+dz,other,ssm,0.5,0.75,0.773674,0.023674
+dz,other,os,0.5,0.75,0.636514,-0.113486
+sibs,other,ssf,0.5,0.75,0.749953,-4.7e-05
+sibs,other,ssm,0.5,0.75,0.773674,0.023674
+sibs,other,os,0.5,0.75,0.636514,-0.113486
+half sibs,maternal,ssf,0.5,0.59375,0.580346,-0.013404
+half sibs,maternal,ssm,0.5,0.59375,0.778694,0.184944
+half sibs,maternal,os,0.5,0.59375,0.637713,0.043963
+half sibs,paternal,ssf,0.5,0.59375,0.614595,0.020845
+half sibs,paternal,ssm,0.5,0.59375,0.306885,-0.286865
+half sibs,paternal,os,0.5,0.59375,0.377701,-0.216049
+1st cousins t/uz,maternal,ssf,0.5,0.507812,0.520421,0.012608
+1st cousins t/uz,maternal,ssm,0.5,0.507812,0.761793,0.253981
+1st cousins t/uz,maternal,os,0.5,0.507812,0.604686,0.096874
+1st cousins t/uz,paternal,ssf,0.5,0.507812,0.505628,-0.002184
+1st cousins t/uz,paternal,ssm,0.5,0.507812,0.219686,-0.288126
+1st cousins t/uz,paternal,os,0.5,0.507812,0.300318,-0.207494
+1st cousins,maternal,ssf,0.5,0.421875,0.460496,0.038621
+1st cousins,maternal,ssm,0.5,0.421875,0.744892,0.323017
+1st cousins,maternal,os,0.5,0.421875,0.57166,0.149785
+1st cousins,paternal,ssf,0.5,0.421875,0.396662,-0.025213
+1st cousins,paternal,ssm,0.5,0.421875,0.132487,-0.289388
+1st cousins,paternal,os,0.5,0.421875,0.222936,-0.198939
+1st cousins,other,ssf,0.5,0.421875,0.358074,-0.063801
+1st cousins,other,ssm,0.5,0.421875,0.284578,-0.137297
+1st cousins,other,os,0.5,0.421875,0.342268,-0.079607
+half cousins,maternal,ssf,0.5,0.333984,0.366677,0.032692
+half cousins,maternal,ssm,0.5,0.333984,0.573904,0.23992
+half cousins,maternal,os,0.5,0.333984,0.45469,0.120705
+half cousins,paternal,ssf,0.5,0.333984,0.274888,-0.059097
+half cousins,paternal,ssm,0.5,0.333984,0.078299,-0.255686
+half cousins,paternal,os,0.5,0.333984,0.155736,-0.178249
+half cousins,other,ssf,0.5,0.333984,0.285613,-0.048371
+half cousins,other,ssm,0.5,0.333984,0.248362,-0.085622
+half cousins,other,os,0.5,0.333984,0.277553,-0.056431
+2nd cousins t/uz,maternal,ssf,0.5,0.285645,0.314749,0.029104
+2nd cousins t/uz,maternal,ssm,0.5,0.285645,0.493807,0.208163
+2nd cousins t/uz,maternal,os,0.5,0.285645,0.391906,0.106262
+2nd cousins t/uz,paternal,ssf,0.5,0.285645,0.249987,-0.035658
+2nd cousins t/uz,paternal,ssm,0.5,0.285645,0.065645,-0.219999
+2nd cousins t/uz,paternal,os,0.5,0.285645,0.139563,-0.146081
+2nd cousins t/uz,other,ssf,0.5,0.285645,0.254556,-0.031088
+2nd cousins t/uz,other,ssm,0.5,0.285645,0.21978,-0.065864
+2nd cousins t/uz,other,os,0.5,0.285645,0.246414,-0.039231
+2nd cousins,maternal,ssf,0.5,0.237305,0.242956,0.005651
+2nd cousins,maternal,ssm,0.5,0.237305,0.372456,0.135152
+2nd cousins,maternal,os,0.5,0.237305,0.300495,0.06319
+2nd cousins,paternal,ssf,0.5,0.237305,0.181821,-0.055483
+2nd cousins,paternal,ssm,0.5,0.237305,0.044841,-0.192464
+2nd cousins,paternal,os,0.5,0.237305,0.105416,-0.131889
+2nd cousins,other,ssf,0.5,0.237305,0.208023,-0.029282
+2nd cousins,other,ssm,0.5,0.237305,0.177422,-0.059883
+2nd cousins,other,os,0.5,0.237305,0.199335,-0.03797
+step sibs,other,ssf,0.5,0.382812,0.395944,0.013132
+step sibs,other,ssm,0.5,0.382812,0.280126,-0.102686
+step sibs,other,os,0.5,0.382812,0.338016,-0.044796
+cocousins,maternal,ssf,0.5,0.158203,0.148733,-0.00947
+cocousins,maternal,ssm,0.5,0.158203,0.220556,0.062353
+cocousins,maternal,os,0.5,0.158203,0.184566,0.026362
+cocousins,paternal,ssf,0.5,0.158203,0.124868,-0.033335
+cocousins,paternal,ssm,0.5,0.158203,0.018409,-0.139794
+cocousins,paternal,os,0.5,0.158203,0.071466,-0.086737
+cocousins,other,ssf,0.5,0.158203,0.136836,-0.021367
+cocousins,other,ssm,0.5,0.158203,0.11886,-0.039343
+cocousins,other,os,0.5,0.158203,0.127974,-0.03023
+adoptive sibs,other,ssf,0.5,0.0,0.0,0.0
+adoptive sibs,other,ssm,0.5,0.0,0.0,0.0
+adoptive sibs,other,os,0.5,0.0,0.0,0.0
+adoptive 1st cousins,other,ssf,0.5,0.0,0.0,0.0
+adoptive 1st cousins,other,ssm,0.5,0.0,0.0,0.0
+adoptive 1st cousins,other,os,0.5,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssf,0.5,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssm,0.5,0.0,0.0,0.0
+adoptive 2nd cousins,other,os,0.5,0.0,0.0,0.0
+adoptive cocousins,other,ssf,0.5,0.0,0.0,0.0
+adoptive cocousins,other,ssm,0.5,0.0,0.0,0.0
+adoptive cocousins,other,os,0.5,0.0,0.0,0.0
+mz,other,ssf,0.55,1.0,0.878966,-0.121034
+mz,other,ssm,0.55,1.0,1.121034,0.121034
+uz,other,ssf,0.55,0.8875,0.826963,-0.060537
+uz,other,ssm,0.55,0.8875,0.956237,0.068737
+dz,other,ssf,0.55,0.775,0.77496,-4e-05
+dz,other,ssm,0.55,0.775,0.79144,0.01644
+dz,other,os,0.55,0.775,0.670406,-0.104594
+sibs,other,ssf,0.55,0.775,0.77496,-4e-05
+sibs,other,ssm,0.55,0.775,0.79144,0.01644
+sibs,other,os,0.55,0.775,0.670406,-0.104594
+half sibs,maternal,ssf,0.55,0.634656,0.626237,-0.00842
+half sibs,maternal,ssm,0.55,0.634656,0.793204,0.158548
+half sibs,maternal,os,0.55,0.634656,0.672044,0.037387
+half sibs,paternal,ssf,0.55,0.634656,0.651928,0.017272
+half sibs,paternal,ssm,0.55,0.634656,0.367366,-0.26729
+half sibs,paternal,os,0.55,0.634656,0.434927,-0.199729
+1st cousins t/uz,maternal,ssf,0.55,0.55007,0.565873,0.015802
+1st cousins t/uz,maternal,ssm,0.55,0.55007,0.781531,0.231461
+1st cousins t/uz,maternal,os,0.55,0.55007,0.640907,0.090837
+1st cousins t/uz,paternal,ssf,0.55,0.55007,0.543676,-0.006394
+1st cousins t/uz,paternal,ssm,0.55,0.55007,0.272283,-0.277787
+1st cousins t/uz,paternal,os,0.55,0.55007,0.351892,-0.198178
+1st cousins,maternal,ssf,0.55,0.465484,0.505509,0.040024
+1st cousins,maternal,ssm,0.55,0.465484,0.769858,0.304374
+1st cousins,maternal,os,0.55,0.465484,0.609771,0.144286
+1st cousins,paternal,ssf,0.55,0.465484,0.435424,-0.03006
+1st cousins,paternal,ssm,0.55,0.465484,0.1772,-0.288284
+1st cousins,paternal,os,0.55,0.465484,0.268857,-0.196628
+1st cousins,other,ssf,0.55,0.465484,0.402694,-0.062791
+1st cousins,other,ssm,0.55,0.465484,0.331502,-0.133983
+1st cousins,other,os,0.55,0.465484,0.385947,-0.079537
+half cousins,maternal,ssf,0.55,0.38119,0.41665,0.035459
+half cousins,maternal,ssm,0.55,0.38119,0.615492,0.234301
+half cousins,maternal,os,0.55,0.38119,0.502041,0.120851
+half cousins,paternal,ssf,0.55,0.38119,0.315901,-0.065289
+half cousins,paternal,ssm,0.55,0.38119,0.117957,-0.263233
+half cousins,paternal,os,0.55,0.38119,0.198164,-0.183026
+half cousins,other,ssf,0.55,0.38119,0.332463,-0.048728
+half cousins,other,ssm,0.55,0.38119,0.295071,-0.08612
+half cousins,other,os,0.55,0.38119,0.323276,-0.057914
+2nd cousins t/uz,maternal,ssf,0.55,0.330386,0.361641,0.031255
+2nd cousins t/uz,maternal,ssm,0.55,0.330386,0.535353,0.204967
+2nd cousins t/uz,maternal,os,0.55,0.330386,0.437371,0.106985
+2nd cousins t/uz,paternal,ssf,0.55,0.330386,0.288165,-0.042221
+2nd cousins t/uz,paternal,ssm,0.55,0.330386,0.100918,-0.229468
+2nd cousins t/uz,paternal,os,0.55,0.330386,0.178124,-0.152262
+2nd cousins t/uz,other,ssf,0.55,0.330386,0.298172,-0.032214
+2nd cousins t/uz,other,ssm,0.55,0.330386,0.262991,-0.067395
+2nd cousins t/uz,other,os,0.55,0.330386,0.288902,-0.041484
+2nd cousins,maternal,ssf,0.55,0.279582,0.286245,0.006664
+2nd cousins,maternal,ssm,0.55,0.279582,0.414526,0.134944
+2nd cousins,maternal,os,0.55,0.279582,0.343898,0.064317
+2nd cousins,paternal,ssf,0.55,0.279582,0.21785,-0.061731
+2nd cousins,paternal,ssm,0.55,0.279582,0.074759,-0.204823
+2nd cousins,paternal,os,0.55,0.279582,0.13918,-0.140402
+2nd cousins,other,ssf,0.55,0.279582,0.247855,-0.031727
+2nd cousins,other,ssm,0.55,0.279582,0.216296,-0.063286
+2nd cousins,other,os,0.55,0.279582,0.238028,-0.041554
+step sibs,other,ssf,0.55,0.444263,0.460272,0.016008
+step sibs,other,ssm,0.55,0.444263,0.340375,-0.103888
+step sibs,other,os,0.55,0.444263,0.400292,-0.043972
+cocousins,maternal,ssf,0.55,0.198413,0.188678,-0.009734
+cocousins,maternal,ssm,0.55,0.198413,0.265359,0.066946
+cocousins,maternal,os,0.55,0.198413,0.226947,0.028534
+cocousins,paternal,ssf,0.55,0.198413,0.158885,-0.039527
+cocousins,paternal,ssm,0.55,0.198413,0.042034,-0.156379
+cocousins,paternal,os,0.55,0.198413,0.100293,-0.098119
+cocousins,other,ssf,0.55,0.198413,0.173813,-0.0246
+cocousins,other,ssm,0.55,0.198413,0.153091,-0.045322
+cocousins,other,os,0.55,0.198413,0.163569,-0.034844
+adoptive sibs,other,ssf,0.55,0.0,0.0,0.0
+adoptive sibs,other,ssm,0.55,0.0,0.0,0.0
+adoptive sibs,other,os,0.55,0.0,0.0,0.0
+adoptive 1st cousins,other,ssf,0.55,0.0,0.0,0.0
+adoptive 1st cousins,other,ssm,0.55,0.0,0.0,0.0
+adoptive 1st cousins,other,os,0.55,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssf,0.55,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssm,0.55,0.0,0.0,0.0
+adoptive 2nd cousins,other,os,0.55,0.0,0.0,0.0
+adoptive cocousins,other,ssf,0.55,0.0,0.0,0.0
+adoptive cocousins,other,ssm,0.55,0.0,0.0,0.0
+adoptive cocousins,other,os,0.55,0.0,0.0,0.0
+mz,other,ssf,0.6,1.0,0.894521,-0.105479
+mz,other,ssm,0.6,1.0,1.105479,0.105479
+uz,other,ssf,0.6,0.9,0.847244,-0.052756
+uz,other,ssm,0.6,0.9,0.957919,0.057919
+dz,other,ssf,0.6,0.8,0.799967,-3.3e-05
+dz,other,ssm,0.6,0.8,0.81036,0.01036
+dz,other,os,0.6,0.8,0.704881,-0.095119
+sibs,other,ssf,0.6,0.8,0.799967,-3.3e-05
+sibs,other,ssm,0.6,0.8,0.81036,0.01036
+sibs,other,os,0.6,0.8,0.704881,-0.095119
+half sibs,maternal,ssf,0.6,0.676,0.67181,-0.00419
+half sibs,maternal,ssm,0.6,0.676,0.809104,0.133104
+half sibs,maternal,os,0.6,0.676,0.706918,0.030918
+half sibs,paternal,ssf,0.6,0.676,0.690331,0.014331
+half sibs,paternal,ssm,0.6,0.676,0.43157,-0.24443
+half sibs,paternal,os,0.6,0.676,0.494543,-0.181457
+1st cousins t/uz,maternal,ssf,0.6,0.594,0.612176,0.018176
+1st cousins t/uz,maternal,ssm,0.6,0.594,0.801983,0.207983
+1st cousins t/uz,maternal,os,0.6,0.594,0.677912,0.083912
+1st cousins t/uz,paternal,ssf,0.6,0.594,0.584253,-0.009747
+1st cousins t/uz,paternal,ssm,0.6,0.594,0.330649,-0.263351
+1st cousins t/uz,paternal,os,0.6,0.594,0.407611,-0.186389
+1st cousins,maternal,ssf,0.6,0.512,0.552541,0.040541
+1st cousins,maternal,ssm,0.6,0.512,0.794862,0.282862
+1st cousins,maternal,os,0.6,0.512,0.648905,0.136905
+1st cousins,paternal,ssf,0.6,0.512,0.478174,-0.033826
+1st cousins,paternal,ssm,0.6,0.512,0.229728,-0.282272
+1st cousins,paternal,os,0.6,0.512,0.320678,-0.191322
+1st cousins,other,ssf,0.6,0.512,0.45115,-0.06085
+1st cousins,other,ssm,0.6,0.512,0.382977,-0.129023
+1st cousins,other,os,0.6,0.512,0.43382,-0.07818
+half cousins,maternal,ssf,0.6,0.43264,0.470166,0.037526
+half cousins,maternal,ssm,0.6,0.43264,0.657963,0.225323
+half cousins,maternal,os,0.6,0.43264,0.551604,0.118964
+half cousins,paternal,ssf,0.6,0.43264,0.362896,-0.069744
+half cousins,paternal,ssm,0.6,0.43264,0.167079,-0.265561
+half cousins,paternal,os,0.6,0.43264,0.248315,-0.184325
+half cousins,other,ssf,0.6,0.43264,0.38449,-0.04815
+half cousins,other,ssm,0.6,0.43264,0.347285,-0.085355
+half cousins,other,os,0.6,0.43264,0.374339,-0.058301
+2nd cousins t/uz,maternal,ssf,0.6,0.38016,0.412979,0.032819
+2nd cousins t/uz,maternal,ssm,0.6,0.38016,0.57895,0.19879
+2nd cousins t/uz,maternal,os,0.6,0.38016,0.486083,0.105923
+2nd cousins t/uz,paternal,ssf,0.6,0.38016,0.332439,-0.047721
+2nd cousins t/uz,paternal,ssm,0.6,0.38016,0.145447,-0.234713
+2nd cousins t/uz,paternal,os,0.6,0.38016,0.224362,-0.155798
+2nd cousins t/uz,other,ssf,0.6,0.38016,0.347387,-0.032773
+2nd cousins t/uz,other,ssm,0.6,0.38016,0.312089,-0.068071
+2nd cousins t/uz,other,os,0.6,0.38016,0.337132,-0.043028
+2nd cousins,maternal,ssf,0.6,0.32768,0.335214,0.007534
+2nd cousins,maternal,ssm,0.6,0.32768,0.460351,0.132671
+2nd cousins,maternal,os,0.6,0.32768,0.392019,0.064339
+2nd cousins,paternal,ssf,0.6,0.32768,0.260667,-0.067013
+2nd cousins,paternal,ssm,0.6,0.32768,0.113905,-0.213775
+2nd cousins,paternal,os,0.6,0.32768,0.180955,-0.146725
+2nd cousins,other,ssf,0.6,0.32768,0.293973,-0.033707
+2nd cousins,other,ssm,0.6,0.32768,0.261722,-0.065958
+2nd cousins,other,os,0.6,0.32768,0.283137,-0.044543
+step sibs,other,ssf,0.6,0.50784,0.526581,0.018741
+step sibs,other,ssm,0.6,0.50784,0.405821,-0.102019
+step sibs,other,os,0.6,0.50784,0.466162,-0.041678
+cocousins,maternal,ssf,0.6,0.24576,0.23598,-0.00978
+cocousins,maternal,ssm,0.6,0.24576,0.31589,0.07013
+cocousins,maternal,os,0.6,0.24576,0.275872,0.030112
+cocousins,paternal,ssf,0.6,0.24576,0.200369,-0.045391
+cocousins,paternal,ssm,0.6,0.24576,0.075103,-0.170657
+cocousins,paternal,os,0.6,0.24576,0.137581,-0.108179
+cocousins,other,ssf,0.6,0.24576,0.2182,-0.02756
+cocousins,other,ssm,0.6,0.24576,0.194928,-0.050832
+cocousins,other,os,0.6,0.24576,0.20667,-0.03909
+adoptive sibs,other,ssf,0.6,0.0,0.0,0.0
+adoptive sibs,other,ssm,0.6,0.0,0.0,0.0
+adoptive sibs,other,os,0.6,0.0,0.0,0.0
+adoptive 1st cousins,other,ssf,0.6,0.0,0.0,0.0
+adoptive 1st cousins,other,ssm,0.6,0.0,0.0,0.0
+adoptive 1st cousins,other,os,0.6,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssf,0.6,0.0,0.0,0.0
+adoptive 2nd cousins,other,ssm,0.6,0.0,0.0,0.0
+adoptive 2nd cousins,other,os,0.6,0.0,0.0,0.0
+adoptive cocousins,other,ssf,0.6,0.0,0.0,0.0
+adoptive cocousins,other,ssm,0.6,0.0,0.0,0.0
+adoptive cocousins,other,os,0.6,0.0,0.0,0.0
