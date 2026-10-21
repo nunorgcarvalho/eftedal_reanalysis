@@ -11,11 +11,8 @@ and fitting choices.
 
 > **Here from the QR code on the poster?**
 >
-> ### [Poster (PDF)](https://raw.githubusercontent.com/nunorgcarvalho/eftedal_reanalysis/main/ASHG/poster/poster.pdf)
-> ### [Supplemental slides (PDF)](https://raw.githubusercontent.com/nunorgcarvalho/eftedal_reanalysis/main/ASHG/supplemental_slides/supplemental_slides.pdf)
->
-> (The links download the PDFs; to view them in the browser instead: [poster](ASHG/poster/poster.pdf),
-> [slides](ASHG/supplemental_slides/supplemental_slides.pdf).)
+> ### [Poster (PDF)](https://github.com/nunorgcarvalho/eftedal_reanalysis/blob/main/ASHG/poster/poster.pdf)
+> ### [Supplemental slides (PDF)](https://github.com/nunorgcarvalho/eftedal_reanalysis/blob/main/ASHG/supplemental_slides/supplemental_slides.pdf)
 >
 > *Relatives' similarity in test score performance is explained by a wide range of genetic and
 > environmental parameters.* Nuno R. G. Carvalho and Alexander Gusev, ASHG 2026 Annual Meeting,
