@@ -26,7 +26,7 @@ def main(out: Path, n_starts: int, n_boot: int):
     rows = []
     for i, (key, label, c_bio, c_all, kw) in enumerate(corr.INLAW):
         for cohort_name, cohort in (("bio only", c_bio), ("bio + in-laws", c_all)):
-            _, _, t, _ = corr._jk_rows(df, main_spec("A", cohort=cohort, **kw), n_starts, n_boot, 50 + i,
+            _, _, t, _ = corr._jk_rows(df, main_spec("A", modifiers=(), cohort=cohort, **kw), n_starts, n_boot, 50 + i,
                                        estimator=key, label=label, cohort_name=cohort_name, cohort=cohort)
             rows.append(t)
             print(key, cohort_name, flush=True)

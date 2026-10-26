@@ -26,7 +26,7 @@ from eftedal.model import CORE_MODELS
 from eftedal.presets import MAIN_WEIGHTINGS, main_spec
 
 # the model's independent parameters as reported (m rather than r: r = m / V_A at equilibrium)
-PARAMS = ["V_A", "m", "V_GxG", "V_family", "r_f"]
+PARAMS = ["V_A", "m", "V_GxG", "V_family", "r_f", "rho_g", "rho_e", "k_side"]
 
 
 def corr(x, y):

@@ -74,7 +74,7 @@ def _jk_rows(df, spec, n_starts, n_boot, seed, **tag):
 def steps(df, n_starts, n_boot):
     rows, jks = [], []
     for i, (key, label, kw) in enumerate(STEPS + ASIDE):
-        _, fp, jk, _ = _jk_rows(df, main_spec("A", **kw), n_starts, n_boot, 10 + i, step=key,
+        _, fp, jk, _ = _jk_rows(df, main_spec("A", modifiers=(), **kw), n_starts, n_boot, 10 + i, step=key,
                                 label=label, order=i, aside=key in {a[0] for a in ASIDE})
         rows.append(jk)
         jks.append(fp)
@@ -86,8 +86,8 @@ def inlaw(df, n_starts, n_boot):
     rows = []
     for i, (key, label, c_bio, c_all, kw) in enumerate(INLAW):
         # same seed -> same redrawn correlations for both fits (paired bootstrap)
-        fb, fpb, jb, rb = _jk_rows(df, main_spec("A", cohort=c_bio, **kw), n_starts, n_boot, 50 + i)
-        fa, fpa, ja, ra = _jk_rows(df, main_spec("A", cohort=c_all, **kw), n_starts, n_boot, 50 + i)
+        fb, fpb, jb, rb = _jk_rows(df, main_spec("A", modifiers=(), cohort=c_bio, **kw), n_starts, n_boot, 50 + i)
+        fa, fpa, ja, ra = _jk_rows(df, main_spec("A", modifiers=(), cohort=c_all, **kw), n_starts, n_boot, 50 + i)
         # paired jackknife of the difference over the blocks of the larger cohort; a block absent
         # from the bio-only cohort leaves that fit unchanged
         b_bio = fpb.set_index("fold")["V_A"]

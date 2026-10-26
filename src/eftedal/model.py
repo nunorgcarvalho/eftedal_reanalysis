@@ -96,20 +96,21 @@ CORE_MODELS = {
 }
 SEQUENTIAL_CARRY = ("all",)
 
-# Phase-2 model set: name -> (components, modifiers). Each Phase-1 joint model with every
-# modifier its components allow, plus one modifier at a time for A+GxG+F. With the multipliers
-# at 1 every model is its Phase-1 counterpart.
-_P1 = {"A": ("A",), "A+GxG": ("A", "GxG"), "A+F": ("A", "family"), "A+GxG+F": ("A", "GxG", "family")}
+def applicable_modifiers(components) -> tuple[str, ...]:
+    """Every Phase-2 modifier the components allow: 'sex_g' with a genetic component, 'sex_e' and
+    'side' with the familial environment. Phase 2 (the default for the core and joint sets) fits
+    all of them."""
+    comps = set(components)
+    out = ("sex_g",) if comps & set(C.GENETIC_COMPONENTS) else ()
+    return out + (("sex_e", "side") if "family" in comps else ())
 
 
+# Phase-2 variants (supplement): A+GxG+F with one modifier group at a time, and the
+# Phase-1 version (no modifiers). The core set itself is Phase 2 (all applicable modifiers).
 def _phase2_models() -> dict[str, tuple[tuple[str, ...], tuple[str, ...]]]:
-    out = {}
-    for name, comps in _P1.items():
-        mods = ("sex_g",) + (("sex_e", "side") if "family" in comps else ())
-        out[f"{name} | {'+'.join(mods)}"] = (comps, mods)
-    for mods in (("sex_g",), ("sex_e",), ("side",), ("sex_g", "sex_e")):
-        out[f"A+GxG+F | {'+'.join(mods)}"] = (_P1["A+GxG+F"], mods)
-    return out
+    comps = ("A", "GxG", "family")
+    return {f"A+GxG+F | {'+'.join(m) if m else 'none'}": (comps, m)
+            for m in ((), ("sex_g",), ("sex_e",), ("side",), ("sex_g", "sex_e"), ("sex_e", "side"))}
 
 
 PHASE2_MODELS = _phase2_models()

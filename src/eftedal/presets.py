@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import itertools
 
-from .model import CORE_MODELS, JOINT_MODELS, PHASE2_MODELS, SEQUENTIAL_CARRY, FitSpec, MODELS
+from .model import (CORE_MODELS, JOINT_MODELS, PHASE2_MODELS, SEQUENTIAL_CARRY, FitSpec, MODELS,
+                    applicable_modifiers)
 
 # Options that reproduce the 2025 R code (archive/03_model_fitting.R, functions.R).
 LEGACY = dict(uz="exponent", log_zero="legacy", adoptive="legacy_n99",
@@ -23,14 +24,19 @@ MAIN_WEIGHTINGS = ("hybrid_block", "invvar")
 
 def main_spec(model: str, weights: str = "hybrid_block", cohort: str = "ALL", **kw) -> FitSpec:
     """Spec under the main settings for a model of `CORE_MODELS` (incl. the two-step
-    'A>GxG...' models), `JOINT_MODELS`, or the 2025 set `MODELS`."""
+    'A>GxG...' models), `JOINT_MODELS`, the Phase-2 variants `PHASE2_MODELS`, or the 2025 set
+    `MODELS`. Core and joint models are Phase 2 by default: every modifier their components
+    allow (`applicable_modifiers`); pass modifiers=() for the Phase-1 model (e.g. the
+    Eftedal-vs-revised comparison of the Additive model)."""
     extra = {}
     if model in CORE_MODELS:
         comps, base = CORE_MODELS[model]
+        extra = dict(modifiers=applicable_modifiers(comps))
         if base is not None:
-            extra = dict(sequential_base=base, sequential_carry=SEQUENTIAL_CARRY)
+            extra.update(sequential_base=base, sequential_carry=SEQUENTIAL_CARRY)
     elif model in JOINT_MODELS:
         comps = JOINT_MODELS[model]
+        extra = dict(modifiers=applicable_modifiers(comps))
     elif model in PHASE2_MODELS:
         comps, mods = PHASE2_MODELS[model]
         extra = dict(modifiers=mods)

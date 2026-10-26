@@ -9,7 +9,7 @@ import pandas as pd
 from scipy.optimize import minimize
 
 from . import components as C
-from .model import FitSpec, Model, PARAM_ORDER
+from .model import FitSpec, Model, PARAM_ORDER, applicable_modifiers
 
 
 @dataclass
@@ -68,10 +68,11 @@ class FitResult:
 
 def additive_split(model: Model, p: dict, comp_A: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Split the additive contribution `comp_A`: what V_A0 = V_A (1 - m) would give under random
-    mating (V_A0 * a_k, a_k = (1/2)^n; 0 for in-laws and adoptees), and the excess due to AM."""
+    mating (V_A0 * a_k, a_k = (1/2)^n; 0 for in-laws and adoptees), and the excess due to AM (with
+    the X-linked adjustment, if any). Phase 2: both parts carry the opposite-sex multiplier rho_g."""
     a_rm, _ = C.genetic_kernels(model.kd, 0.0, 0.0, stepsib=model.spec.stepsib, uz=model.spec.uz,
                                 mz_frac=model.spec.mz_frac)
-    part_A0 = random_mating_VA(p) * a_rm
+    part_A0 = random_mating_VA(p) * a_rm * model.genetic_multipliers(p)[0]
     return part_A0, comp_A - part_A0
 
 
@@ -79,9 +80,11 @@ def family_split(model: Model, p: dict) -> tuple[np.ndarray, np.ndarray]:
     """Split the familial contribution V_fam r_f^f by reading the exponential kernel as nested
     environment layers, each shared by all pairs up to some family degree, cut at degree 1:
     sib-specific V_fam max(r_f^f - r_f, 0) (only pairs with f < 1, e.g. sibs, twins, adoptive sibs,
-    partly half-sibs) and extended V_fam r_f^max(f, 1). They sum to V_fam r_f^f."""
+    partly half-sibs) and extended V_fam r_f^max(f, 1). They sum to V_fam r_f^f. Phase 2: both
+    parts carry the pair's familial multiplier (opposite sex, family side)."""
     V, r, f = p["V_family"], p["r_f"], model.f
-    return V * np.maximum(r ** f - r, 0.0), V * r ** np.maximum(f, 1.0)
+    mult = model.family_multiplier(p)
+    return V * np.maximum(r ** f - r, 0.0) * mult, V * r ** np.maximum(f, 1.0) * mult
 
 
 def component_decay(data: pd.DataFrame, spec: FitSpec, params: dict) -> pd.DataFrame:
@@ -288,7 +291,12 @@ def _fit_sequential(data, spec: FitSpec, **kw) -> FitResult:
     spec so that refits (bootstrap, jackknife, CV) redo both stages. Its `model` is the stage-2
     model, so Wald/sandwich covariances are conditional on stage 1."""
     starts = kw.pop("starts", None)
-    base = fit(data, spec.with_(components=spec.sequential_base, sequential_base=None), **kw)
+    # Phase-2 modifiers are estimated in the stage where their first component enters (sex_g with
+    # the genetic base; sex_e / side with the familial environment) and then carried like every
+    # other stage-1 parameter: stage 1 is exactly the Phase-2 model of the base components
+    base_mods = tuple(m for m in spec.modifiers if m in applicable_modifiers(spec.sequential_base))
+    base = fit(data, spec.with_(components=spec.sequential_base, sequential_base=None,
+                                modifiers=base_mods), **kw)
     names = base.free if tuple(spec.sequential_carry) == ("all",) else spec.sequential_carry
     carried = tuple((p, float(base.params[p])) for p in names if p in base.params)
     stage2 = spec.with_(sequential_base=None, fixed=spec.fixed + carried)

@@ -68,7 +68,7 @@ def additive_rows(df, n_starts):
     rows, preds = [], []
     for cohort in ("ALL", "ALL_but_adopted_UZ"):
         for name, w, kw in VARIANTS:
-            res = fit(df, main_spec("A", w, cohort=cohort, **kw), n_starts=n_starts)
+            res = fit(df, main_spec("A", modifiers=(), w, cohort=cohort, **kw), n_starts=n_starts)
             tag = dict(variant=name, weighting=w, cohort_name=cohort)
             rows.append(_row(res, fit_id=len(rows), **tag))
             preds.append(_preds(res, len(rows) - 1, **tag))
@@ -83,7 +83,7 @@ def contrast(df, n_starts, phenotype="MRE8"):
     rows = []
     for name, w, kw, c_bio, c_all in CONTRAST_SETTINGS:
         for part, cohort in (("bio only", c_bio), ("bio + in-law", c_all)):
-            res = fit(df, main_spec("A", w, cohort=cohort, **kw), n_starts=n_starts)
+            res = fit(df, main_spec("A", modifiers=(), w, cohort=cohort, **kw), n_starts=n_starts)
             rows.append(_row(res, setting=name, weighting=w, part=part, cohort_name=cohort,
                              phenotype=phenotype))
     return pd.DataFrame(rows)

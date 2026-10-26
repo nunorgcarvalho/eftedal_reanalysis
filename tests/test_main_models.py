@@ -25,13 +25,15 @@ def test_two_step_freezes_the_additive_part(df):
     s = fit(df, main_spec("A>GxG+F", "invvar"), n_starts=2)  # a2 kernel (MAIN)
     for p in ("V_A", "r", "m"):
         assert s.params[p] == pytest.approx(a.params[p])
-    assert set(s.free) == {"V_GxG", "V_family", "r_f"}
+    # Phase 2: rho_g is estimated with A in stage 1 and carried; the familial modifiers enter with F
+    assert s.params["rho_g"] == pytest.approx(a.params["rho_g"])
+    assert set(s.free) == {"V_GxG", "V_family", "r_f", "rho_e", "k_side"}
     assert s.summary()["V_sum"] == pytest.approx(s.params["V_A"] + s.params["V_GxG"] + s.params["V_family"])
     # step 1 = A + F: V_A, V_family, r_f and r frozen; only V_GxG is fitted in step 2
     af = fit(df, main_spec("A+F", "invvar"), n_starts=2)
     t = fit(df, main_spec("A+F>GxG", "invvar"), n_starts=2)
     assert t.free == ["V_GxG"]
-    for p in ("V_A", "V_family", "r_f", "r"):
+    for p in ("V_A", "V_family", "r_f", "r", "rho_g", "rho_e", "k_side"):
         assert t.params[p] == pytest.approx(af.params[p])
 
 
@@ -202,11 +204,11 @@ def test_family_split(df):
     np.testing.assert_allclose(p.part_fam_sib + p.part_fam_ext, p.comp_family)
     f = Model(df, main_spec("A+GxG+F")).f
     np.testing.assert_allclose(p.part_fam_sib[f >= 1], 0)     # only pairs closer than degree 1
-    sib = (p.rel == "sibs").idxmax()
+    sib = ((p.rel == "sibs") & (p.sex != "os")).idxmax()     # multiplier 1: same sex, side 'other'
     assert p.part_fam_sib[sib] == pytest.approx(s["V_fam_sib"])
     assert p.part_fam_ext[sib] == pytest.approx(s["V_fam_ext"])
     # r_f = 0: everything sib-specific
-    e = Model(df, main_spec("A+F"))
+    e = Model(df, main_spec("A+F", modifiers=()))
     from eftedal.fit import family_split
     sib0, ext0 = family_split(e, {"V_family": 0.2, "r_f": 0.0})
     np.testing.assert_allclose(ext0, 0); np.testing.assert_allclose(sib0, 0.2 * (e.f == 0))
@@ -215,19 +217,22 @@ def test_family_split(df):
 def test_phase2_reduces_to_phase1(df):
     """Phase-2 modifiers at their null values reproduce Phase 1 exactly."""
     from eftedal.model import PHASE2_MODELS
-    p1 = fit(df, main_spec("A+GxG+F", "invvar"), n_starts=2)
-    full = main_spec("A+GxG+F | sex_g+sex_e+side", "invvar")
+    p1 = fit(df, main_spec("A+GxG+F", "invvar", modifiers=()), n_starts=2)
+    full = main_spec("A+GxG+F", "invvar")
     assert set(full.modifiers) == {"sex_g", "sex_e", "side"}
     null = dict(p1.params, rho_g=1.0, rho_e=1.0, k_side=0.0)
     np.testing.assert_allclose(Model(df, full).predict(null), p1.pred)
     # fixing the multipliers at 1 gives the Phase-1 fit
     r = fit(df, full.with_(fixed=(("rho_g", 1.0), ("rho_e", 1.0), ("k_side", 0.0))), n_starts=2)
     assert r.loss == pytest.approx(p1.loss, rel=1e-6)
-    assert all(name.split(" | ")[0] in ("A", "A+GxG", "A+F", "A+GxG+F") for name in PHASE2_MODELS)
+    assert all(name.startswith("A+GxG+F | ") for name in PHASE2_MODELS)
+    assert main_spec("A+GxG+F | none").modifiers == ()
+    # Phase 2 is the default for the core set; the Additive model of the corrections stays Phase 1
+    assert main_spec("A").modifiers == ("sex_g",) and main_spec("A", modifiers=()).modifiers == ()
 
 
 def test_phase2_multipliers_act_where_they_should(df):
-    spec = main_spec("A+GxG+F | sex_g+sex_e+side", "invvar")
+    spec = main_spec("A+GxG+F", "invvar")
     m = Model(df, spec)
     base = dict(V_A=0.4, V_GxG=0.2, V_family=0.15, r_f=0.5, r=0.5, m=0.2, rho_g=1.0, rho_e=1.0, k_side=0.0)
     c0 = m.components(base)
@@ -266,6 +271,15 @@ def test_x_kernel(df):
     assert pick("1st cousins", "maternal", "ssm") == pytest.approx(0.5 - 1 / 8, abs=1e-5)
     # x_share = 0 is Phase 1; x_share > 0 moves only the additive part
     p = dict(V_A=0.5, r=0.4, m=0.2)
-    a = Model(df, main_spec("A", "invvar")).predict(p)
-    b = Model(df, main_spec("A", "invvar", x_share=0.02)).predict(p)
+    a = Model(df, main_spec("A", "invvar", modifiers=())).predict(p)
+    b = Model(df, main_spec("A", "invvar", modifiers=(), x_share=0.02)).predict(p)
     np.testing.assert_allclose(b - a, 0.5 * 0.02 * C.x_kernel_adjustment(grid, 0.2), atol=1e-12)
+
+
+def test_phase2_splits_add_up(df):
+    """With the multipliers away from 1, the additive and familial splits still add up."""
+    r = fit(df, main_spec("A+GxG+F", "invvar"), n_starts=2)
+    p = r.predictions()
+    np.testing.assert_allclose(p.part_A0 + p.part_A_AM, p.comp_A)
+    np.testing.assert_allclose(p.part_fam_sib + p.part_fam_ext, p.comp_family)
+    np.testing.assert_allclose(p.comp_A + p.comp_GxG + p.comp_family, p.pred)

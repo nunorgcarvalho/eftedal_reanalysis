@@ -20,7 +20,8 @@ from eftedal.inference import parametric_bootstrap, percentile_table
 from eftedal.model import CORE_MODELS
 from eftedal.presets import MAIN_WEIGHTINGS, main_spec
 
-PARAMS = ["V_A", "V_GxG", "V_house", "V_family", "V_sum", "V_A0", "V_fam_sib", "V_fam_ext", "pi", "r_f", "m", "r"]
+PARAMS = ["V_A", "V_GxG", "V_house", "V_family", "V_sum", "V_A0", "V_fam_sib", "V_fam_ext", "pi", "r_f", "m", "r",
+          "rho_g", "rho_e", "k_side"]
 
 
 def main(out: Path, n_boot: int, n_starts: int):

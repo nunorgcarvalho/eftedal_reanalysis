@@ -23,7 +23,7 @@ def main(out: Path, n_starts: int):
     out.mkdir(parents=True, exist_ok=True)
     df = D.load("MRE8")
     key, label, _, cohort, kw = next(r for r in corr.INLAW if r[0] == "eftedal")
-    res = fit(df, main_spec("A", cohort=cohort, **kw), n_starts=n_starts)
+    res = fit(df, main_spec("A", modifiers=(), cohort=cohort, **kw), n_starts=n_starts)
     print(label, {k: round(v, 4) for k, v in res.params.items()})
     res.predictions().assign(model=label, cohort=cohort).to_csv(out / "eftedal_predictions.csv", index=False)
 

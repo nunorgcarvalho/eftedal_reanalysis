@@ -29,12 +29,13 @@ SETS = {"core": (list(CORE_MODELS), {}),
         "joint": (list(JOINT_MODELS), {}),
         # supplement: the earlier GxG kernel, square of the assortative-mating kernel
         "core_am2": (list(CORE_MODELS), {"gxg_kernel": "am2"}),
-        # Phase 2: sex-composition and family-side multipliers (not run by default)
-        "phase2": (list(PHASE2_MODELS), {}),
+        # Phase 1 (no sex / side modifiers), for comparison
+        "core_p1": (list(CORE_MODELS), {"modifiers": ()}),
+        # Phase-2 variants: A+GxG+F with subsets of the modifiers
+        "variants": (list(PHASE2_MODELS), {}),
         # sensitivity: X-linked kernel at the theory task's recommended s_X = 0.02
-        "core_x": (list(CORE_MODELS), {"x_share": 0.02}),
-        "phase2_x": (list(PHASE2_MODELS), {"x_share": 0.02})}
-DEFAULT_SETS = ["core", "joint", "core_am2"]
+        "core_x": (list(CORE_MODELS), {"x_share": 0.02})}
+DEFAULT_SETS = ["core", "joint", "core_am2", "core_p1", "variants", "core_x"]
 PARAMS = ["V_A", "V_GxG", "V_house", "V_family", "V_sum", "V_A0", "V_fam_sib", "V_fam_ext", "pi", "r_f", "m", "r",
           "rho_g", "rho_e", "k_side"]
 

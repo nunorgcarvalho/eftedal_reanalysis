@@ -294,7 +294,7 @@ plot_component_decay <- function(dec, title = NULL, subtitle = NULL) {
 # (colour = block left out; blue ramp = biological, orange ramp = non-biological, darker = closer) and
 # the full-data estimate (black cross); axes zoomed on the refits. Upper triangle: the jackknife
 # correlation r. Diagonal: the estimate and its Marginal Type CI.
-PAIR_PARAMS <- c("V_A", "m", "V_GxG", "V_family", "r_f")
+PAIR_PARAMS <- c("V_A", "m", "V_GxG", "V_family", "r_f", "rho_g", "rho_e", "k_side")
 
 pairs_grid_px <- function(k) max(420 * k + 300, 1900)   # side of the k x k grid, in pixels at 300 dpi
 
@@ -492,7 +492,7 @@ if (has("models", "core_predictions.csv")) {
     for (wt in c("hybrid_block")) {   # Marginal Type only (user request)
       for (mod in CORE_ORDER) {
         ttl <- paste0(show_model(mod), " (", WEIGHT_LABELS[[wt]], ")")
-        sub <- fmt_par(cf %>% filter(model == !!mod, weights == !!wt), c("V_A", "V_A0", "V_GxG", "V_family", "V_fam_ext", "V_fam_sib", "r_f", "m", "r"))
+        sub <- fmt_par(cf %>% filter(model == !!mod, weights == !!wt), c("V_A", "V_A0", "V_GxG", "V_family", "V_fam_ext", "V_fam_sib", "r_f", "m", "r", "rho_g", "rho_e", "k_side"))
         save_fig(plot_condensed_components(cpp %>% filter(model == !!mod, weights == !!wt), title = ttl) +
                    labs(subtitle = parse(text = sub)),
                  sprintf("m3d_condensedcomp_%s_%s", gsub("\\+", "", gsub(">", "_to_", mod)), wt), width = 2600, height = 1500)
@@ -763,21 +763,19 @@ if (has("models", "core_param_corr.csv")) {
   }
 }
 
-# ---- P2. Phase 2: sex-composition and family-side multipliers (03_models.py --sets phase2) --------
-P2_ORDER <- c("A | sex_g", "A+GxG | sex_g", "A+F | sex_g+sex_e+side", "A+GxG+F | sex_g", "A+GxG+F | sex_e",
-              "A+GxG+F | side", "A+GxG+F | sex_g+sex_e", "A+GxG+F | sex_g+sex_e+side")
+# ---- P2. Phase 2 vs Phase 1: sex-composition and family-side multipliers ------------------------------
+# The core set is Phase 2 (every modifier its components allow); core_p1 is the same set without them.
 P2_BASE <- c("A", "A+GxG", "A+F", "A+GxG+F")
-P2_FULL <- c(A = "A | sex_g", `A+GxG` = "A+GxG | sex_g", `A+F` = "A+F | sex_g+sex_e+side",
-             `A+GxG+F` = "A+GxG+F | sex_g+sex_e+side")
+P2_VARIANTS <- c("A+GxG+F | none", "A+GxG+F | sex_g", "A+GxG+F | sex_e", "A+GxG+F | side",
+                 "A+GxG+F | sex_g+sex_e", "A+GxG+F | sex_e+side")
 show_p2 <- function(x) gsub(" \\| ", "\n× ", show_model(x))
 MULT_LABELS <- c(rho_g = "ρ_g: opposite-sex genetic covariance",
                  rho_e = "ρ_e: opposite-sex familial environment",
                  k_side = "κ_side: maternal (1 + κ) vs paternal (1 − κ)")
-if (has("models", "phase2_jackknife.csv")) {
-  pj <- rd("models", "phase2_jackknife.csv")
-  # multipliers (1 = no difference), Marginal Type jackknife CIs (t_9)
-  d <- pj %>% filter(param %in% names(MULT_LABELS)) %>%
-    mutate(model = factor(model, rev(P2_ORDER)), param = factor(MULT_LABELS[param], MULT_LABELS),
+if (has("models", "core_jackknife.csv")) {
+  cj <- rd("models", "core_jackknife.csv")
+  d <- cj %>% filter(param %in% names(MULT_LABELS)) %>%
+    mutate(model = factor(model, rev(CORE_ORDER)), param = factor(MULT_LABELS[param], MULT_LABELS),
            weights = factor(WEIGHT_LABELS[weights], WEIGHT_LABELS[c("invvar", "hybrid_block")]))
   g <- ggplot(d, aes(x = estimate, y = model, color = weights)) +
     geom_vline(data = tibble(param = factor(MULT_LABELS, MULT_LABELS), x0 = c(1, 1, 0)),
@@ -786,67 +784,67 @@ if (has("models", "phase2_jackknife.csv")) {
                   position = position_dodge(width = 0.55), orientation = "y") +
     geom_point(size = 2.2, position = position_dodge(width = 0.55)) +
     facet_wrap(~param, nrow = 1, scales = "free_x") +
-    scale_y_discrete(labels = function(x) gsub(" \\| ", " × ", show_model(x))) +
+    scale_y_discrete(labels = show_model) +
     scale_color_manual(values = c("Marginal Pair" = "#0072B2", "Marginal Type" = "#D55E00"), name = NULL) +
-    labs(x = "Multiplier (1 = no sex difference; κ = 0: no side difference)", y = NULL,
-         title = "Phase 2: sex-composition and family-side multipliers",
-         subtitle = "95% jackknife intervals (t₉) over the 10 relationship blocks") +
+    labs(x = "Estimate (1 = no sex difference; κ = 0: no side difference)", y = NULL,
+         title = "Core models (Phase 2): sex-composition and family-side multipliers",
+         subtitle = "95% jackknife intervals (t₉). Two-step models estimate each multiplier in the step where its component enters") +
     theme_bw() + theme(legend.position = "bottom")
-  save_fig(g, "p2_multipliers", width = 3900, height = 1500)
-  save_fig(stacked_components(pj, P2_ORDER, "Phase 2 models: variance components") +
-             scale_x_continuous(breaks = seq_along(P2_ORDER), labels = show_p2(P2_ORDER)),
-           "p2_components", width = 3000, height = 2300)
-  # Phase 1 vs Phase 2 (every applicable multiplier) for the four base models
-  if (has("models", "core_jackknife.csv")) {
-    THETA <- c(V_A = "V_A", V_GxG = "V_GxG", V_family = "V_fam", r_f = "r_f", m = "m")
-    both <- bind_rows(rd("models", "core_jackknife.csv") %>% filter(model %in% P2_BASE) %>% mutate(phase = "Phase 1"),
-                      pj %>% filter(model %in% P2_FULL) %>% mutate(model = names(P2_FULL)[match(model, P2_FULL)],
-                                                                    phase = "Phase 2 (all multipliers)")) %>%
-      filter(param %in% names(THETA)) %>%
-      mutate(param = factor(THETA[param], THETA), model = factor(model, rev(P2_BASE)),
-             weights = factor(WEIGHT_LABELS[weights], WEIGHT_LABELS[c("invvar", "hybrid_block")]))
-    g <- ggplot(both, aes(x = estimate, y = model, color = phase)) +
-      geom_errorbar(aes(xmin = pmax(lo, -0.2), xmax = pmin(hi, 1.2)), width = 0, linewidth = 0.8,
-                    position = position_dodge(width = 0.55), orientation = "y") +
-      geom_point(size = 2.2, position = position_dodge(width = 0.55)) +
-      facet_grid(weights ~ param, scales = "free_x") +
-      scale_y_discrete(labels = show_model) +
-      scale_color_manual(values = c("Phase 1" = "grey35", "Phase 2 (all multipliers)" = "#D55E00"), name = NULL) +
-      labs(x = "Estimate (95% jackknife interval, t₉; clipped to [-0.2, 1.2])", y = NULL,
-           title = "Do the sex / side multipliers move the main parameters?") +
-      theme_bw() + theme(legend.position = "bottom")
-    save_fig(g, "p2_theta_phase1_vs_phase2", width = 3900, height = 1900)
-  }
+  save_fig(g, "p2_multipliers", width = 3900, height = 1700)
 }
-# within-type vs between-type misfit (1/SE^2 chi^2): Phase-1 base models vs Phase 2. Within-type
-# misfit = chi^2 minus the between-type part, sum_t W_t (pooled obs_t - pooled pred_t)^2.
-if (has("models", "phase2_predictions.csv") && has("models", "core_predictions.csv")) {
+# Phase 1 vs Phase 2 for every core model
+if (has("models", "core_jackknife.csv") && has("models", "core_p1_jackknife.csv")) {
+  THETA <- c(V_A = "V_A", V_GxG = "V_GxG", V_family = "V_C", r_f = "c", m = "m")
+  both <- bind_rows(rd("models", "core_p1_jackknife.csv") %>% mutate(phase = "Phase 1"),
+                    rd("models", "core_jackknife.csv") %>% mutate(phase = "Phase 2")) %>%
+    filter(param %in% names(THETA)) %>%
+    mutate(param = factor(THETA[param], THETA), model = factor(model, rev(CORE_ORDER)),
+           weights = factor(WEIGHT_LABELS[weights], WEIGHT_LABELS[c("invvar", "hybrid_block")]))
+  g <- ggplot(both, aes(x = estimate, y = model, color = phase)) +
+    geom_errorbar(aes(xmin = pmax(lo, -0.2), xmax = pmin(hi, 1.2)), width = 0, linewidth = 0.7,
+                  position = position_dodge(width = 0.6), orientation = "y") +
+    geom_point(size = 1.9, position = position_dodge(width = 0.6)) +
+    facet_grid(weights ~ param, scales = "free_x") +
+    scale_y_discrete(labels = show_model) +
+    scale_color_manual(values = c("Phase 1" = "grey35", "Phase 2" = "#D55E00"), name = NULL) +
+    labs(x = "Estimate (95% jackknife interval, t₉; clipped to [-0.2, 1.2])", y = NULL,
+         title = "Do the sex / side multipliers move the main parameters?") +
+    theme_bw() + theme(legend.position = "bottom")
+  save_fig(g, "p2_theta_phase1_vs_phase2", width = 3900, height = 2600)
+}
+# within-type vs between-type misfit (1/SE^2 chi^2). Within-type misfit = chi^2 minus the
+# between-type part, sum_t W_t (pooled obs_t - pooled pred_t)^2.
+if (has("models", "core_predictions.csv") && has("models", "core_p1_predictions.csv")) {
   misfit <- function(p) p %>% filter(in_loss) %>% mutate(w = 1 / se^2) %>%
     group_by(weights, model, rel) %>%
     summarize(tot = sum(w * (corr - pred)^2), W = sum(w), ob = sum(w * corr) / W, pb = sum(w * pred) / W,
               .groups = "drop") %>%
     group_by(weights, model) %>%
     summarize(between = sum(W * (ob - pb)^2), within = sum(tot) - between, .groups = "drop")
-  mf <- bind_rows(misfit(rd("models", "core_predictions.csv") %>% filter(model %in% P2_BASE)),
-                  misfit(rd("models", "phase2_predictions.csv"))) %>%
+  lv <- c(paste(P2_BASE, "(Phase 1)"), paste(P2_BASE, "(Phase 2)"), P2_VARIANTS[-1])
+  mf <- bind_rows(misfit(rd("models", "core_p1_predictions.csv") %>% filter(model %in% P2_BASE)) %>%
+                    mutate(model = paste(model, "(Phase 1)")),
+                  misfit(rd("models", "core_predictions.csv") %>% filter(model %in% P2_BASE)) %>%
+                    mutate(model = paste(model, "(Phase 2)")),
+                  if (has("models", "variants_predictions.csv"))
+                    misfit(rd("models", "variants_predictions.csv") %>% filter(model %in% P2_VARIANTS[-1]))) %>%
     pivot_longer(c(between, within), names_to = "part", values_to = "chi2") %>%
-    mutate(model = factor(model, c(P2_BASE, P2_ORDER)),
+    mutate(model = factor(model, lv),
            part = factor(part, c("between", "within"), c("between types (kernel shape)", "within types (sex / side)")),
            weights = factor(weights, c("invvar", "hybrid_block")))
   g <- ggplot(mf, aes(x = model, y = chi2, fill = part)) +
     geom_col(width = 0.7) +
     geom_text(data = mf %>% filter(part == "within types (sex / side)"),
               aes(label = round(chi2)), position = position_stack(vjust = 0.5), size = 2.8, color = "white") +
-    geom_vline(xintercept = length(P2_BASE) + 0.5, linetype = "dashed", color = "grey50") +
+    geom_vline(xintercept = c(4.5, 8.5), linetype = "dashed", color = "grey50") +
     facet_wrap(~weights, ncol = 1, labeller = as_labeller(WEIGHT_LABELS), scales = "free_y") +
-    scale_x_discrete(labels = show_p2) +
+    scale_x_discrete(labels = function(x) gsub(" \\(", "\n(", show_p2(x))) +
     scale_fill_manual(values = c("between types (kernel shape)" = "grey60", "within types (sex / side)" = "#D55E00"), name = NULL) +
     labs(x = NULL, y = "χ² (1/SE² weights)", title = "Misfit within vs between relationship types",
-         subtitle = "Left of the dashed line: Phase-1 base models (within-type misfit is the same for all). Right: Phase 2") +
-    theme_bw() + theme(legend.position = "bottom", axis.text.x = element_text(size = 7.5))
-  save_fig(g, "p2_misfit_within_between", width = 3600, height = 2200)
+         subtitle = "Phase 1 (within-type misfit is the same for all), Phase 2, and A+GxG+C with subsets of the multipliers") +
+    theme_bw() + theme(legend.position = "bottom", axis.text.x = element_text(size = 7))
+  save_fig(g, "p2_misfit_within_between", width = 3900, height = 2300)
 }
-
 cat("figures written to", FIGURES, "\n")
 
 # provenance stamp (see src/eftedal/provenance.py): which commit produced these figures
