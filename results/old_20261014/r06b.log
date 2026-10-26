@@ -1,0 +1,6 @@
+hybrid_block A+GxG
+hybrid_block A+F
+hybrid_block A+GxG+F
+invvar A+GxG
+invvar A+F
+invvar A+GxG+F

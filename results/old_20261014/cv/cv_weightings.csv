@@ -1,0 +1,17 @@
+model,weights,best,mean_diff,se_diff,folds_worse,n_folds
+A,invvar,invvar,0.0,0.0,0,10
+A,hybrid_block,invvar,0.000593619221290576,0.0005239392646360005,3,10
+A+F,invvar,invvar,0.0,0.0,0,10
+A+F,hybrid_block,invvar,0.0002729010585658401,0.0005772251905692132,4,10
+A+GxG,hybrid_block,hybrid_block,0.0,0.0,0,10
+A+GxG,invvar,hybrid_block,0.0002666316591354101,0.00028024337082010775,6,10
+A+GxG+F,hybrid_block,hybrid_block,0.0,0.0,0,10
+A+GxG+F,invvar,hybrid_block,0.0006907354026122205,0.00034104564708703386,7,10
+A+GxG+H,invvar,invvar,0.0,0.0,0,10
+A+GxG+H,hybrid_block,invvar,0.0023870889812241,0.001214143106297209,8,10
+A+GxG+H+F,hybrid_block,hybrid_block,0.0,0.0,0,10
+A+GxG+H+F,invvar,hybrid_block,0.0007940622749725623,0.00028263379246522724,8,10
+A+H,invvar,invvar,0.0,0.0,0,10
+A+H,hybrid_block,invvar,0.0028698567727757657,0.0012831803496049904,8,10
+A+H+F,invvar,invvar,0.0,0.0,0,10
+A+H+F,hybrid_block,invvar,0.0007047336050974601,0.0007209385575242334,5,10

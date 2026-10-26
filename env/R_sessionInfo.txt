@@ -1,0 +1,40 @@
+R version 4.4.2 (2024-10-31)
+Platform: x86_64-pc-linux-gnu
+Running under: Red Hat Enterprise Linux 9.8 (Plow)
+
+Matrix products: default
+BLAS:   /n/app/R/4.4.2-gcc-14.2.0/lib64/R/lib/libRblas.so 
+LAPACK: /n/app/R/4.4.2-gcc-14.2.0/lib64/R/lib/libRlapack.so;  LAPACK version 3.12.0
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: America/New_York
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] cowplot_1.2.0     scales_1.4.0      ggrepel_0.9.8     ggnewscale_0.5.2 
+ [5] data.table_1.17.8 lubridate_1.9.4   forcats_1.0.1     stringr_1.6.0    
+ [9] dplyr_1.1.4       purrr_1.2.0       readr_2.1.5       tidyr_1.3.1      
+[13] tibble_3.3.0      ggplot2_4.0.3     tidyverse_2.0.0  
+
+loaded via a namespace (and not attached):
+ [1] gtable_0.3.6        compiler_4.4.2      tidyselect_1.2.1   
+ [4] Rcpp_1.1.1          parallel_4.4.2      RhpcBLASctl_0.23-42
+ [7] R6_2.6.1            generics_0.1.4      iterators_1.0.14   
+[10] bigparallelr_0.3.2  flock_0.7           bigassertr_0.1.7   
+[13] pillar_1.11.1       RColorBrewer_1.1-3  tzdb_0.5.0         
+[16] rlang_1.1.6         stringi_1.8.7       S7_0.2.0           
+[19] doParallel_1.0.17   timechange_0.3.0    cli_3.6.5          
+[22] withr_3.0.2         magrittr_2.0.4      foreach_1.5.2      
+[25] grid_4.4.2          hms_1.1.4           lifecycle_1.0.4    
+[28] vctrs_0.6.5         glue_1.8.0          farver_2.1.2       
+[31] codetools_0.2-20    tools_4.4.2         pkgconfig_2.0.3    

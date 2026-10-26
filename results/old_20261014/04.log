@@ -1,0 +1,10 @@
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal done
+M01|ALL_but_adopted_UZ|log-invvar|free|eftedal done
+M01|ALL_but_adopted_UZ|lin-invvar|free|eftedal done
+M01|ALL_but_adopted_UZ|log-invvar|equilibrium|corrected done
+M01|ALL|lin-hybrid|free|eftedal done
+M02|ALL|lin-hybrid|free|eftedal done
+M04b|ALL|lin-hybrid|free|eftedal done
+M02|ALL|lin-invvar|equilibrium|corrected done
+M04b|ALL|lin-invvar|equilibrium|corrected done
+M05b|ALL|lin-invvar|equilibrium|corrected done

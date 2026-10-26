@@ -1,0 +1,61 @@
+spec,weights,factor,method,param,estimate,se
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,as used,1.0,hessian_rss,V_A,0.5001245183566638,0.0004522382321137556
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,as used,1.0,hessian_rss,m,0.4319680781136689,0.0002581418212043511
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,as used,1.0,hessian_rss,r,0.31283908189583587,0.009372787144398513
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,as used,1.0,sandwich,V_A,0.5001245183566638,0.004022660967112667
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,as used,1.0,sandwich,m,0.4319680781136689,0.0033551188908242735
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,as used,1.0,sandwich,r,0.31283908189583587,0.09016262666031803
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,sum to 1,2.9486425830585483e-07,hessian_rss,V_A,0.5001245183566638,0.8328297094071297
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,sum to 1,2.9486425830585483e-07,hessian_rss,m,0.4319680781136689,0.47538700272789713
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,sum to 1,2.9486425830585483e-07,hessian_rss,r,0.31283908189583587,17.260672193324247
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,sum to 1,2.9486425830585483e-07,sandwich,V_A,0.5001245183566638,0.004022660987679784
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,sum to 1,2.9486425830585483e-07,sandwich,m,0.4319680781136689,0.0033551188938848123
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,sum to 1,2.9486425830585483e-07,sandwich,r,0.31283908189583587,0.09016263366918835
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,mean 1,2.4178869181080098e-05,hessian_rss,V_A,0.5001245183566638,0.09197065583239779
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,mean 1,2.4178869181080098e-05,hessian_rss,m,0.4319680781136689,0.052497712204986065
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,mean 1,2.4178869181080098e-05,hessian_rss,r,0.31283908189583587,1.9061223886773886
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,mean 1,2.4178869181080098e-05,sandwich,V_A,0.5001245183566638,0.004022660992438567
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,mean 1,2.4178869181080098e-05,sandwich,m,0.4319680781136689,0.003355118894288481
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,mean 1,2.4178869181080098e-05,sandwich,r,0.31283908189583587,0.0901626353098501
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,x1e6,1000000.0,hessian_rss,V_A,0.5001245183566638,4.522382321054758e-07
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,x1e6,1000000.0,hessian_rss,m,0.4319680781136689,2.581418211746698e-07
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,x1e6,1000000.0,hessian_rss,r,0.31283908189583587,9.372787291842438e-06
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,x1e6,1000000.0,sandwich,V_A,0.5001245183566638,0.0040226609668298574
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,x1e6,1000000.0,sandwich,m,0.4319680781136689,0.0033551188900490243
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,x1e6,1000000.0,sandwich,r,0.31283908189583587,0.0901626295094964
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,x1e-6,1e-06,hessian_rss,V_A,0.5001245183566638,0.452238232765664
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,x1e-6,1e-06,hessian_rss,m,0.4319680781136689,0.25814182137270136
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,x1e-6,1e-06,hessian_rss,r,0.31283908189583587,9.372787385284322
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,x1e-6,1e-06,sandwich,V_A,0.5001245183566638,0.004022660977516724
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,x1e-6,1e-06,sandwich,m,0.4319680781136689,0.003355118891110906
+M01|ALL_but_adopted_UZ|log-invSqErr|free|eftedal,x1e-6,1e-06,sandwich,r,0.31283908189583587,0.0901626312864875
+M01|ALL|lin-hybrid|free|eftedal,as used,1.0,hessian_rss,V_A,0.8238963316554352,0.547825850060649
+M01|ALL|lin-hybrid|free|eftedal,as used,1.0,hessian_rss,m,0.23559189969595679,0.8537251023096168
+M01|ALL|lin-hybrid|free|eftedal,as used,1.0,hessian_rss,r,1.2337840449836442e-16,16.100003531175997
+M01|ALL|lin-hybrid|free|eftedal,as used,1.0,sandwich,V_A,0.8238963316554352,0.011781437060958633
+M01|ALL|lin-hybrid|free|eftedal,as used,1.0,sandwich,m,0.23559189969595679,0.014255311477805606
+M01|ALL|lin-hybrid|free|eftedal,as used,1.0,sandwich,r,1.2337840449836442e-16,0.14773795502160209
+M01|ALL|lin-hybrid|free|eftedal,sum to 1,0.0625,hessian_rss,V_A,0.8238963316554352,2.191303400242596
+M01|ALL|lin-hybrid|free|eftedal,sum to 1,0.0625,hessian_rss,m,0.23559189969595679,3.4149004092384674
+M01|ALL|lin-hybrid|free|eftedal,sum to 1,0.0625,hessian_rss,r,1.2337840449836442e-16,64.40001412470399
+M01|ALL|lin-hybrid|free|eftedal,sum to 1,0.0625,sandwich,V_A,0.8238963316554352,0.011781437060958633
+M01|ALL|lin-hybrid|free|eftedal,sum to 1,0.0625,sandwich,m,0.23559189969595679,0.014255311477805606
+M01|ALL|lin-hybrid|free|eftedal,sum to 1,0.0625,sandwich,r,1.2337840449836442e-16,0.14773795502160209
+M01|ALL|lin-hybrid|free|eftedal,mean 1,5.125,hessian_rss,V_A,0.8238963316554352,0.24198897847027695
+M01|ALL|lin-hybrid|free|eftedal,mean 1,5.125,hessian_rss,m,0.23559189969595679,0.3771126597556835
+M01|ALL|lin-hybrid|free|eftedal,mean 1,5.125,hessian_rss,r,1.2337840449836442e-16,7.111791507222397
+M01|ALL|lin-hybrid|free|eftedal,mean 1,5.125,sandwich,V_A,0.8238963316554352,0.011781437049175768
+M01|ALL|lin-hybrid|free|eftedal,mean 1,5.125,sandwich,m,0.23559189969595679,0.014255311247975105
+M01|ALL|lin-hybrid|free|eftedal,mean 1,5.125,sandwich,r,1.2337840449836442e-16,0.1477379414923999
+M01|ALL|lin-hybrid|free|eftedal,x1e6,1000000.0,hessian_rss,V_A,0.8238963316554352,0.0005478258497127678
+M01|ALL|lin-hybrid|free|eftedal,x1e6,1000000.0,hessian_rss,m,0.23559189969595679,0.0008537250914159294
+M01|ALL|lin-hybrid|free|eftedal,x1e6,1000000.0,hessian_rss,r,1.2337840449836442e-16,0.016100002602855743
+M01|ALL|lin-hybrid|free|eftedal,x1e6,1000000.0,sandwich,V_A,0.8238963316554352,0.011781437044736326
+M01|ALL|lin-hybrid|free|eftedal,x1e6,1000000.0,sandwich,m,0.23559189969595679,0.014255311185550033
+M01|ALL|lin-hybrid|free|eftedal,x1e6,1000000.0,sandwich,r,1.2337840449836442e-16,0.14773793822263662
+M01|ALL|lin-hybrid|free|eftedal,x1e-6,1e-06,hessian_rss,V_A,0.8238963316554352,547.8258499335775
+M01|ALL|lin-hybrid|free|eftedal,x1e-6,1e-06,hessian_rss,m,0.23559189969595679,853.7250974020076
+M01|ALL|lin-hybrid|free|eftedal,x1e-6,1e-06,hessian_rss,r,1.2337840449836442e-16,16100.003107542741
+M01|ALL|lin-hybrid|free|eftedal,x1e-6,1e-06,sandwich,V_A,0.8238963316554352,0.011781437055028156
+M01|ALL|lin-hybrid|free|eftedal,x1e-6,1e-06,sandwich,m,0.23559189969595679,0.014255311349603925
+M01|ALL|lin-hybrid|free|eftedal,x1e-6,1e-06,sandwich,r,1.2337840449836442e-16,0.1477379473850928

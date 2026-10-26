@@ -1,0 +1,55 @@
+ fit             label  pred_maxdiff_at_2025_params  loss_2025  loss_new_code_at_2025_params  loss_refit  max_abs_param_diff
+   1  M01 log,invSqErr                    6.245e-16  2.274e+05                     2.274e+05   2.274e+05           2.924e-05
+   2    M01 log,hybrid                    4.996e-16      0.916                         0.916       0.916           3.963e-07
+   3  M01 lin,invSqErr                    6.384e-16       2029                          2029        2029           5.669e-07
+   4    M01 lin,hybrid                    7.216e-16    0.04224                       0.04224     0.04224           8.808e-08
+   5  M02 log,invSqErr                     5.69e-16  1.668e+05                     1.668e+05   1.668e+05            0.001248
+   6    M02 log,hybrid                    4.857e-16     0.6953                        0.6953      0.6953           2.782e-06
+   7  M02 lin,invSqErr                    9.992e-16       1289                          1289        1289           0.0001354
+   8    M02 lin,hybrid                    9.992e-16    0.03596                       0.03596     0.03596           0.0002641
+   9 M03a log,invSqErr                    9.992e-16   1.79e+05                      1.79e+05    1.79e+05           3.561e-05
+  10   M03a log,hybrid                     1.11e-15      1.305                         1.305       1.305           8.703e-06
+  11 M03a lin,invSqErr                    4.718e-16       1845                          1845        1845           1.619e-06
+  12   M03a lin,hybrid                    6.661e-16    0.03323                       0.03323     0.03323            3.47e-06
+  13 M03b log,invSqErr                    1.166e-15  1.688e+05                     1.688e+05   1.688e+05           8.545e-05
+  14   M03b log,hybrid                    5.412e-16     0.8938                        0.8938      0.8938           6.837e-07
+  15 M03b lin,invSqErr                    3.886e-16       1651                          1651        1651           2.506e-06
+  16   M03b lin,hybrid                    7.216e-16    0.03252                       0.03252     0.03252           1.007e-05
+  17 M04a log,invSqErr                    4.441e-16  1.099e+05                     1.099e+05   1.099e+05           4.013e-05
+  18   M04a log,hybrid                    5.551e-16      1.096                         1.096        1.63               0.346
+  19 M04a lin,invSqErr                    5.551e-16       1026                          1026        1026           4.664e-06
+  20   M04a lin,hybrid                    4.441e-16    0.02372                       0.02372     0.02372           6.622e-06
+  21 M04b log,invSqErr                    6.106e-16  1.302e+05                     1.302e+05   1.302e+05           5.834e-05
+  22   M04b log,hybrid                    4.163e-16      1.788                         1.788       1.788           7.566e-06
+  23 M04b lin,invSqErr                    6.661e-16       1524                          1524        1202              0.8748
+  24   M04b lin,hybrid                    4.996e-16    0.01681                       0.01681     0.01681           2.866e-06
+  25 M05a log,invSqErr                    6.106e-16  1.018e+05                     1.018e+05   1.018e+05           7.186e-05
+  26   M05a log,hybrid                    4.441e-16      1.454                         1.454        1.45              0.5276
+  27 M05a lin,invSqErr                    6.661e-16      709.8                         709.8       709.8           9.517e-05
+  28   M05a lin,hybrid                    6.661e-16     0.0168                        0.0168      0.0168           0.0001669
+  29 M05b log,invSqErr                    6.106e-16  1.301e+05                     1.301e+05   1.172e+05              0.8481
+  30   M05b log,hybrid                    5.551e-16      1.585                         1.585       1.585           4.768e-05
+  31 M05b lin,invSqErr                    5.551e-16      896.9                         896.9       896.9           0.0004943
+  32   M05b lin,hybrid                     1.11e-15    0.01265                       0.01265     0.01265           1.106e-05
+                            label             cohort scale  weights  h2_2025  m_2025  r_2025  h2_refit  m_refit  r_refit  loss_at_2025_params  loss_refit
+               A ALL lin,invSqErr                ALL   lin invSqErr    0.736   0.286  0.4663    0.7375   0.2873        0                 2124        2029
+                A ALL lin,uniform                ALL   lin  uniform   0.7987  0.2525  0.3456    0.7981   0.2625        0               0.2004      0.1907
+                 A ALL lin,hybrid                ALL   lin   hybrid   0.8323   0.224  0.4301    0.8297   0.2368        0              0.04412     0.04224
+   A ALL_but_adopted log,invSqErr    ALL_but_adopted   log invSqErr   0.5009  0.4313  0.4948    0.5038   0.4301   0.2968            2.277e+05   2.274e+05
+    A ALL_but_adopted log,uniform    ALL_but_adopted   log  uniform   0.5798  0.3948   0.469    0.6009   0.3894        0                7.258       7.061
+     A ALL_but_adopted log,hybrid    ALL_but_adopted   log   hybrid   0.6807  0.3525  0.4654    0.6912   0.3524        0               0.9661       0.916
+   A ALL_but_adopted lin,invSqErr    ALL_but_adopted   lin invSqErr   0.7364  0.2856  0.4663    0.7375   0.2873        0                 1988        1893
+    A ALL_but_adopted lin,uniform    ALL_but_adopted   lin  uniform   0.8002  0.2517  0.3267    0.7981   0.2625        0                0.102     0.09289
+     A ALL_but_adopted lin,hybrid    ALL_but_adopted   lin   hybrid   0.8323   0.224  0.4301    0.8297   0.2368        0              0.01614     0.01426
+A ALL_but_adopted_UZ log,invSqErr ALL_but_adopted_UZ   log invSqErr   0.4986  0.4325  0.5017    0.5001    0.432   0.3128            2.213e+05   2.211e+05
+ A ALL_but_adopted_UZ log,uniform ALL_but_adopted_UZ   log  uniform   0.5541  0.4134  0.4714     0.582   0.4058        0                2.859       2.666
+  A ALL_but_adopted_UZ log,hybrid ALL_but_adopted_UZ   log   hybrid   0.6548  0.3718   0.469    0.6719   0.3699        0                0.455      0.4018
+A ALL_but_adopted_UZ lin,invSqErr ALL_but_adopted_UZ   lin invSqErr   0.7303  0.2892  0.4104    0.7318   0.2904        0                 1892        1814
+ A ALL_but_adopted_UZ lin,uniform ALL_but_adopted_UZ   lin  uniform   0.7931  0.2438  0.3031    0.7919   0.2561        0              0.06546     0.05888
+  A ALL_but_adopted_UZ lin,hybrid ALL_but_adopted_UZ   lin   hybrid   0.8302  0.2127  0.4084    0.8278   0.2281        0              0.01253      0.0111
+          A bio_only log,invSqErr           bio_only   log invSqErr   0.7452  0.2467  0.4151    0.8005   0.2248   0.2411            1.595e+04   1.415e+04
+           A bio_only log,uniform           bio_only   log  uniform   0.7536  0.2453  0.5433    0.7712   0.2447   0.1861               0.4758      0.4464
+            A bio_only log,hybrid           bio_only   log   hybrid   0.7958  0.2237  0.4906    0.8033   0.2299  0.01264               0.0654     0.05841
+          A bio_only lin,invSqErr           bio_only   lin invSqErr   0.7801  0.2358  0.5278    0.7802   0.2384        0                412.1       338.8
+           A bio_only lin,uniform           bio_only   lin  uniform    0.823  0.1929  0.3884     0.821   0.2072        0              0.03197     0.02799
+            A bio_only lin,hybrid           bio_only   lin   hybrid   0.8514  0.1603  0.3209    0.8497   0.1698        0             0.004092    0.003789
