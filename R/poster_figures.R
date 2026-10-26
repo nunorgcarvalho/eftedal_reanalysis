@@ -270,7 +270,7 @@ if (has("models", "core_jackknife.csv") && has("models", "core_predictions.csv")
   for (m in CORE_MODELS)
     save_poster(components_and_params(m), file.path("supplement", paste0("s_components_", model_tag(m))),
                 width = 8.8, height = 8.0)   # smaller than P5, so text is larger on a slide
-  # fit statistics (Marginal Type) as LaTeX snippets, \input by poster/supplemental_slides.tex
+  # fit statistics (Marginal Type) as LaTeX snippets, \input by ASHG/supplemental_slides/supplemental_slides.tex
   fs <- rd("models", "core_fits.csv") %>% filter(weights == "hybrid_block") %>%
     left_join(rd("models", "core_cv_summary.csv") %>% select(model, weights, cv_rmse), by = c("model", "weights")) %>%
     mutate(cv_rank = rank(cv_rmse))
@@ -477,3 +477,13 @@ if (has("poster", "eftedal_predictions.csv") && has("poster", "additive_by_cohor
              file.path(FIGURES, "supplement", "stats_eftedal.tex"))
 }
 cat("poster figures written to", FIGURES, "\n")
+
+# provenance stamp (see src/eftedal/provenance.py): which commit produced these figures
+local({
+  out <- file.path(RESULTS, "PROVENANCE"); dir.create(out, showWarnings = FALSE, recursive = TRUE)
+  git <- function(...) suppressWarnings(system2("git", c("-C", REPO, ...), stdout = TRUE, stderr = FALSE))
+  dirty <- length(git("status", "--porcelain", "--", "src", "scripts", "R")) > 0
+  writeLines(c(paste0("commit=", git("rev-parse", "HEAD")), paste0("dirty=", as.integer(dirty)),
+               paste0("time=", format(Sys.time(), "%Y-%m-%dT%H:%M:%S"))),
+             file.path(out, sprintf("%s.txt", "poster_figures")))
+})

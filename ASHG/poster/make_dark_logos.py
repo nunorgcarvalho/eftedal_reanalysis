@@ -1,7 +1,7 @@
 """Logo variants for a dark background: white page -> transparent; the wordmark (right of `split`)
 recoloured white with alpha from its ink density; the emblem keeps its colours, with only the white
 connected to the image border made transparent (so white details inside the emblem stay white).
-Usage: python poster/make_dark_logos.py  (writes logos/*_dark.png)."""
+Usage: python ASHG/poster/make_dark_logos.py  (writes logos/*_dark.png)."""
 from pathlib import Path
 import numpy as np
 from PIL import Image

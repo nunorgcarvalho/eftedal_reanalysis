@@ -23,6 +23,7 @@ import numpy as np
 import pandas as pd
 
 from eftedal import cv
+from eftedal import provenance
 from eftedal import data as D
 from eftedal.inference import parametric_bootstrap
 from eftedal.presets import main_spec
@@ -128,3 +129,4 @@ if __name__ == "__main__":
     ap.add_argument("--n-boot", type=int, default=300)
     a = ap.parse_args()
     main(a.out, a.n_starts, a.n_boot)
+    provenance.stamp(__file__)

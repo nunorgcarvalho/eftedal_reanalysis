@@ -1,5 +1,5 @@
-% ASHG 2026 poster. Build: poster/build.sh  (diagrams from components/*.tex; logos in
-% poster/logos/, untracked; result figures from results/figures/ once they are placed).
+% ASHG 2026 poster. Build: ASHG/build.sh  (diagrams from components/*.tex; logos in
+% ASHG/poster/logos/, untracked; result figures from results/figures/poster/).
 % Size: ASHG 2026 recommended poster 72 in wide x 36 in tall (board 96 x 48 in, landscape).
 \documentclass{article}
 \usepackage[paperwidth=72in, paperheight=36in, margin=0in]{geometry}
@@ -21,7 +21,7 @@
 \usepackage{booktabs, array}
 \usepackage{ragged2e}
 
-\graphicspath{{../results/figures/}{logos/}{components/}}
+\graphicspath{{../../results/figures/}{logos/}{components/}}
 \input{components/style/palette}   % relative-type colours, shared with the pedigrees
 
 % ---- colours (figure palette: ours = teal, Eftedal = salmon) ------------------------------

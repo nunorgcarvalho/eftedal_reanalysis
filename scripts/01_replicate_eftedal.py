@@ -9,6 +9,7 @@ from pathlib import Path
 import pandas as pd
 
 from eftedal import data as D
+from eftedal import provenance
 from eftedal import eftedal2025 as E
 
 PUBLISHED = {
@@ -63,3 +64,4 @@ if __name__ == "__main__":
     ap.add_argument("--n-boot", type=int, default=5000)
     a = ap.parse_args()
     main(a.out, a.n_boot)
+    provenance.stamp(__file__)

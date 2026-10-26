@@ -23,23 +23,19 @@ __pycache__/
 .DS_Store
 *.swp
 
-# Poster: institutional logos and LaTeX build products
-poster/logos/
-poster/*.aux
-poster/*.log
-poster/*.out
-poster/*.nav
-poster/*.snm
-poster/*.toc
-poster/*.vrb
-poster/*.fls
-poster/*.fdb_latexmk
-poster/*.synctex.gz
-poster/*.pdf
-!poster/supplemental_slides.pdf
-poster/components/*.pdf
-poster/components/*.aux
-poster/components/*.log
+# ASHG 2026 materials: institutional logos and LaTeX build products (the final PDFs are tracked)
+ASHG/poster/logos/
+ASHG/**/*.aux
+ASHG/**/*.log
+ASHG/**/*.out
+ASHG/**/*.nav
+ASHG/**/*.snm
+ASHG/**/*.toc
+ASHG/**/*.vrb
+ASHG/**/*.fls
+ASHG/**/*.fdb_latexmk
+ASHG/**/*.synctex.gz
+ASHG/poster/components/*.pdf
 
 # theory notes: LaTeX build products (PDFs are tracked)
 theory/**/*.aux

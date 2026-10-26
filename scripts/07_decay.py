@@ -11,6 +11,7 @@ import argparse
 from pathlib import Path
 
 from eftedal import data as D
+from eftedal import provenance
 from eftedal.fit import component_decay
 from eftedal.model import FitSpec
 from eftedal.presets import MAIN
@@ -44,3 +45,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    provenance.stamp(__file__)

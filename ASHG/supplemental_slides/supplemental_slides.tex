@@ -1,5 +1,5 @@
 % Supplemental slides for the ASHG 2026 poster (linked from the poster's QR code via the repo).
-% Build: poster/build.sh (or pdflatex supplemental_slides.tex twice, from poster/).
+% Build: ASHG/build.sh (or pdflatex supplemental_slides.tex twice, from ASHG/supplemental_slides/).
 % Figures and the per-model fit statistics come from `Rscript R/poster_figures.R`
 % (results/figures/poster/supplement/).
 \documentclass[aspectratio=169, 10pt]{beamer}
@@ -9,9 +9,9 @@
 \usepackage{booktabs, array}
 \usepackage{fontawesome5}
 \usefonttheme{professionalfonts}
-\input{components/style/palette.tex}
-\graphicspath{{../results/figures/}{logos/}}
-\newcommand{\supp}{../results/figures/poster/supplement}
+\input{../poster/components/style/palette.tex}
+\graphicspath{{../../results/figures/}{../poster/logos/}}
+\newcommand{\supp}{../../results/figures/poster/supplement}
 
 % ---- look: plain, navy title bar, as on the poster ----
 \definecolor{navy}{HTML}{1F3A5F}
@@ -166,29 +166,17 @@
 \end{frame}
 
 % ---------------------------------------------------------------- clarifications / changes since the printed poster
-\begin{frame}{Clarifications and changes to the poster}{since it was printed}
+\begin{frame}{Clarifications to the poster}{since it was printed}
   \small\vspace{-0.2em}
-  {\color{navy}\bfseries From analyses added in these slides}
   \begin{itemize}\setlength{\itemsep}{0.4em}
-    \item \textbf{Cross-validation ranks \mA\ + \mG\ + \mC\ first} among the core models (slides
-          \pageref{cv}--\pageref{cv-by-type}): predicting each relative type from a fit to the other nine,
-          its CV RMSE is 0.035 vs 0.070 for the Additive model (0.030 vs 0.055 without the adoptive types).
-          The margin is about 1.7 standard errors of the paired difference (better in 6 of the 10 held-out
-          types): consistent with the poster's ``weak evidence for significant components beyond the
-          Additive model''.
-    \item \textbf{The collinearity of the components, quantified:} across the leave-one-type-out refits of
-          \mA\ + \mG\ + \mC, $V_A$ moves against $V_{\mathrm{GxG}}$ ($r = -0.69$) and $V_C$ ($r = -0.74$)
-          (slide \pageref{pair-AGxGF}); in the Additive model, against $m$ ($r = -0.85$; slide \pageref{pair-A}).
-  \end{itemize}
-  \medskip
-  {\color{navy}\bfseries Clarifications of the poster's wording}
-  \begin{itemize}\setlength{\itemsep}{0.4em}
-    \item \textbf{Marginal Type weights (``uniform across types''):} each of the 10 relative types gets the
-          same total weight, with inverse-variance ($1/\mathrm{SE}^2$) weights within a type.
-    \item \textbf{``All relative types'' in the Additive-model inset:} for Eftedal et al., their set of
-          biological relatives and in-laws (no adoptive types, or types related through twins of unknown
-          zygosity); for the revised estimator, all but the adoptive types. These cannot change an
-          Additive-model fit, which predicts 0 for adoptees, so the estimate is identical ($V_A = 0.784$).
+    \item \textbf{The \mA\ + \mG\ + \mC\ model was chosen as the example since it ranks first in our cross-validation ranking} among the core models (slides
+          \pageref{cv}--\pageref{cv-by-type}): 
+          its CV RMSE is 0.035 vs 0.070 for the Additive model (0.030 vs 0.055 if adoptive relatives are removed, since the additive model predicts them always to be 0).
+          However, the improvement is small (difference is about 1.7 standard errors).
+    \item \textbf{Component estimates within a model are collinear,} which can be visualized in the leave-one-type-out jackknife correlation plots (the slide after each core model).
+    \item \textbf{Marginal Type weights (``uniform across types''):} all sorts of specific relationship types were condensed into 10 broad relative blocks. Each block gets the same total weight, split among the relationship types within the block in proportion to their inverse variance ($1/\mathrm{SE}^2$).
+    \item \textbf{``All relative types'' in the Additive-model inset:} in Eftedal et al., they excluded adoptive types (their log-scale estimator does not work for pairs with an expected covariance of 0) and types involving twins of unknown zygosity from their fits.
+    In our analyses, we include all relative types when estimating parameters.
   \end{itemize}
 \end{frame}
 
