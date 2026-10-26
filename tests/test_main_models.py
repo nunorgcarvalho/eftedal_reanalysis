@@ -283,3 +283,12 @@ def test_phase2_splits_add_up(df):
     np.testing.assert_allclose(p.part_A0 + p.part_A_AM, p.comp_A)
     np.testing.assert_allclose(p.part_fam_sib + p.part_fam_ext, p.comp_family)
     np.testing.assert_allclose(p.comp_A + p.comp_GxG + p.comp_family, p.pred)
+
+
+def test_scripts_compile():
+    """Every pipeline script at least parses (they are not imported by the other tests)."""
+    import py_compile
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    for f in sorted((root / "scripts").glob("*.py")) + [root / "ASHG" / "QnA" / "make_tables.py"]:
+        py_compile.compile(str(f), doraise=True)
