@@ -768,7 +768,7 @@ AXC_ORDER <- c("A+GxG+F", "A+F+AxC", "A+GxG+F+AxC")
 if (has("models", "axc_jackknife.csv")) {
   save_fig(stacked_components(rd("models", "axc_jackknife.csv"), AXC_ORDER,
                               "GxG vs A×C (additive × shared environment): variance components"),
-           "x1_components_axc", width = 2200, height = 2300)
+           "x1_components_axc", width = 2900, height = 2300)
   ap <- rd("models", "axc_predictions.csv"); af <- rd("models", "axc_fits.csv")
   for (mod in AXC_ORDER[-1]) {
     sub <- fmt_par(af %>% filter(model == !!mod, weights == "hybrid_block"),
