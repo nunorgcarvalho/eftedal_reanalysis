@@ -31,25 +31,25 @@ overlay_ci <- function(d, x = "estimate") {
 JOINT_ORDER <- c("A", "A+H", "A+F", "A+H+F", "A+GxG", "A+GxG+H", "A+GxG+F", "A+GxG+H+F")
 show_model <- function(x) gsub("\\bF\\b", "C", gsub(">", " \u2192 ", x), perl = TRUE)   # shared env. F shown as C
 # parameter symbols as plotmath strings (for label_parsed / parse(text = ...))
-PAR_MATH <- c(V_A = "V[A]", V_A0 = "V[A]^0", m = "m", r = "r", V_GxG = "V[GxG]", V_family = "V[C]",
+PAR_MATH <- c(V_A = "V[A]", V_A0 = "V[A]^0", m = "m", r = "r", V_GxG = "V[GxG]", V_AxC = "V[AxC]", V_family = "V[C]",
               V_house = "V[H]", V_sum = "Sigma*V", r_f = "c", pi = "pi", V_fam_ext = "V[C]~c",
               V_fam_sib = "V[C]*(1-c)", rho_g = "rho[g]", rho_e = "rho[e]", k_side = "kappa")
 par_math <- function(p) unname(ifelse(p %in% names(PAR_MATH), PAR_MATH[p], p))
-COMP_ORDER <- c("A", "GxG", "house", "family")
-COMP_FILL <- c(A = "#4C8CB5", GxG = "#E3894B", house = "#9B7BB8", family = "#6FAF7A")
+COMP_ORDER <- c("A", "GxG", "AxC", "house", "family")
+COMP_FILL <- c(A = "#4C8CB5", GxG = "#E3894B", AxC = "#C9A227", house = "#9B7BB8", family = "#6FAF7A")
 # bar segments: the additive component split into its random-mating part V_A0 = V_A(1 - m) and the
 # excess due to assortative mating, V_A m; the shared environment C (V_family, decay r_f = c) split
 # into its beyond-sibling part V_C c (shared by relatives of family degree >= 1) and the
 # within-sibling part V_C (1 - c)
-SEG_ORDER <- c("A0", "A_AM", "GxG", "house", "fam_ext", "fam_sib")
+SEG_ORDER <- c("A0", "A_AM", "GxG", "AxC", "house", "fam_ext", "fam_sib")
 # A_AM / fam_sib: same colour as A0 / fam_ext, distinguished by white diagonal stripes (/ and \
 # respectively); their hex differs by one unit so the legend key can recognise them
-SEG_FILL <- c(A0 = "#4C8CB5", A_AM = "#4C8CB6", GxG = "#E3894B", house = "#9B7BB8",
+SEG_FILL <- c(A0 = "#4C8CB5", A_AM = "#4C8CB6", GxG = "#E3894B", AxC = "#C9A227", house = "#9B7BB8",
               fam_ext = "#6FAF7A", fam_sib = "#6FAF7B")
 STRIPE_DIR <- c("#4C8CB6" = 1, "#6FAF7B" = -1)   # fill -> stripe direction (slope sign)
-SEG_LABELS <- c(A0 = "A (random mating)", A_AM = "A (excess under AM)", GxG = "GxG", house = "H (household)",
+SEG_LABELS <- c(A0 = "A (random mating)", A_AM = "A (excess under AM)", GxG = "GxG", AxC = "A×C", house = "H (household)",
                 fam_ext = "C (beyond-sibling)", fam_sib = "C (within-sibling)")
-COMP_LINE <- c(A = "#1F4E6E", GxG = "#9A4A14", house = "#5B3F78", family = "#2F6B3A")
+COMP_LINE <- c(A = "#1F4E6E", GxG = "#9A4A14", AxC = "#7A6210", house = "#5B3F78", family = "#2F6B3A")
 FOLD_ORDER <- c("twins", "sibs", "half sibs", "1st cousins", "half cousins", "2nd cousins",
                 "step sibs", "cocousins", "adoptive sibs", "adoptive cousins",
                 "all in-laws", "all adoptive")
@@ -209,7 +209,7 @@ plot_condensed_components <- function(preds, title = NULL) {
   obs <- obs_from(preds)
   po <- pool_by_type(obs) %>%
     mutate(lo = corr - z95 * se, hi = corr + z95 * se, label = str_wrap(CONDENSED_LABELS[rel], 10))
-  parts <- c(A0 = "part_A0", A_AM = "part_A_AM", GxG = "comp_GxG", house = "comp_house", fam_ext = "part_fam_ext", fam_sib = "part_fam_sib")
+  parts <- c(A0 = "part_A0", A_AM = "part_A_AM", GxG = "comp_GxG", AxC = "comp_AxC", house = "comp_house", fam_ext = "part_fam_ext", fam_sib = "part_fam_sib")
   parts <- parts[parts %in% names(preds)]
   parts <- parts[sapply(parts, function(cl) any(!is.na(preds[[cl]])))]   # components in this model
   w <- obs %>% transmute(row, w = 1 / se^2)
@@ -254,7 +254,7 @@ plot_condensed_components <- function(preds, title = NULL) {
 # scaled so a pair whose kernels are all 1 (MZ twins) has correlation 1. Categories within a type are
 # pooled with the observations' inverse-variance weights, as in the condensed fit plots.
 plot_component_decay <- function(dec, title = NULL, subtitle = NULL) {
-  parts <- c(A0 = "part_A0", A_AM = "part_A_AM", GxG = "comp_GxG", house = "comp_house", fam_ext = "part_fam_ext", fam_sib = "part_fam_sib")
+  parts <- c(A0 = "part_A0", A_AM = "part_A_AM", GxG = "comp_GxG", AxC = "comp_AxC", house = "comp_house", fam_ext = "part_fam_ext", fam_sib = "part_fam_sib")
   parts <- parts[parts %in% names(dec)]
   pp <- dec %>% filter(rel %in% CONDENSED_ORDER) %>% mutate(w = 1 / se^2) %>%
     select(rel, w, all_of(unname(parts))) %>%
@@ -760,6 +760,23 @@ if (has("models", "core_param_corr.csv")) {
     gpx <- pairs_grid_px(k)
     save_fig(g, sprintf("s7_paramcorr_%s_%s", gsub("\\+", "", gsub(">", "_to_", mod)), wt),
              width = gpx, height = gpx + 130 + 330 + 280)
+  }
+}
+
+# ---- AXC. A x C (additive x shared environment) vs GxG ------------------------------------------------
+AXC_ORDER <- c("A+GxG+F", "A+F+AxC", "A+GxG+F+AxC")
+if (has("models", "axc_jackknife.csv")) {
+  save_fig(stacked_components(rd("models", "axc_jackknife.csv"), AXC_ORDER,
+                              "GxG vs A×C (additive × shared environment): variance components"),
+           "x1_components_axc", width = 2200, height = 2300)
+  ap <- rd("models", "axc_predictions.csv"); af <- rd("models", "axc_fits.csv")
+  for (mod in AXC_ORDER[-1]) {
+    sub <- fmt_par(af %>% filter(model == !!mod, weights == "hybrid_block"),
+                   c("V_A", "V_GxG", "V_AxC", "V_family", "r_f", "m", "rho_g", "rho_e", "k_side"))
+    save_fig(plot_condensed_components(ap %>% filter(model == !!mod, weights == "hybrid_block"),
+                                       title = paste0(show_model(mod), " (Marginal Type)")) +
+               labs(subtitle = parse(text = sub)),
+             sprintf("x2_condensedcomp_%s", gsub("\\+", "", mod)), width = 2600, height = 1500)
   }
 }
 

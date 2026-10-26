@@ -21,7 +21,7 @@ import pandas as pd
 from eftedal import cv
 from eftedal import provenance
 from eftedal import data as D
-from eftedal.model import CORE_MODELS, JOINT_MODELS, PHASE2_MODELS
+from eftedal.model import AXC_MODELS, CORE_MODELS, JOINT_MODELS, PHASE2_MODELS
 from eftedal.presets import MAIN_WEIGHTINGS, main_spec
 
 # set name -> (models, FitSpec overrides)
@@ -34,9 +34,11 @@ SETS = {"core": (list(CORE_MODELS), {}),
         # Phase-2 variants: A+GxG+F with subsets of the modifiers
         "variants": (list(PHASE2_MODELS), {}),
         # sensitivity: X-linked kernel at the theory task's recommended s_X = 0.02
-        "core_x": (list(CORE_MODELS), {"x_share": 0.02})}
-DEFAULT_SETS = ["core", "joint", "core_am2", "core_p1", "variants", "core_x"]
-PARAMS = ["V_A", "V_GxG", "V_house", "V_family", "V_sum", "V_A0", "V_fam_sib", "V_fam_ext", "pi", "r_f", "m", "r",
+        "core_x": (list(CORE_MODELS), {"x_share": 0.02}),
+        # A x C (additive x shared environment) vs GxG, with A+GxG+F for comparison
+        "axc": (["A+GxG+F"] + list(AXC_MODELS), {})}
+DEFAULT_SETS = ["core", "joint", "core_am2", "core_p1", "variants", "core_x", "axc"]
+PARAMS = ["V_A", "V_GxG", "V_AxC", "V_house", "V_family", "V_sum", "V_A0", "V_fam_sib", "V_fam_ext", "pi", "r_f", "m", "r",
           "rho_g", "rho_e", "k_side"]
 
 

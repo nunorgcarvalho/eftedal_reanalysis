@@ -16,14 +16,14 @@ from . import components as C
 from .data import cohort_mask
 
 PARAM_ORDER = (
-    "V_A", "V_GxG", "V_house", "V_house1", "V_house2", "V_house3", "V_housepart",
+    "V_A", "V_GxG", "V_AxC", "V_house", "V_house1", "V_house2", "V_house3", "V_housepart",
     "V_cousins1", "V_cousins2", "V_family", "m", "r", "r_f", "pi", "delta",
     "rho_g", "rho_e", "k_side",
 )
 
 # Starting values (the 2025 starting values, plus the new parameters).
 DEFAULT_START = {
-    "V_A": 0.5, "V_GxG": 0.25, "V_house": 0.1, "V_house1": 0.1, "V_house2": 0.1,
+    "V_A": 0.5, "V_GxG": 0.25, "V_AxC": 0.1, "V_house": 0.1, "V_house1": 0.1, "V_house2": 0.1,
     "V_house3": 0.1, "V_housepart": 0.1, "V_cousins1": 0.1, "V_cousins2": 0.1,
     "V_family": 0.1, "m": 0.5, "r": 0.5, "r_f": 0.5, "pi": 0.5, "delta": 0.0,
     "rho_g": 1.0, "rho_e": 1.0, "k_side": 0.0,
@@ -114,6 +114,10 @@ def _phase2_models() -> dict[str, tuple[tuple[str, ...], tuple[str, ...]]]:
 
 
 PHASE2_MODELS = _phase2_models()
+
+# A x C (additive genetics x shared environment; kernel K_A(m) c^f, sharing C's decay c): an
+# alternative to GxG for steep decay beyond the sibship (decays like A within sibships)
+AXC_MODELS = {"A+F+AxC": ("A", "family", "AxC"), "A+GxG+F+AxC": ("A", "GxG", "family", "AxC")}
 
 @dataclass(frozen=True)
 class FitSpec:
@@ -236,7 +240,7 @@ def required_params(spec: FitSpec) -> list[str]:
     p = [f"V_{c}" for c in spec.components if c not in C.MODIFIER_COMPONENTS]
     if any(c in C.GENETIC_COMPONENTS for c in spec.components):
         p += ["m", "r"]
-    if "family" in spec.components:
+    if "family" in spec.components or "AxC" in spec.components:
         p += ["r_f"]
     if "house" in spec.components:
         p += ["pi"]
@@ -399,6 +403,8 @@ class Model:
                 pred += p["V_A"] * K * g1
             if "GxG" in spec.components:
                 pred += p["V_GxG"] * K2 * g2
+            if "AxC" in spec.components:
+                pred += p["V_AxC"] * K * p["r_f"] ** self.f * g1 * self.family_multiplier(p)
         for c, ind in self.indicators.items():
             pred += p[f"V_{c}"] * ind
         if "house" in spec.components:
@@ -443,6 +449,8 @@ class Model:
                 out["A"] = p["V_A"] * K * g1
             if "GxG" in spec.components:
                 out["GxG"] = p["V_GxG"] * K2 * g2
+            if "AxC" in spec.components:
+                out["AxC"] = p["V_AxC"] * K * p["r_f"] ** self.f * g1 * self.family_multiplier(p)
         for c, ind in self.indicators.items():
             out[c] = p[f"V_{c}"] * ind
         if "house" in spec.components:

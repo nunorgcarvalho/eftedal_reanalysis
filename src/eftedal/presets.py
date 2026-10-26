@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import itertools
 
-from .model import (CORE_MODELS, JOINT_MODELS, PHASE2_MODELS, SEQUENTIAL_CARRY, FitSpec, MODELS,
+from .model import (AXC_MODELS, CORE_MODELS, JOINT_MODELS, PHASE2_MODELS, SEQUENTIAL_CARRY, FitSpec, MODELS,
                     applicable_modifiers)
 
 # Options that reproduce the 2025 R code (archive/03_model_fitting.R, functions.R).
@@ -36,6 +36,9 @@ def main_spec(model: str, weights: str = "hybrid_block", cohort: str = "ALL", **
             extra.update(sequential_base=base, sequential_carry=SEQUENTIAL_CARRY)
     elif model in JOINT_MODELS:
         comps = JOINT_MODELS[model]
+        extra = dict(modifiers=applicable_modifiers(comps))
+    elif model in AXC_MODELS:
+        comps = AXC_MODELS[model]
         extra = dict(modifiers=applicable_modifiers(comps))
     elif model in PHASE2_MODELS:
         comps, mods = PHASE2_MODELS[model]

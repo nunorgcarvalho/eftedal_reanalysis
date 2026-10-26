@@ -292,3 +292,20 @@ def test_scripts_compile():
     root = Path(__file__).resolve().parents[1]
     for f in sorted((root / "scripts").glob("*.py")) + [root / "ASHG" / "QnA" / "make_tables.py"]:
         py_compile.compile(str(f), doraise=True)
+
+
+def test_axc_kernel(df):
+    """A x C contributes V_AxC K_A(m) c^f (with the Phase-2 multipliers), zero for adoptees."""
+    from eftedal import components as C
+    spec = main_spec("A+F+AxC", "invvar")
+    assert spec.modifiers == ("sex_g", "sex_e", "side")
+    m = Model(df, spec)
+    p = dict(V_A=0.4, V_family=0.1, V_AxC=0.1, r_f=0.5, r=0.5, m=0.2, rho_g=1.0, rho_e=1.0, k_side=0.0)
+    K, _ = C.genetic_kernels(m.kd, 0.2, 0.5, stepsib=spec.stepsib, uz=spec.uz, mz_frac=spec.mz_frac)
+    comp = m.components(p)
+    np.testing.assert_allclose(comp.AxC, 0.1 * K * 0.5 ** m.f)
+    assert (comp.AxC[df.rel.str.startswith("adoptive").to_numpy()] == 0).all()
+    np.testing.assert_allclose(m.predict(p), comp.sum(axis=1))
+    q = dict(p, rho_g=0.9, rho_e=0.8, k_side=0.2)
+    mult = np.where(m.os, 0.9 * 0.8, 1.0) * (1 + 0.2 * (m.side_mat.astype(float) - m.side_pat.astype(float)))
+    np.testing.assert_allclose(m.components(q).AxC, comp.AxC * mult)

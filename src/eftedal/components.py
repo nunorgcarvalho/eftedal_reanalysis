@@ -171,7 +171,9 @@ def maternal_indicator(data: pd.DataFrame) -> np.ndarray:
 
 
 INDICATOR_COMPONENTS = ("house1", "house2", "house3", "housepart", "cousins1", "cousins2")
-GENETIC_COMPONENTS = ("A", "GxG")
+# AxC: additive genetics x shared environment, kernel K_A(m) c^f (the product of the A and C kernels:
+# Cov(g_i c_i, g_j c_j) = Cov(g_i, g_j) Cov(c_i, c_j) for independent g and c); zero for adoptees
+GENETIC_COMPONENTS = ("A", "GxG", "AxC")
 # 'house': V_house * (full_time + pi * part_time), with the part-time share pi estimated
 # 'maternal': multiplicative, rho_k * (1 + delta * maternal_k); not a variance component
 ALL_COMPONENTS = GENETIC_COMPONENTS + INDICATOR_COMPONENTS + ("house", "family", "maternal")
