@@ -132,6 +132,7 @@ draw_key_striped <- function(data, params, size) {
 
 YTOP <- 1   # top of the component plots; CIs reaching past it are capped with an arrowhead
 stacked_components <- function(jk, order, title) {
+  jk <- jk %>% filter(model %in% order)   # only the models shown
   d <- jk %>% filter(param %in% paste0("V_", COMP_ORDER)) %>%
     mutate(component = factor(sub("V_", "", param), COMP_ORDER),
            model = factor(model, order), xm = as.numeric(model)) %>%
@@ -505,12 +506,13 @@ if (has("models", "core_predictions.csv")) {
 # Left: the CV score (mean over the 10 held-out blocks of the within-block weighted MSE) stacked by
 # block, the adoptive blocks at the bottom; label = CV RMSE and the adoptive blocks' share. Right: CV
 # RMSE over all blocks vs without the two adoptive blocks.
-if (has("models", "core_cv_scores.csv")) {
+cv_by_block_fig <- function(models, title) {
   ADOPT <- c("adoptive sibs", "adoptive cousins")
   STACK <- c(ADOPT, setdiff(names(FOLD_FILL), ADOPT))
   sc <- rd("models", "core_cv_scores.csv") %>% filter(fold %in% names(FOLD_FILL)) %>%
     group_by(weights, model) %>% mutate(contrib = score / n() * 1000) %>% ungroup() %>%
-    mutate(model = factor(model, CORE_ORDER), weights = factor(weights, c("invvar", "hybrid_block")),
+    filter(model %in% models) %>%
+    mutate(model = factor(model, models), weights = factor(weights, c("invvar", "hybrid_block")),
            fold = factor(fold, rev(STACK)))
   tot <- sc %>% group_by(weights, model) %>%
     summarize(total = sum(contrib), adopt = sum(contrib[fold %in% ADOPT]),
@@ -547,9 +549,16 @@ if (has("models", "core_cv_scores.csv")) {
           legend.position = "bottom", legend.direction = "vertical")
   g <- cowplot::plot_grid(g1, g2, nrow = 1, rel_widths = c(1.35, 1), align = "h", axis = "tb")
   g <- cowplot::plot_grid(cowplot::ggdraw() + cowplot::draw_label(
-    "Core models: where the cross-validation error comes from", x = 0.01, hjust = 0, size = 13),
+    title, x = 0.01, hjust = 0, size = 13),
     g, ncol = 1, rel_heights = c(0.05, 1)) + theme(plot.background = element_rect(fill = "white", color = NA))
-  save_fig(g, "m3e_cv_by_block", width = 3600, height = 2400)
+  g
+}
+FOCAL <- c("A", "A+GxG", "A+F", "A+GxG+F")   # the focal (jointly fitted) models
+if (has("models", "core_cv_scores.csv")) {
+  save_fig(cv_by_block_fig(CORE_ORDER, "Core models: where the cross-validation error comes from"),
+           "m3e_cv_by_block", width = 3600, height = 2400)
+  save_fig(cv_by_block_fig(FOCAL, "Focal models: where the cross-validation error comes from"),
+           "f_cv_by_block", width = 3700, height = 2300)
 }
 
 # ---- M4. component correlation decay across relationship types (scripts/07_decay.py) -----------
@@ -789,10 +798,9 @@ show_p2 <- function(x) gsub(" \\| ", "\n× ", show_model(x))
 MULT_LABELS <- c(rho_g = "ρ_g: opposite-sex genetic covariance",
                  rho_e = "ρ_e: opposite-sex familial environment",
                  k_side = "κ_side: maternal (1 + κ) vs paternal (1 − κ)")
-if (has("models", "core_jackknife.csv")) {
-  cj <- rd("models", "core_jackknife.csv")
-  d <- cj %>% filter(param %in% names(MULT_LABELS)) %>%
-    mutate(model = factor(model, rev(CORE_ORDER)), param = factor(MULT_LABELS[param], MULT_LABELS),
+mult_fig <- function(models, title) {
+  d <- rd("models", "core_jackknife.csv") %>% filter(param %in% names(MULT_LABELS), model %in% models) %>%
+    mutate(model = factor(model, rev(models)), param = factor(MULT_LABELS[param], MULT_LABELS),
            weights = factor(WEIGHT_LABELS[weights], WEIGHT_LABELS[c("invvar", "hybrid_block")]))
   g <- ggplot(d, aes(x = estimate, y = model, color = weights)) +
     geom_vline(data = tibble(param = factor(MULT_LABELS, MULT_LABELS), x0 = c(1, 1, 0)),
@@ -804,10 +812,16 @@ if (has("models", "core_jackknife.csv")) {
     scale_y_discrete(labels = show_model) +
     scale_color_manual(values = c("Marginal Pair" = "#0072B2", "Marginal Type" = "#D55E00"), name = NULL) +
     labs(x = "Estimate (1 = no sex difference; κ = 0: no side difference)", y = NULL,
-         title = "Core models (Phase 2): sex-composition and family-side multipliers",
+         title = title,
          subtitle = "95% jackknife intervals (t₉). Two-step models estimate each multiplier in the step where its component enters") +
     theme_bw() + theme(legend.position = "bottom")
-  save_fig(g, "p2_multipliers", width = 3900, height = 1700)
+  g
+}
+if (has("models", "core_jackknife.csv")) {
+  save_fig(mult_fig(CORE_ORDER, "Core models (Phase 2): sex-composition and family-side multipliers"),
+           "p2_multipliers", width = 3900, height = 1700)
+  save_fig(mult_fig(FOCAL, "Focal models: sex-composition and family-side multipliers") +
+             labs(subtitle = "95% jackknife intervals (t\u2089)"), "f_multipliers", width = 3600, height = 1200)
 }
 # Phase 1 vs Phase 2 for every core model
 if (has("models", "core_jackknife.csv") && has("models", "core_p1_jackknife.csv")) {
@@ -862,6 +876,40 @@ if (has("models", "core_predictions.csv") && has("models", "core_p1_predictions.
     theme_bw() + theme(legend.position = "bottom", axis.text.x = element_text(size = 7))
   save_fig(g, "p2_misfit_within_between", width = 3900, height = 2300)
 }
+# ---- F. focal models (A, A+GxG, A+C, A+GxG+C; Phase 2) ------------------------------------------------
+if (has("models", "core_jackknife.csv")) {
+  save_fig(stacked_components(rd("models", "core_jackknife.csv"), FOCAL, "Focal models: variance components"),
+           "f_components", width = 2600, height = 2300)
+}
+# every parameter of the focal models under both estimators: Marginal Pair (1/SE^2 weights, parametric
+# bootstrap CI) and Marginal Type (type-balanced weights, jackknife CI, t_9)
+if (has("models", "core_jackknife.csv") && has("bootstrap", "intervals.csv")) {
+  EST_PARAMS <- c(V_A = "V[A]", V_A0 = "V[A]^0", V_GxG = "V[GxG]", V_family = "V[C]", V_sum = "Sigma*V",
+                  m = "m", r_f = "c", rho_g = "rho[g]", rho_e = "rho[e]", k_side = "kappa")
+  EST_COLORS <- c("Marginal Pair (bootstrap CI)" = "#0072B2", "Marginal Type (jackknife CI)" = "#D55E00")
+  est <- bind_rows(
+    rd("bootstrap", "intervals.csv") %>% filter(weights == "invvar") %>% mutate(estimator = names(EST_COLORS)[1]),
+    rd("models", "core_jackknife.csv") %>% filter(weights == "hybrid_block") %>% mutate(estimator = names(EST_COLORS)[2])) %>%
+    filter(model %in% FOCAL, param %in% names(EST_PARAMS)) %>%
+    mutate(param = factor(EST_PARAMS[param], EST_PARAMS), model = factor(model, rev(FOCAL)),
+           clip_lo = lo < -0.5, clip_hi = hi > 1.5, lo = pmax(lo, -0.5), hi = pmin(hi, 1.5))
+  g <- ggplot(est, aes(x = estimate, y = model, color = estimator)) +
+    geom_vline(data = tibble(param = factor(EST_PARAMS[c("rho_g", "rho_e")], EST_PARAMS), x0 = 1),
+               aes(xintercept = x0), linetype = "dashed", color = "grey60") +
+    geom_vline(data = tibble(param = factor(EST_PARAMS[c("V_GxG", "V_family", "k_side")], EST_PARAMS), x0 = 0),
+               aes(xintercept = x0), linetype = "dashed", color = "grey60") +
+    geom_errorbar(aes(xmin = lo, xmax = hi), width = 0, linewidth = 0.8, orientation = "y",
+                  position = position_dodge(width = 0.55)) +
+    geom_point(size = 2, position = position_dodge(width = 0.55)) +
+    facet_wrap(~param, nrow = 2, scales = "free_x", labeller = label_parsed) +
+    scale_y_discrete(labels = show_model) +
+    scale_color_manual(values = EST_COLORS, name = NULL) +
+    labs(x = "Estimate (95% interval; clipped to [-0.5, 1.5])", y = NULL,
+         title = "Focal models: every parameter under both estimators") +
+    theme_bw() + theme(legend.position = "bottom")
+  save_fig(g, "f_estimates", width = 3900, height = 1900)
+}
+
 cat("figures written to", FIGURES, "\n")
 
 # provenance stamp (see src/eftedal/provenance.py): which commit produced these figures
