@@ -68,6 +68,22 @@ and A+GxG+C: "+" means fitted jointly, "→" fitted in steps, with the earlier c
 parameters held fixed. In the code, C is the `family` component (`V_family`, decay `r_f` = $c$),
 and model names use F for it.
 
+**Phase 2 (current; after ASHG 2026).** Every core and joint model also fits the sex-composition
+and family-side multipliers its components allow (`FitSpec.modifiers`):
+- **ρ_g** scales opposite-sex pairs' genetic covariance (A × ρ_g, GxG × ρ_g²).
+- **ρ_e** scales opposite-sex pairs' shared environment C.
+- **κ** redistributes C between the maternal (1 + κ) and paternal (1 − κ) side of a type.
+
+Notes:
+- **Two-step models** estimate each multiplier in the step where its component enters.
+- **Phase 1** (no multipliers) is the `core_p1` set. The Additive model of the Eftedal-vs-revised
+  comparison stays Phase 1.
+- **Jackknife CIs** use t₉ (10 blocks).
+- **X-linked kernel:** a sensitivity analysis (`x_share`, set `core_x`), derived in
+  `theory/x_kernel/`.
+- **ASHG 2026 materials** were Phase 1 with 1.96 intervals, and are frozen at tag `ASHG2026` (see
+  `ASHG/README.md`).
+
 Parameters are fitted by weighted least squares on the correlation scale, in two ways:
 
 | | Marginal Pair (`invvar`) | Marginal Type (`hybrid_block`) |

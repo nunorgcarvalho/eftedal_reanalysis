@@ -227,6 +227,15 @@ A+GxG+F. <b>X→Y</b> is two-step: step 1 fits X; step 2 fits Y on top with ever
 (<code>model.SEQUENTIAL_CARRY = ("all",)</code>). Names without → are fitted jointly. Refits (jackknife, CV, bootstrap) redo
 both steps. The <b>all-joint set</b> {A, A+GxG} × {none, H, F, H+F} (<code>model.JOINT_MODELS</code>, 8) is kept for the
 supplement, as is the 2025 set (<code>model.MODELS_2025</code>).</p>
+<p><b>Phase 2</b> (current; <code>FitSpec.modifiers</code>, <code>model.applicable_modifiers</code>): every core and
+joint model also fits the sex-composition and family-side multipliers its components allow. \(\rho_g\) scales
+opposite-sex pairs' genetic covariance (A \(\times\rho_g\), GxG \(\times\rho_g^2\)); \(\rho_e\) scales their shared
+environment; \(\kappa\) redistributes C within a type, \(\times(1+\kappa)\) maternal and \(\times(1-\kappa)\)
+paternal. Each multiplier is shared across every block where its contrast exists (never block-specific).
+Two-step models estimate it in the step where its component enters. With the multipliers at their null values,
+Phase 2 reproduces Phase 1 exactly (tested); Phase 1 is the <code>core_p1</code> set. The X-linked kernel
+(<code>x_share</code>, set <code>core_x</code>, <code>theory/x_kernel/</code>) is a sensitivity analysis. Jackknife
+intervals use \(t_{B-1}\) (\(t_9 = 2.26\)).</p>
 
 <h3 id="constraints">Parameters and constraints</h3>
 <ul>
