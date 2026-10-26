@@ -19,6 +19,7 @@ from pathlib import Path
 import pandas as pd
 
 from eftedal import cv
+from eftedal import provenance
 from eftedal import data as D
 from eftedal.model import CORE_MODELS, JOINT_MODELS
 from eftedal.presets import MAIN_WEIGHTINGS, main_spec
@@ -76,3 +77,4 @@ if __name__ == "__main__":
     ap.add_argument("--sets", nargs="+", default=list(SETS), choices=list(SETS))
     a = ap.parse_args()
     main(a.out, a.n_starts, a.sets)
+    provenance.stamp(__file__)

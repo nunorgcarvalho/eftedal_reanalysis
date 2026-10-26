@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 
 from eftedal import data as D
+from eftedal import provenance
 
 R = D.REPO_ROOT / "results"
 OUT = R / "qna"
@@ -235,3 +236,4 @@ num("rAVAm", rpair("A", "V_A", "m"))
 
 write("numbers.tex", "".join(f"\\newcommand{{\\{k}}}{{{v}}}\n" for k, v in macros.items()))
 print(f"wrote {len(macros)} numbers and 6 tables to {OUT}")
+provenance.stamp(__file__)

@@ -10,6 +10,18 @@ Montréal.
 | [`supplemental_slides/`](supplemental_slides/) | The supplemental slides ([PDF](supplemental_slides/supplemental_slides.pdf)) linked from the poster's QR code: every core model, cross-validation, and clarifications to the poster. |
 | [`QnA/`](QnA/) | Preparation notes ([PDF](QnA/QnA.pdf)): likely questions with short answers, figures and tables. AI-written; see the disclosure at the top of the PDF. |
 
+## Archived as presented
+
+These materials are frozen as presented at ASHG 2026:
+- **Code and built PDFs:** tag [`ASHG2026`](../../../tree/ASHG2026).
+- **The `results/` they were built from**, plus the Python/R environment: tag `ASHG2026-results`
+  (branch `archive/ashg2026-results`).
+
+The analysis has moved on since then (Phase 2: sex-composition and family-side multipliers;
+t-based jackknife intervals). So `build.sh` **refuses to rebuild** when the code or the results
+differ from the tag; pass `--force` to override. To rebuild faithfully, check out the tag in its
+own worktree, copy in that snapshot's `results/`, and run `build.sh` there.
+
 ## Building
 
 Everything is generated from the analysis results (`results/`, not tracked). From the repository root:

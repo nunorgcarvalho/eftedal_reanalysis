@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 
 from eftedal import data as D
+from eftedal import provenance
 from eftedal.fit import DERIVED, derived_params, fit
 from eftedal.inference import parametric_bootstrap, percentile_table
 from eftedal.model import CORE_MODELS
@@ -52,3 +53,4 @@ if __name__ == "__main__":
     ap.add_argument("--n-starts", type=int, default=12)
     a = ap.parse_args()
     main(a.out, a.n_boot, a.n_starts)
+    provenance.stamp(__file__)

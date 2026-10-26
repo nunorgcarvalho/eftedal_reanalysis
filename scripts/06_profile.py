@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 
 from eftedal import data as D
+from eftedal import provenance
 from eftedal.fit import fit
 from eftedal.presets import MAIN_WEIGHTINGS, main_spec
 
@@ -56,3 +57,4 @@ if __name__ == "__main__":
     ap.add_argument("--n-starts", type=int, default=8)
     a = ap.parse_args()
     main(a.out, a.n_starts)
+    provenance.stamp(__file__)

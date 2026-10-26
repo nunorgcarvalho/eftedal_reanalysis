@@ -764,3 +764,13 @@ if (has("models", "core_param_corr.csv")) {
 }
 
 cat("figures written to", FIGURES, "\n")
+
+# provenance stamp (see src/eftedal/provenance.py): which commit produced these figures
+local({
+  out <- file.path(RESULTS, "PROVENANCE"); dir.create(out, showWarnings = FALSE, recursive = TRUE)
+  git <- function(...) suppressWarnings(system2("git", c("-C", REPO, ...), stdout = TRUE, stderr = FALSE))
+  dirty <- length(git("status", "--porcelain", "--", "src", "scripts", "R")) > 0
+  writeLines(c(paste0("commit=", git("rev-parse", "HEAD")), paste0("dirty=", as.integer(dirty)),
+               paste0("time=", format(Sys.time(), "%Y-%m-%dT%H:%M:%S"))),
+             file.path(out, sprintf("%s.txt", "make_figures")))
+})
