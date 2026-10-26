@@ -33,7 +33,7 @@ show_model <- function(x) gsub("\\bF\\b", "C", gsub(">", " \u2192 ", x), perl = 
 # parameter symbols as plotmath strings (for label_parsed / parse(text = ...))
 PAR_MATH <- c(V_A = "V[A]", V_A0 = "V[A]^0", m = "m", r = "r", V_GxG = "V[GxG]", V_family = "V[C]",
               V_house = "V[H]", V_sum = "Sigma*V", r_f = "c", pi = "pi", V_fam_ext = "V[C]~c",
-              V_fam_sib = "V[C]*(1-c)")
+              V_fam_sib = "V[C]*(1-c)", rho_g = "rho[g]", rho_e = "rho[e]", k_side = "kappa")
 par_math <- function(p) unname(ifelse(p %in% names(PAR_MATH), PAR_MATH[p], p))
 COMP_ORDER <- c("A", "GxG", "house", "family")
 COMP_FILL <- c(A = "#4C8CB5", GxG = "#E3894B", house = "#9B7BB8", family = "#6FAF7A")
